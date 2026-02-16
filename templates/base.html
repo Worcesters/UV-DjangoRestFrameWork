@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Plateforme Elite{% endblock %}</title>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Effet de brillance high-tech sur le logo */
+        .logo-glow {
+            text-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Animation d'apparition douce pour HTMX */
+        .htmx-added {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Barre de navigation Glassmorphism */
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-[#1e293b] antialiased">
+
+    <nav class="nav-glass sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-6 h-20 flex justify-between items-center">
+
+            <a href="/" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:rotate-12 transition-transform duration-300">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <span class="font-extrabold text-2xl tracking-tight logo-glow">DJANGO<span class="text-blue-600">2026</span></span>
+            </a>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/" class="text-sm font-semibold hover:text-blue-600 transition-colors relative group">
+                    Accueil
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
+                </a>
+
+                {% if user.is_authenticated %}
+                    <a href="/profile/" class="text-sm font-semibold hover:text-blue-600 transition-colors flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs">
+                            {{ user.email|first|upper }}
+                        </div>
+                        Mon Profil
+                    </a>
+                    <a href="/admin/logout/" class="text-sm font-semibold text-gray-500 hover:text-red-500">Déconnexion</a>
+                {% else %}
+                    <a href="/signup/" class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all">
+                        Commencer l'aventure
+                    </a>
+                {% endif %}
+            </div>
+
+            <button class="md:hidden text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-12 min-h-[80vh]">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 py-12">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center opacity-60">
+            <p class="text-sm font-medium">&copy; 2026 Django Elite Lab. All rights reserved.</p>
+            <div class="flex space-x-6 mt-4 md:mt-0">
+                <span class="text-xs uppercase tracking-widest font-bold">Built with UV & HTMX</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // CSRF Token auto pour HTMX
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+
+        // Petit effet au scroll sur la navbar
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 20) {
+                nav.classList.add('h-16', 'shadow-xl');
+                nav.classList.remove('h-20');
+            } else {
+                nav.classList.remove('h-16', 'shadow-xl');
+                nav.classList.add('h-20');
+            }
+        });
+    </script>
+</body>
+</html>
