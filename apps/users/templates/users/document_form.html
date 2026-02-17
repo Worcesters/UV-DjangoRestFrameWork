@@ -43,13 +43,36 @@
         <div>
             <div class="sticky top-24">
                 <p class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Aperçu en direct</p>
-                <div id="preview" class="p-6 bg-white border-2 border-gray-200 rounded-2xl shadow-inner min-h-[400px] prose prose-slate max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-blue-600 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded">
+                <div id="preview" class="preview-markdown p-6 bg-white border-2 border-gray-200 rounded-2xl shadow-inner min-h-[400px] text-gray-600">
                     <p class="text-gray-400 italic">Le rendu s'affichera ici...</p>
                 </div>
             </div>
         </div>
     </form>
 </div>
+
+<style>
+/* Styles pour l'aperçu Markdown (Tailwind CDN n'inclut pas le plugin prose) */
+.preview-markdown { font-size: 0.9375rem; line-height: 1.7; }
+.preview-markdown h1 { font-size: 1.875rem; font-weight: 700; color: #0f172a; margin: 1.5em 0 0.5em; line-height: 1.3; }
+.preview-markdown h1:first-child { margin-top: 0; }
+.preview-markdown h2 { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 1.25em 0 0.5em; padding-bottom: 0.25em; border-bottom: 1px solid #e2e8f0; }
+.preview-markdown h3 { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin: 1em 0 0.4em; }
+.preview-markdown h4 { font-size: 1.125rem; font-weight: 600; color: #334155; margin: 0.75em 0 0.3em; }
+.preview-markdown p { margin: 0.75em 0; color: #475569; }
+.preview-markdown ul { margin: 0.75em 0; padding-left: 1.5em; list-style-type: disc; }
+.preview-markdown ol { margin: 0.75em 0; padding-left: 1.5em; list-style-type: decimal; }
+.preview-markdown li { margin: 0.25em 0; }
+.preview-markdown strong { font-weight: 700; color: #0f172a; }
+.preview-markdown em { font-style: italic; }
+.preview-markdown a { color: #2563eb; text-decoration: underline; }
+.preview-markdown a:hover { color: #1d4ed8; }
+.preview-markdown code { background: #f1f5f9; color: #0f172a; padding: 0.15em 0.4em; border-radius: 0.25rem; font-size: 0.875em; font-family: ui-monospace, monospace; }
+.preview-markdown pre { background: #0f172a; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1em 0; font-size: 0.875rem; line-height: 1.6; }
+.preview-markdown pre code { background: transparent; color: inherit; padding: 0; }
+.preview-markdown blockquote { border-left: 4px solid #3b82f6; background: #eff6ff; margin: 1em 0; padding: 0.5em 1em; border-radius: 0 0.5rem 0.5rem 0; color: #1e40af; }
+.preview-markdown hr { border: none; border-top: 1px solid #e2e8f0; margin: 1.5em 0; }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
