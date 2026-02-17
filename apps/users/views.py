@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.decorators import login_required
-from .models import User
+from .models import User, MarkdownDoc
 from django.db import IntegrityError
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
+import markdown
 
 def index(request):
     """
@@ -16,7 +17,8 @@ def index(request):
         Le fragment HTML avec la liste des utilisateurs
     """
     users = User.objects.all().order_by('-date_joined')
-    return render(request, "index.html", {"users": users})
+    documents = MarkdownDoc.objects.all().order_by('-created_at')
+    return render(request, "index.html", {"users": users, "documents": documents})
 
 @api_view(['GET'])
 def api_hello(request):
@@ -124,3 +126,49 @@ def login_view(request):
 
     # GET : fragment avec formulaire connexion (clic onglet ou chargement direct)
     return render(request, "partials/user_form.html", {"active_tab": "login"})
+
+
+def logout_view(request):
+    """Déconnecte l'utilisateur et redirige vers la page d'inscription."""
+    logout(request)
+    return redirect("users:signup")
+
+
+def document_list(request):
+    """Liste des documents (pour inclusion HTMX si besoin)."""
+    documents = MarkdownDoc.objects.all().order_by('-created_at')
+    return render(request, "partials/document_cards.html", {"documents": documents})
+
+
+@login_required
+def document_create(request):
+    """Formulaire d'ajout d'un document .md avec titre, description, contenu."""
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        description = request.POST.get("description", "").strip()
+        content = request.POST.get("content", "")
+        if not title:
+            return render(
+                request,
+                "users/document_form.html",
+                {"error": "Le titre est obligatoire.", "title": title, "description": description, "content": content},
+            )
+        doc = MarkdownDoc.objects.create(
+            title=title,
+            description=description,
+            content=content,
+            author=request.user,
+        )
+        return redirect("users:document_detail", slug=doc.slug)
+    return render(request, "users/document_form.html", {})
+
+
+def document_detail(request, slug):
+    """Viewer : affiche le document Markdown rendu en HTML."""
+    doc = get_object_or_404(MarkdownDoc, slug=slug)
+    html_content = markdown.markdown(doc.content, extensions=["extra", "nl2br"])
+    return render(
+        request,
+        "users/document_detail.html",
+        {"doc": doc, "html_content": html_content},
+    )

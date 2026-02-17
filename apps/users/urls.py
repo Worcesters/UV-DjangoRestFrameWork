@@ -10,4 +10,7 @@ urlpatterns = [
     path('list-users/', views.user_list_partial, name='user_list'), # <-- LE NOM DOIT ETRE ICI
     path('signup/', views.signup_view, name='signup'),
     path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('docs/add/', views.document_create, name='document_create'),
+    path('docs/<slug:slug>/', views.document_detail, name='document_detail'),
 ]

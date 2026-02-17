@@ -9,6 +9,7 @@ dependencies = [
     "django-environ>=0.12.1",
     "djangorestframework>=3.16.1",
     "whitenoise>=6.11.0",
+    "markdown>=3.7",
 ]
 
 [dependency-groups]

@@ -52,6 +52,10 @@
                     Accueil
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
                 </a>
+                <a href="/#documents-grid" class="text-sm font-semibold hover:text-blue-600 transition-colors relative group">
+                    Documents
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
+                </a>
 
                 {% if user.is_authenticated %}
                     <a href="/profile/" class="text-sm font-semibold hover:text-blue-600 transition-colors flex items-center gap-2">
@@ -60,7 +64,7 @@
                         </div>
                         Mon Profil
                     </a>
-                    <a href="/admin/logout/" class="text-sm font-semibold text-gray-500 hover:text-red-500">Déconnexion</a>
+                    <a href="{% url 'users:logout' %}" class="text-sm font-semibold text-gray-500 hover:text-red-500">Déconnexion</a>
                 {% else %}
                     <a href="/signup/" class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all">
                         Commencer l'aventure
