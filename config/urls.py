@@ -21,4 +21,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.users.urls')), # On branche l'app users sur la racine
+    path('world/', include('apps.experience.urls')), # On branche le nouveau module world sur /world/
 ]

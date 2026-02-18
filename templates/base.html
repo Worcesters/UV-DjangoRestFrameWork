@@ -11,22 +11,12 @@
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-
-        /* Effet de brillance high-tech sur le logo */
-        .logo-glow {
-            text-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
-        }
-
-        /* Animation d'apparition douce pour HTMX */
-        .htmx-added {
-            animation: fadeIn 0.4s ease-in-out;
-        }
+        .logo-glow { text-shadow: 0 0 15px rgba(37, 99, 235, 0.4); }
+        .htmx-added { animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Barre de navigation Glassmorphism */
         .nav-glass {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
@@ -52,22 +42,27 @@
                     Accueil
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
                 </a>
-                <a href="/#documents-grid" class="text-sm font-semibold hover:text-blue-600 transition-colors relative group">
+
+                <a href="{% url 'experience:explore' %}" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-100">
+                    <span>🎮</span> Expérience 3D
+                </a>
+
+                <a href="{% url 'users:documents' %}" class="text-sm font-semibold hover:text-blue-600 transition-colors relative group">
                     Documents
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
                 </a>
 
                 {% if user.is_authenticated %}
                     <a href="/profile/" class="text-sm font-semibold hover:text-blue-600 transition-colors flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold">
                             {{ user.email|first|upper }}
                         </div>
                         Mon Profil
                     </a>
-                    <a href="{% url 'users:logout' %}" class="text-sm font-semibold text-gray-500 hover:text-red-500">Déconnexion</a>
+                    <a href="{% url 'users:logout' %}" class="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors">Déconnexion</a>
                 {% else %}
                     <a href="/signup/" class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all">
-                        Commencer l'aventure
+                        Rejoindre
                     </a>
                 {% endif %}
             </div>
@@ -85,20 +80,43 @@
 
     <footer class="bg-white border-t border-gray-100 py-12">
         <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center opacity-60">
-            <p class="text-sm font-medium">&copy; 2026 Django Elite Lab. All rights reserved.</p>
+            <p class="text-sm font-medium">&copy; 2026 Jérémy Didier. Built for Tech Innovation.</p>
             <div class="flex space-x-6 mt-4 md:mt-0">
-                <span class="text-xs uppercase tracking-widest font-bold">Built with UV & HTMX</span>
+                <span class="text-xs uppercase tracking-widest font-bold text-blue-600">AI & Fullstack Specialist</span>
             </div>
         </div>
     </footer>
 
     <script>
+        // Gestion du son du moteur
+        const engineSound = new Audio('https://www.soundjay.com/transportation/sounds/motorcycle-engine-idle-01.mp3');
+        engineSound.loop = true;
+        engineSound.volume = 0.15;
+
+        let isMoving = false;
+
+        document.addEventListener('keydown', (e) => {
+            const keys = ['z', 'q', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
+            if (keys.includes(e.key.toLowerCase())) {
+                if (!isMoving) {
+                    engineSound.play().catch(e => console.log("Audio waiting for user interaction"));
+                    engineSound.playbackRate = 1.5; // Accélération
+                    isMoving = true;
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            engineSound.playbackRate = 1.0; // Retour au ralenti
+            isMoving = false;
+        });
+
         // CSRF Token auto pour HTMX
         document.body.addEventListener('htmx:configRequest', (event) => {
             event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
         });
 
-        // Petit effet au scroll sur la navbar
+        // Effet scroll navbar
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('nav');
             if (window.scrollY > 20) {

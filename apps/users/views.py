@@ -8,17 +8,14 @@ from django.contrib.auth import authenticate, login, logout
 import markdown
 
 def index(request):
-    """
-    Affiche la page d'accueil
+    """Affiche la page d'accueil (landing avec particles, hero, features)."""
+    return render(request, "index.html")
 
-    Args:
-        request: La requête HTTP
-    Returns:
-        Le fragment HTML avec la liste des utilisateurs
-    """
-    users = User.objects.all().order_by('-date_joined')
+
+def documents_page(request):
+    """Page liste des documents Markdown."""
     documents = MarkdownDoc.objects.all().order_by('-created_at')
-    return render(request, "index.html", {"users": users, "documents": documents})
+    return render(request, "documents.html", {"documents": documents})
 
 @api_view(['GET'])
 def api_hello(request):
