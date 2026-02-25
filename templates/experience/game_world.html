@@ -2,376 +2,272 @@
 {% load static %}
 
 {% block content %}
-<div class="relative w-full h-[800px] rounded-[3rem] overflow-hidden bg-sky-400 border-8 border-slate-900 shadow-2xl" id="world-container">
+<div id="game-container" class="relative w-full h-[800px] bg-[#000d1a] overflow-hidden cursor-none font-mono">
 
-    <div id="info-panel" class="absolute bottom-10 left-10 w-96 bg-white/90 backdrop-blur-xl p-6 rounded-tr-[3rem] shadow-2xl translate-x-[-150%] transition-all duration-500 z-30 border-l-8 border-blue-600 text-slate-900">
-        <span id="exp-company" class="text-blue-600 font-black text-xs uppercase mb-1 block">Entreprise</span>
-        <h3 id="exp-title" class="text-2xl font-black mb-2">Poste</h3>
-        <p id="exp-desc" class="text-slate-600 text-xs leading-relaxed"></p>
+    <div class="absolute top-10 left-10 z-50 pointer-events-none">
+        <div class="bg-black/60 backdrop-blur-md p-4 border-l-4 border-cyan-500 shadow-2xl">
+            <div class="text-cyan-400 text-[10px] tracking-[0.4em] font-bold uppercase mb-1">Status: <span id="status-text" class="text-white">Ancient Shield Active</span></div>
+            <div class="w-48 h-2 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30">
+                <div id="shield-bar" class="h-full bg-cyan-400 shadow-[0_0_20px_#00f2ff] transition-all duration-300" style="width: 100%"></div>
+            </div>
+            <div class="mt-2 text-[9px] text-yellow-500/80 uppercase" id="log-console">> Manual Fire Ready</div>
+        </div>
     </div>
 
-    <div class="absolute top-10 right-10 z-20 bg-black/80 p-4 rounded-2xl border-2 border-white/20 text-white font-mono text-[10px]">
-        <p class="text-green-400">● MOTEUR V8 : OK (PROCÉDURAL)</p>
-        <p class="text-red-400">● COLLISIONS & ACCIDENTS : ACTIFS</p>
-    </div>
-
-    <canvas id="three-canvas" class="w-full h-full"></canvas>
+    <canvas id="space-canvas" class="w-full h-full"></canvas>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
-    (function() {
-        const container = document.getElementById('world-container');
+    (function(){
+        const container = document.getElementById('game-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x7dd3fc);
-        scene.fog = new THREE.Fog(0x7dd3fc, 50, 600);
+        scene.background = new THREE.Color(0x000814);
+        scene.fog = new THREE.FogExp2(0x001a33, 0.0004);
 
-        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 2000);
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), antialias: true });
+        // Caméra Cinématique FOV 40
+        const camera = new THREE.PerspectiveCamera(40, container.clientWidth/container.clientHeight, 0.1, 25000);
+        const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('space-canvas'), antialias: true});
         renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.shadowMap.enabled = true;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 2.2;
 
-        // 1. LUMIÈRES
-        const ambient = new THREE.AmbientLight(0xffffff, 0.8);
-        scene.add(ambient);
-        const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-        sun.position.set(100, 200, 50);
-        scene.add(sun);
+        // Lumières
+        scene.add(new THREE.AmbientLight(0x4040ff, 0.8));
+        const mainLight = new THREE.DirectionalLight(0xffffff, 4);
+        mainLight.position.set(100, 200, -500);
+        scene.add(mainLight);
 
-        const colliders = [];
-        const WORLD_LIMIT = 400;
+        const loader = new THREE.GLTFLoader();
+        let ship, shieldMesh, asteroidModel, explosionModel, gateModel, gateActiveModel, bossModel, hitEffectModel;
+        const asteroids = [], drones = [], bossProjectiles = [];
 
-        // 2. TEXTURE DE FAÇADE
-        function createBuildingMaterial(color) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256; canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#f8fafc'; ctx.fillRect(0,0,256,512);
-            ctx.fillStyle = color;
-            for(let y=20; y<512; y+=40) {
-                for(let x=20; x<256; x+=50) {
-                    if(Math.random() > 0.2) {
-                        ctx.globalAlpha = 0.5;
-                        ctx.fillRect(x, y, 30, 20);
-                    }
-                }
-            }
-            return new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas), roughness: 0.2 });
-        }
+        let shieldPower = 100, droneSide = 1, currentPhase = 'cruise';
+        let bossActive = false, currentBoss = null, experienceIndex = 0;
+        const keys = {};
 
-
-
-        // 4. TRAFIC DYNAMIQUE (MODÈLES PROCÉDURAUX)
-        const traffic = [];
-
-        // Palette de couleurs réalistes
-        const carColors = [
-            0x334155, // Gris ardoise
-            0x1e293b, // Bleu nuit
-            0x64748b, // Gris métal
-            0xf8fafc, // Blanc perle
-            0x450a0a, // Bordeaux sombre
-            0x0f172a  // Noir profond
-        ];
-
-        function createTrafficCar(color) {
-            const car = new THREE.Group();
-            const bodyMat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.5, roughness: 0.2 });
-            const windowMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-            const tireMat = new THREE.MeshStandardMaterial({ color: 0x050505 });
-
-            // Bas de caisse
-            const base = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 4.5), bodyMat);
-            base.position.y = 0.5;
-            car.add(base);
-
-            // Habitacle
-            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.6, 2.2), windowMat);
-            cabin.position.set(0, 1.1, -0.2);
-            car.add(cabin);
-
-            // Toit
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.05, 2.0), bodyMat);
-            roof.position.set(0, 1.4, -0.2);
-            car.add(roof);
-
-            // Roues
-            const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.4, 16);
-            wheelGeo.rotateZ(Math.PI / 2);
-            const wPos = [[1, 0.35, 1.4], [-1, 0.35, 1.4], [1, 0.35, -1.4], [-1, 0.35, -1.4]];
-            wPos.forEach(p => {
-                const w = new THREE.Mesh(wheelGeo, tireMat);
-                w.position.set(p[0], p[1], p[2]);
-                car.add(w);
-            });
-
-            // Phares arrière (Rouges)
-            const tailLightGeo = new THREE.BoxGeometry(0.6, 0.2, 0.1);
-            const tailLight = new THREE.Mesh(tailLightGeo, new THREE.MeshBasicMaterial({color: 0x990000}));
-            tailLight.position.set(0, 0.7, -2.25);
-            car.add(tailLight);
-
-            return car;
-        }
-
-        for(let i=0; i<50; i++) {
-            const randomColor = carColors[Math.floor(Math.random() * carColors.length)];
-            const npc = createTrafficCar(randomColor);
-
-            // Position aléatoire sur la route
-            npc.position.set((Math.random()-0.5)*400, 0, (Math.random()-0.5)*1000);
-
-            npc.userData = {
-                speed: 0.15 + Math.random() * 0.25,
-                velocity: new THREE.Vector3(),
-                isHit: false
-            };
-
-            scene.add(npc);
-            traffic.push(npc);
-        }
-
-        // 5. SHOWROOMS DESIGN ET SKYLINE
+        // Données Boss (Expériences)
         const experiences = [
             {% for exp in experiences %}
-            {
-                title: "{{ exp.titre|escapejs }}",
-                company: "{{ exp.entreprise|escapejs }}",
-                desc: "{{ exp.description|escapejs }}",
-                x: ({{ forloop.counter }} % 2 == 0 ? 35 : -35),
-                z: -{{ forloop.counter }} * 60, // Boutiques très proches
-                color: "{{ exp.couleur_hex }}"
-            },
+            { title: "{{ exp.titre|escapejs }}", company: "{{ exp.entreprise|escapejs }}", desc: "{{ exp.description|escapejs }}", hp: 100 },
             {% endfor %}
         ];
 
-        const cvBuildings = [];
-        const particleGroups = [];
+        async function loadAllModels() {
+            const load = (path) => new Promise(res => loader.load('{% static "models/" %}' + path, gltf => res(gltf.scene)));
 
-        // --- SKYLINE RAPPROCHÉE ET DENSIFIÉE ---
-        for(let i=0; i<60; i++) {
-            const h = 40 + Math.random() * 120;
-            const w = 15 + Math.random() * 25;
-            const bgGeo = new THREE.BoxGeometry(w, h, w);
-            // On utilise une couleur gris-bleu foncé pour le contraste
-            const bgMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
-            const b = new THREE.Mesh(bgGeo, bgMat);
+            try {
+                ship = await load("puddle_jumper.glb");
+                ship.scale.set(3.5, 3.5, 3.5); ship.rotation.y = Math.PI;
+                scene.add(ship);
 
-            // On les place tout le long de la route, pas juste au bout
-            const side = Math.random() > 0.5 ? 1 : -1;
-            const distZ = -(Math.random() * 1000); // Répartis sur 1km de long
-            const distX = (100 + Math.random() * 150) * side; // À environ 100m du centre
+                // BOUCLIER RÉDUIT DE MOITIÉ (Rayon 8)
+                shieldMesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(8, 32, 32),
+                    new THREE.MeshBasicMaterial({color: 0x00f2ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, side: THREE.DoubleSide})
+                );
+                ship.add(shieldMesh);
 
-            b.position.set(distX, h/2, distZ);
+                asteroidModel = await load("asteroid.glb");
+                explosionModel = await load("asteroid_explo.glb");
+                gateModel = await load("stargate.glb");
+                gateActiveModel = await load("stargate_active.glb");
+                bossModel = await load("wraith_ship.glb");
+                hitEffectModel = await load("hit_ship.glb");
+
+                for(let i=0; i<25; i++) spawnAsteroid();
+                animate();
+            } catch(e) { console.error("Erreur de chargement des modèles GLB:", e); }
+        }
+
+        loadAllModels();
+
+        function spawnAsteroid() {
+            const a = asteroidModel.clone();
+            a.position.set((Math.random()-0.5)*1500, (Math.random()-0.5)*800, ship.position.z - 4000 - Math.random()*2000);
+            a.scale.setScalar(Math.random() * 0.5 + 0.2);
+            scene.add(a);
+            asteroids.push(a);
+        }
+
+        // --- SYSTÈME DE BOSS ---
+        function triggerBossPhase() {
+            if (experienceIndex >= experiences.length || currentPhase !== 'cruise') return;
+            currentPhase = 'boss_incoming';
+
+            const gate = gateModel.clone();
+            gate.position.set(0, 0, ship.position.z - 5000);
+            gate.scale.set(60, 60, 60);
+            scene.add(gate);
+
+            setTimeout(() => {
+                scene.remove(gate);
+                const activeGate = gateActiveModel.clone();
+                activeGate.position.copy(gate.position);
+                activeGate.scale.set(60, 60, 60);
+                scene.add(activeGate);
+
+                setTimeout(() => {
+                    currentBoss = bossModel.clone();
+                    currentBoss.position.copy(activeGate.position);
+                    // WRAITH RÉDUIT DE 3/4 (Scale 3)
+                    currentBoss.scale.set(3, 3, 3);
+                    currentBoss.userData = { hp: 100, gate: activeGate, data: experiences[experienceIndex] };
+                    scene.add(currentBoss);
+                    bossActive = true;
+                    currentPhase = 'boss_fight';
+                }, 1000);
+            }, 3000);
+        }
+
+        // --- TIRS ---
+        function spawnDrone() {
+            if(!ship || currentPhase === 'boss_incoming') return;
+            let target = bossActive ? currentBoss : asteroids.find(a => a.position.z < ship.position.z && ship.position.distanceTo(a.position) < 2500);
+            if(!target) return;
+
+            const drone = new THREE.Mesh(new THREE.SphereGeometry(0.8, 8, 8), new THREE.MeshBasicMaterial({color: 0xffd700}));
+            drone.position.copy(ship.position);
+            drone.position.x += (droneSide * 8);
+            drone.userData = { target: target, velocity: new THREE.Vector3(droneSide * 2, 0.5, -1).normalize(), life: 250 };
+            scene.add(drone);
+            drones.push(drone);
+            droneSide *= -1;
+        }
+
+        function bossShoot() {
+            if(!bossActive || !currentBoss) return;
+            const b = new THREE.Mesh(new THREE.SphereGeometry(1.5), new THREE.MeshBasicMaterial({color: 0x0088ff}));
+            b.position.copy(currentBoss.position);
+            const target = ship.position.clone();
+            if(Math.random() > 0.25) { // 25% précision
+                target.x += (Math.random()-0.5)*150; target.y += (Math.random()-0.5)*150;
+            }
+            const dir = new THREE.Vector3().subVectors(target, currentBoss.position).normalize();
+            b.userData = { velocity: dir.multiplyScalar(35) };
             scene.add(b);
+            bossProjectiles.push(b);
         }
 
-        experiences.forEach(exp => {
-            const showroom = new THREE.Group();
-
-            // 1. STRUCTURE FLAT (Dalle ultra fine et design)
-            const baseGeo = new THREE.BoxGeometry(25, 8, 12);
-            const baseMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
-            const body = new THREE.Mesh(baseGeo, baseMat);
-            body.position.y = 4;
-            showroom.add(body);
-            colliders.push(body);
-
-            // 2. GRANDE VITRINE PANORAMIQUE
-            const glassGeo = new THREE.BoxGeometry(23, 6, 0.1);
-            const glassMat = new THREE.MeshStandardMaterial({
-                color: 0x000000, metalness: 1, roughness: 0, transparent: true, opacity: 0.8
-            });
-            const glass = new THREE.Mesh(glassGeo, glassMat);
-            glass.position.set(0, 4, exp.x > 0 ? -6.1 : 6.1);
-            showroom.add(glass);
-
-            // 3. ENSEIGNE NÉON MINIMALISTE
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 512; canvas.height = 100;
-            ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillRect(0,0,512,100);
-
-            // Texte avec lueur néon
-            ctx.font = 'bold 50px Inter, Arial';
-            ctx.textAlign = 'center';
-            ctx.shadowColor = exp.color;
-            ctx.shadowBlur = 20;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(exp.company.toUpperCase(), 256, 70);
-
-            const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
-            label.scale.set(20, 4, 1);
-            label.position.y = 11;
-            showroom.add(label);
-
-            // 4. EFFET DE LUMIÈRE AU SOL (Sous le bâtiment)
-            const floorLight = new THREE.PointLight(exp.color, 15, 30);
-            floorLight.position.set(0, 1, 0);
-            showroom.add(floorLight);
-
-            // 5. PARTICULES FLOTTANTES
-            const pGeo = new THREE.BufferGeometry();
-            const pPos = new Float32Array(30 * 3);
-            for(let i=0; i<30*3; i++) pPos[i] = (Math.random()-0.5)*20;
-            pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-            const points = new THREE.Points(pGeo, new THREE.PointsMaterial({color: exp.color, size: 0.4}));
-            points.position.y = 12;
-            showroom.add(points);
-            particleGroups.push(points);
-
-            showroom.position.set(exp.x, 0, exp.z);
-            showroom.userData = exp;
-            scene.add(showroom);
-            cvBuildings.push(showroom);
-        });
-
-        // 6. LE JOUEUR (IMPALA '67 FAITE MAIN)
-        const player = new THREE.Group();
-        scene.add(player);
-
-        function buildImpala() {
-            const car = new THREE.Group();
-            // Couleur Gris Argent clair et très métallique
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.1 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, transparent: true, opacity: 0.7 });
-
-            // Corps
-            const base = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.6, 5.2), bodyMat);
-            base.position.y = 0.5;
-            car.add(base);
-
-            // Toit
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.05, 2.5), bodyMat);
-            roof.position.set(0, 1.3, -0.3);
-            car.add(roof);
-
-            // Phares PHYSIQUES (Les ampoules)
-            const headlightGeo = new THREE.SphereGeometry(0.2, 16, 16);
-            const headlightMat = new THREE.MeshBasicMaterial({ color: 0xffffee }); // Jaune très clair
-
-            const headL = new THREE.Mesh(headlightGeo, headlightMat);
-            headL.position.set(0.8, 0.6, 2.6);
-            const headR = headL.clone();
-            headR.position.x = -0.8;
-            car.add(headL, headR);
-
-            // PROJECTION DE LUMIÈRE (Les faisceaux)
-            const createBeam = (x) => {
-                const beam = new THREE.SpotLight(0xffffff, 2, 40, Math.PI/6, 0.5);
-                beam.position.set(x, 0.6, 2.6);
-                beam.target.position.set(x, 0, 10); // Éclaire vers l'avant
-                car.add(beam);
-                car.add(beam.target);
-            };
-            createBeam(0.8);
-            createBeam(-0.8);
-
-            // Roues
-            const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.4, 32);
-            wheelGeo.rotateZ(Math.PI/2);
-            const tireMat = new THREE.MeshStandardMaterial({color: 0x111111});
-            [[1.1, 0.4, 1.6], [-1.1, 0.4, 1.6], [1.1, 0.4, -1.6], [-1.1, 0.4, -1.6]].forEach(p => {
-                const w = new THREE.Mesh(wheelGeo, tireMat);
-                w.position.set(p[0], p[1], p[2]);
-                car.add(w);
-            });
-
-            return car;
+        function onShieldHit() {
+            if (shieldPower <= 0) return;
+            shieldPower -= 5;
+            document.getElementById('shield-bar').style.width = shieldPower + "%";
+            shieldMesh.material.opacity = 0.8;
+            shieldMesh.scale.set(1.1, 1.1, 1.1);
+            if(shieldMesh.userData.t) clearTimeout(shieldMesh.userData.t);
+            shieldMesh.userData.t = setTimeout(() => {
+                shieldMesh.material.opacity = 0;
+                shieldMesh.scale.set(1, 1, 1);
+            }, 300);
         }
 
-        const myImpala = buildImpala();
-        // On la tourne de 180° pour qu'elle regarde vers l'avant (z négatif)
-        myImpala.rotation.y = Math.PI;
-        player.add(myImpala);
+        // --- INPUTS ---
+        window.addEventListener('mousedown', spawnDrone);
+        window.onkeydown = e => keys[e.key.toLowerCase()] = true;
+        window.onkeyup = e => keys[e.key.toLowerCase()] = false;
 
-        // LE SOL
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshStandardMaterial({color: 0x334155}));
-        ground.rotation.x = -Math.PI/2;
-        scene.add(ground);
-
-        // 7. MOTEUR DE JEU
-        const keys = {};
-        window.onkeydown = (e) => keys[e.key.toLowerCase()] = true;
-        window.onkeyup = (e) => keys[e.key.toLowerCase()] = false;
-
-        let velocity = 0;
-        const pBox = new THREE.Box3();
-        const oBox = new THREE.Box3();
-
+        // --- BOUCLE PRINCIPALE ---
         function animate() {
             requestAnimationFrame(animate);
-            const oldPos = player.position.clone();
+            if(!ship) return;
 
-            if(keys['z']) velocity = Math.min(velocity + 0.02, 1.0);
-            if(keys['s']) velocity = Math.max(velocity - 0.02, -0.4);
-            velocity *= 0.96;
-            player.translateZ(-velocity);
+            // Contrôles
+            if(keys['z']) ship.position.y += 3.5; if(keys['s']) ship.position.y -= 3.5;
+            if(keys['q']) ship.position.x -= 3.5; if(keys['d']) ship.position.x += 3.5;
+            ship.position.z -= 18; // Vitesse de croisière
 
-            if(Math.abs(velocity) > 0.01) {
-                if(keys['q']) player.rotation.y += 0.05;
-                if(keys['d']) player.rotation.y -= 0.05;
+            // Caméra FOV 40 Surplombante
+            camera.position.lerp(new THREE.Vector3(ship.position.x, ship.position.y + 20, ship.position.z + 55), 0.1);
+            camera.lookAt(ship.position.x, ship.position.y, ship.position.z - 100);
+
+            // Mise à jour Drones
+            for(let i=drones.length-1; i>=0; i--) {
+                const d = drones[i];
+                const target = d.userData.target;
+                const toT = new THREE.Vector3().subVectors(target.position, d.position).normalize();
+                d.userData.velocity.lerp(toT, 0.2);
+                d.position.add(d.userData.velocity.clone().multiplyScalar(55));
+
+                const hitDist = bossActive ? 20 : 40;
+                if(d.position.distanceTo(target.position) < hitDist) {
+                    if(bossActive) {
+                        currentBoss.userData.hp -= 10;
+                        const h = hitEffectModel.clone(); h.position.copy(d.position); scene.add(h);
+                        setTimeout(() => scene.remove(h), 200);
+                        if(currentBoss.userData.hp <= 0) victory();
+                    } else {
+                        const ex = explosionModel.clone(); ex.position.copy(d.position); ex.scale.set(2.5,2.5,2.5);
+                        scene.add(ex); setTimeout(()=>scene.remove(ex), 500);
+                        target.position.z -= 6000; // Reset asteroid
+                    }
+                    scene.remove(d); drones.splice(i, 1);
+                }
+                if(d.userData.life-- <= 0) { scene.remove(d); drones.splice(i, 1); }
             }
 
-            pBox.setFromObject(player);
-
-            traffic.forEach(npc => {
-                oBox.setFromObject(npc);
-                if(pBox.intersectsBox(oBox)) {
-                    npc.userData.isHit = true;
-                    npc.userData.velocity.set(-Math.sin(player.rotation.y) * velocity * 5, 0.2, -Math.cos(player.rotation.y) * velocity * 5);
-                    player.position.copy(oldPos);
-                    velocity *= -0.4;
+            // Projectiles Boss
+            for(let i=bossProjectiles.length-1; i>=0; i--) {
+                const p = bossProjectiles[i];
+                p.position.add(p.userData.velocity);
+                if(p.position.distanceTo(ship.position) < 25) {
+                    onShieldHit(); scene.remove(p); bossProjectiles.splice(i, 1);
                 }
-                if(npc.userData.isHit) {
-                    npc.position.add(npc.userData.velocity);
-                    npc.userData.velocity.multiplyScalar(0.92);
-                    npc.rotation.y += 0.1;
-                    if(npc.userData.velocity.length() < 0.02) npc.userData.isHit = false;
-                } else {
-                    npc.translateZ(-npc.userData.speed);
-                }
-                if(npc.position.z < -1000) npc.position.z = 1000;
-            });
-
-            let collision = false;
-            colliders.forEach(c => {
-                oBox.setFromObject(c);
-                if(pBox.intersectsBox(oBox)) collision = true;
-            });
-            if(Math.abs(player.position.x) > WORLD_LIMIT || Math.abs(player.position.z) > 1000) collision = true;
-
-            if(collision) {
-                player.position.copy(oldPos);
-                velocity *= -0.5;
+                else if(p.position.z > ship.position.z + 200) { scene.remove(p); bossProjectiles.splice(i, 1); }
             }
 
-            particleGroups.forEach(p => {
-                p.rotation.y += 0.02;
-                const attr = p.geometry.attributes.position;
-                for(let i=1; i<attr.array.length; i+=3) attr.array[i] += Math.sin(Date.now()*0.002 + i)*0.03;
-                attr.needsUpdate = true;
+            // IA Boss Agile
+            if(bossActive && currentBoss) {
+                currentBoss.position.x = THREE.MathUtils.lerp(currentBoss.position.x, ship.position.x, 0.08);
+                currentBoss.position.y = THREE.MathUtils.lerp(currentBoss.position.y, ship.position.y, 0.08);
+                currentBoss.position.z = ship.position.z - 1100;
+                if(Math.random() < 0.05) bossShoot();
+            }
+
+            // --- COLLISIONS ASTÉROÏDES (Marge 70 + Explosions rétablies) ---
+            asteroids.forEach(a => {
+                a.rotation.y += 0.01;
+                const dist = ship.position.distanceTo(a.position);
+
+                if(currentPhase === 'cruise' && dist < 70) {
+                    onShieldHit();
+                    // Effet d'explosion lors du choc bouclier
+                    const ex = explosionModel.clone();
+                    ex.position.copy(a.position);
+                    ex.scale.set(3, 3, 3);
+                    scene.add(ex);
+                    setTimeout(() => scene.remove(ex), 500);
+
+                    a.position.z -= 6000;
+                    a.position.x = (Math.random()-0.5)*1500;
+                }
+                if(a.position.z > ship.position.z + 300) a.position.z -= 6000;
             });
 
-            // CAMERA LERP
-            const camPos = new THREE.Vector3(0, 8, 20).applyMatrix4(player.matrixWorld);
-            camera.position.lerp(camPos, 0.1);
-            camera.lookAt(player.position);
-
-            let near = null;
-            cvBuildings.forEach(b => { if(player.position.distanceTo(b.position) < 50) near = b.userData; });
-            const panel = document.getElementById('info-panel');
-            if(near) {
-                document.getElementById('exp-title').innerText = near.title;
-                document.getElementById('exp-company').innerText = near.company;
-                document.getElementById('exp-desc').innerText = near.desc;
-                panel.style.transform = "translateX(0)";
-            } else { panel.style.transform = "translateX(-150%)"; }
+            // Déclenchement Boss
+            if(currentPhase === 'cruise' && Math.abs(ship.position.z) % 20000 < 25) triggerBossPhase();
 
             renderer.render(scene, camera);
         }
-        animate();
+
+        function victory() {
+            bossActive = false;
+            const ex = explosionModel.clone(); ex.position.copy(currentBoss.position); ex.scale.set(15,15,15);
+            scene.add(ex);
+            const ui = document.getElementById('planet-ui');
+            document.getElementById('p-title').innerText = currentBoss.userData.data.title;
+            document.getElementById('p-company').innerText = currentBoss.userData.data.company;
+            document.getElementById('p-desc').innerText = currentBoss.userData.data.desc;
+            ui.classList.replace('opacity-0', 'opacity-100');
+
+            setTimeout(() => {
+                scene.remove(currentBoss); scene.remove(currentBoss.userData.gate); scene.remove(ex);
+                ui.classList.replace('opacity-100', 'opacity-0');
+                currentPhase = 'cruise'; experienceIndex++;
+            }, 7000);
+        }
     })();
 </script>
 {% endblock %}
