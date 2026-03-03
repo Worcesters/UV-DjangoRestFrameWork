@@ -2,13 +2,17 @@
 {% load static %}
 
 {% block content %}
-<div id="game-container" class="relative w-full h-[800px] bg-[#000d1a] overflow-hidden cursor-none font-mono">
+<div id="game-container" class="relative w-full h-[800px] bg-[#000d1a] overflow-hidden font-mono" data-models-base="{% static 'models/' %}">
 
     <div class="absolute top-10 left-10 z-50 pointer-events-none">
         <div class="bg-black/60 backdrop-blur-md p-4 border-l-4 border-cyan-500 shadow-2xl">
             <div class="text-cyan-400 text-[10px] tracking-[0.4em] font-bold uppercase mb-1">Status: <span id="status-text" class="text-white">Ancient Shield Active</span></div>
             <div class="w-48 h-2 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30">
                 <div id="shield-bar" class="h-full bg-cyan-400 shadow-[0_0_20px_#00f2ff] transition-all duration-300" style="width: 100%"></div>
+            </div>
+            <div class="mt-4">
+                <div class="text-cyan-400 text-[9px] tracking-[0.3em] font-bold uppercase mb-1">Score</div>
+                <div id="score-value" class="text-white text-2xl font-black tracking-wider leading-none">000000</div>
             </div>
             <div id="propulsion-hud" class="mt-4 opacity-0 transition-opacity duration-500">
                 <div class="text-orange-500 text-[8px] tracking-[0.2em] mb-1 uppercase font-bold">Engine Spooling...</div>
@@ -20,11 +24,21 @@
     </div>
 
     <div id="boss-hud" class="absolute top-10 right-10 z-50 pointer-events-none transition-opacity duration-500 opacity-0">
-        <div class="bg-black/60 backdrop-blur-md p-4 border-r-4 border-red-600 shadow-2xl text-right">
-            <div class="text-red-500 text-[10px] tracking-[0.4em] font-bold uppercase mb-1">Wraith Hive Ship Detected</div>
-            <div class="w-64 h-2 bg-red-950 rounded-full overflow-hidden border border-red-600/30">
-                <div id="boss-hp-bar" class="h-full bg-red-600 shadow-[0_0_20px_#ff0000] transition-all duration-100" style="width: 100%"></div>
+        <div id="boss-hud-card" class="bg-black/60 backdrop-blur-md p-4 border-r-4 border-red-600 shadow-2xl text-right">
+            <div id="boss-name" class="text-red-500 text-[10px] tracking-[0.4em] font-bold uppercase mb-2">Wraith Hive Ship Detected</div>
+            <div id="boss-shield-wrap" class="mb-2 hidden">
+                <div class="text-[9px] text-cyan-300/80 uppercase tracking-[0.25em] mb-1">Shield</div>
+                <div class="w-64 h-2 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30">
+                    <div id="boss-shield-bar" class="h-full bg-cyan-400 shadow-[0_0_20px_#00f2ff] transition-all duration-100" style="width: 100%"></div>
+                </div>
             </div>
+            <div id="boss-hull-wrap">
+                <div class="text-[9px] text-red-300/80 uppercase tracking-[0.25em] mb-1">Hull</div>
+                <div class="w-64 h-2 bg-red-950 rounded-full overflow-hidden border border-red-600/30">
+                    <div id="boss-hp-bar" class="h-full bg-red-600 shadow-[0_0_20px_#ff0000] transition-all duration-100" style="width: 100%"></div>
+                </div>
+            </div>
+            <div id="boss-fleet-bars" class="mt-3 space-y-1 hidden"></div>
         </div>
     </div>
 
@@ -54,11 +68,26 @@
         </div>
     </div>
 
+    <div id="game-over-screen" class="absolute inset-0 z-[120] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="w-[520px] max-w-[92%] p-8 border border-red-500/40 rounded-2xl bg-[#090f1c] text-center shadow-[0_0_50px_rgba(239,68,68,0.25)]">
+            <p class="text-red-400 text-xs tracking-[0.35em] uppercase font-bold mb-3">Critical Failure</p>
+            <h2 class="text-white text-4xl font-black mb-3">GAME OVER</h2>
+            <p class="text-gray-400 mb-6">Le bouclier du vaisseau est détruit.</p>
+            <p class="text-cyan-300 text-sm tracking-[0.2em] uppercase">Score Final</p>
+            <p id="game-over-score" class="text-white text-3xl font-black mt-1 mb-6">000000</p>
+            <button onclick="window.location.reload()" class="px-6 py-3 bg-cyan-500/20 border border-cyan-400 text-cyan-100 font-black tracking-[0.2em] text-xs hover:bg-cyan-400 hover:text-black transition-all">
+                RESTART MISSION
+            </button>
+        </div>
+    </div>
+
     <canvas id="space-canvas" class="w-full h-full"></canvas>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+<script type="application/json" id="experiences-data">[{% for exp in experiences %}{"title": "{{ exp.titre|escapejs }}", "company": "{{ exp.entreprise|escapejs }}", "desc": "{{ exp.description|escapejs }}", "hp": 100}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
 
 <script>
     (function(){
@@ -82,23 +111,34 @@
         scene.add(mainLight);
 
         const loader = new THREE.GLTFLoader();
-        let ship, shieldMesh, asteroidModel, explosionModel, gateActiveModel, bossModel, hitEffectModel, hyperspaceTunnel, engineLight;
-        const asteroids = [], drones = [], bossProjectiles = [];
+        let ship, shieldMesh, asteroidModel, explosionModel, gateActiveModel, wraithBossModel, atlanteBossModel, kiraBossModel, friendModel, droneModel, hitEffectModel, hyperspaceTunnel, engineLight;
+        const asteroids = [], drones = [], bossProjectiles = [], enemyDrones = [], friendShips = [], friendBullets = [], bonusGates = [];
 
-        let shieldPower = 100, droneSide = 1, currentPhase = 'cruise';
+        let shieldPower = 100000, droneSide = 1, currentPhase = 'cruise';
+        let score = 0;
+        let gameOver = false;
         let bossActive = false, currentBoss = null, experienceIndex = 0;
+        let lastBossType = null;
+        let lastBonusGateAt = 0;
+        let isSpaceHeld = false;
+        let lastPlayerShotAt = -999;
+        const playerDronePool = [];
         const keys = {};
         let shakeIntensity = 0;
         const shakeDecay = 0.9;
 
-        let experiences = [
-            {% for exp in experiences %}
-            { title: "{{ exp.titre|escapejs }}", company: "{{ exp.entreprise|escapejs }}", desc: "{{ exp.description|escapejs }}", hp: 100 },
-            {% endfor %}
-        ];
+        const experiences = JSON.parse(document.getElementById('experiences-data').textContent || '[]');
+        const modelsBase = document.getElementById('game-container').dataset.modelsBase || '/static/models/';
 
         async function loadAllModels() {
-            const load = (path) => new Promise(res => loader.load('{% static "models/" %}' + path, gltf => res(gltf.scene)));
+            const load = (path) => new Promise((resolve, reject) => {
+                loader.load(
+                    modelsBase + path,
+                    (gltf) => resolve(gltf.scene),
+                    undefined,
+                    (err) => reject(err)
+                );
+            });
             try {
                 ship = await load("puddle_jumper.glb");
                 ship.scale.set(3.5, 3.5, 3.5); ship.rotation.y = Math.PI;
@@ -134,13 +174,28 @@
                 hyperspaceTunnel.visible = false;
                 scene.add(hyperspaceTunnel);
 
-                bossModel = await load("wraith_ship.glb");
+                wraithBossModel = await load("wraith_ship.glb");
+                atlanteBossModel = await load("atlante_boss.glb");
+                kiraBossModel = await load("kira_3.glb");
                 asteroidModel = await load("asteroid.glb");
                 explosionModel = await load("asteroid_explo.glb");
-                gateActiveModel = await load("stargate_active.glb");
+                gateActiveModel = await load("stargate.glb");
                 hitEffectModel = await load("hit_ship.glb");
+                try {
+                    friendModel = await load("friend.glb");
+                } catch (e) {
+                    friendModel = null;
+                    console.warn("friend.glb introuvable, fallback géométrique utilisé.");
+                }
+                try {
+                    droneModel = await load("drone.glb");
+                } catch (e) {
+                    droneModel = null;
+                    console.warn("drone.glb introuvable, fallback géométrique utilisé.");
+                }
+                warmPlayerDronePool(10);
 
-                for(let i=0; i<100; i++) spawnAsteroid();
+                for(let i=0; i<300; i++) spawnAsteroid();
                 animate();
             } catch(e) { console.error(e); }
         }
@@ -159,6 +214,7 @@
             const hud = document.getElementById('propulsion-hud');
             const bar = document.getElementById('propulsion-bar');
             hud.style.opacity = "1";
+            document.getElementById('status-text').innerText = 'Main Thruster Charging';
 
             let charge = 0;
             const interval = setInterval(() => {
@@ -167,24 +223,43 @@
 
                 // Effets visuels qui augmentent avec la charge
                 shakeIntensity = charge / 15;
-                engineLight.intensity = charge / 2;
+                engineLight.intensity = 0.4 + (charge / 16);
+                engineLight.color.setHSL(0.53 + (charge / 1000), 1, 0.5);
 
-                // --- CRÉATION DE PARTICULES DE CHARGE ---
-                // On en crée de plus en plus au fur et à mesure que ça charge
-                for(let i=0; i < Math.floor(charge/20); i++) {
-                    const pGeo = new THREE.SphereGeometry(0.5, 4, 4);
-                    const pMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-                    const p = new THREE.Mesh(pGeo, pMat);
-
-                    // Position au niveau des propulseurs (arrière du vaisseau)
-                    p.position.set(
-                        ship.position.x + (Math.random() - 0.5) * 20,
-                        ship.position.y + (Math.random() - 0.5) * 20,
-                        ship.position.z + 10
+                // Jet de propulseur progressif (effet "réacteur qui monte en puissance")
+                for(let i=0; i < Math.max(2, Math.floor(charge / 6)); i++) {
+                    const pGeo = new THREE.CylinderGeometry(
+                        0.35 + Math.random() * 0.25,
+                        1.4 + Math.random() * 0.9,
+                        7 + Math.random() * 6,
+                        8
                     );
-
-                    // On leur donne une direction vers l'arrière
-                    p.userData.velocity = new THREE.Vector3((Math.random()-0.5)*2, (Math.random()-0.5)*2, Math.random() * 5);
+                    const pMat = new THREE.MeshBasicMaterial({
+                        color: (Math.random() > 0.35 ? 0x67e8f9 : 0x06b6d4),
+                        transparent: true,
+                        opacity: 0.78
+                    });
+                    const p = new THREE.Mesh(pGeo, pMat);
+                    p.rotation.x = Math.PI / 2;
+                    const side = (i % 2 === 0 ? -1 : 1);
+                    // Recale le jet sur l'arriere du vaisseau (moins a droite, plus centré arriere).
+                    const nozzleX = side * (4.8 + Math.random() * 1.6) - 10.5;
+                    const nozzleY = -2 + (Math.random() - 0.5) * 2.2;
+                    p.position.set(
+                        ship.position.x + nozzleX,
+                        ship.position.y + nozzleY,
+                        ship.position.z + 18 + Math.random() * 6
+                    );
+                    const thrust = 16 + (charge * 0.42) + Math.random() * 14;
+                    p.userData = {
+                        kind: 'thruster',
+                        nozzleX: nozzleX,
+                        nozzleY: nozzleY,
+                        driftZ: thrust,
+                        life: 1.0,
+                        wobble: 0.6 + Math.random() * 0.8,
+                        grow: 1.012 + Math.random() * 0.012
+                    };
                     scene.add(p);
                     chargeParticles.push(p);
                 }
@@ -192,14 +267,16 @@
                 if(charge >= 100) {
                     clearInterval(interval);
                     hud.style.opacity = "0";
+                    document.getElementById('status-text').innerText = 'Vortex Engaged';
+                    shakeIntensity = 18;
+                    engineLight.intensity = 8;
 
-                    // --- SUPPRESSION TOTALE DU DÉLAI ---
-                    // On nettoie les particules et on saute direct
+                    // Nettoyage des particules de charge
                     chargeParticles.forEach(p => scene.remove(p));
                     chargeParticles = [];
 
-                    // Appel direct sans setTimeout
-                    spawnManualGate();
+                    // Hyperespace immédiat dès la fin de la charge
+                    startHyperspace(null);
                 }
             }, 30);
         };
@@ -222,29 +299,750 @@
             const a = asteroidModel.clone();
             a.position.set((Math.random()-0.5)*2000, (Math.random()-0.5)*1200, ship.position.z - Math.random()*6000);
             a.scale.setScalar(Math.random() * 0.6 + 0.2);
-            a.userData = { reboundVelocity: null };
+            a.userData = { reboundVelocity: null, friendHp: 3 };
             scene.add(a);
             asteroids.push(a);
         }
 
+        function resetAsteroidField() {
+            // Recompacte le flux après un combat boss pour éviter les "trous"
+            for (let i = 0; i < asteroids.length; i++) {
+                const a = asteroids[i];
+                a.visible = true;
+                a.position.x = (Math.random() - 0.5) * 1700;
+                a.position.y = (Math.random() - 0.5) * 1000;
+                a.position.z = ship.position.z - (800 + Math.random() * 5200);
+                a.userData.velocity = null;
+                a.userData.hitCooldown = 0;
+                a.userData.friendHp = 3;
+            }
+        }
+
+        function spawnBonusGate() {
+            if (!gateActiveModel || currentPhase !== 'cruise' || bossActive || gameOver) return;
+            const gate = gateActiveModel.clone();
+            let foundSpot = false;
+            for (let attempt = 0; attempt < 25; attempt++) {
+                const candidate = new THREE.Vector3(
+                    (Math.random() - 0.5) * 260,
+                    (Math.random() - 0.5) * 180,
+                    ship.position.z - (4200 + Math.random() * 2200)
+                );
+                // Empêche une porte dans/près d'un astéroïde.
+                const blocked = asteroids.some((a) => a.position.distanceTo(candidate) < 240);
+                if (!blocked) {
+                    gate.position.copy(candidate);
+                    foundSpot = true;
+                    break;
+                }
+            }
+            if (!foundSpot) return;
+            gate.scale.set(108, 108, 108);
+            gate.rotation.x = 0;
+            gate.userData = {
+                prevDeltaZ: ship.position.z - gate.position.z,
+                collected: false
+            };
+            gate.visible = true;
+            scene.add(gate);
+            bonusGates.push(gate);
+        }
+
+        function spawnFriendSupport() {
+            if (friendShips.length >= 2 || !ship) return;
+            const side = friendShips.length === 0 ? -1 : 1;
+            let ally;
+            if (friendModel) {
+                ally = friendModel.clone();
+                ally.scale.set(1.8, 1.8, 1.8);
+                ally.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0x9ca3af,
+                            emissive: 0x111827,
+                            emissiveIntensity: 0.22,
+                            metalness: 0.9,
+                            roughness: 0.28
+                        });
+                    }
+                });
+            } else {
+                ally = new THREE.Mesh(
+                    new THREE.ConeGeometry(4, 14, 10),
+                    new THREE.MeshStandardMaterial({ color: 0x9ca3af, emissive: 0x111827, emissiveIntensity: 0.22, metalness: 0.9, roughness: 0.28 })
+                );
+                ally.rotation.x = Math.PI / 2;
+            }
+            ally.position.copy(ship.position).add(new THREE.Vector3(side * 45, 8, -35));
+            ally.userData = { side: side, lastShotAt: 0 };
+            scene.add(ally);
+            friendShips.push(ally);
+        }
+
+        function getBestAsteroidForFriend(ally) {
+            let best = null;
+            let bestScore = Infinity;
+            for (let i = 0; i < asteroids.length; i++) {
+                const a = asteroids[i];
+                if (!a.visible) continue;
+                // Astéroïdes devant l'allié dans sa trajectoire
+                if (a.position.z >= ally.position.z) continue;
+                const dz = Math.abs(a.position.z - ally.position.z);
+                if (dz > 3800) continue;
+                const dx = Math.abs(a.position.x - ally.position.x);
+                const dy = Math.abs(a.position.y - ally.position.y);
+                // Favorise les astéroïdes proches de l'axe de tir (z)
+                const scoreAxis = dx * 1.4 + dy * 1.1;
+                const score = scoreAxis + (dz * 0.12);
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = a;
+                }
+            }
+            return best;
+        }
+
+        function addScore(points) {
+            if (gameOver || points <= 0) return;
+            score += points;
+            document.getElementById('score-value').innerText = String(score).padStart(6, '0');
+        }
+
+        function triggerGameOver() {
+            if (gameOver) return;
+            gameOver = true;
+            currentPhase = 'game_over';
+            bossActive = false;
+            document.getElementById('status-text').innerText = 'Shield Down';
+            document.getElementById('boss-hud').classList.replace('opacity-100', 'opacity-0');
+
+            bossProjectiles.forEach(p => scene.remove(p));
+            bossProjectiles.length = 0;
+            enemyDrones.forEach(d => scene.remove(d));
+            enemyDrones.length = 0;
+            drones.forEach(d => releasePlayerDroneVisual(d));
+            drones.length = 0;
+            friendBullets.forEach(b => scene.remove(b));
+            friendBullets.length = 0;
+            friendShips.forEach(f => scene.remove(f));
+            friendShips.length = 0;
+            bonusGates.forEach(g => scene.remove(g));
+            bonusGates.length = 0;
+            if (currentBoss && currentBoss.userData && currentBoss.userData.escorts) {
+                currentBoss.userData.escorts.forEach(e => scene.remove(e));
+                currentBoss.userData.escorts.length = 0;
+            }
+
+            const over = document.getElementById('game-over-screen');
+            document.getElementById('game-over-score').innerText = String(score).padStart(6, '0');
+            over.classList.remove('hidden');
+            over.classList.add('flex');
+        }
+
         function onShieldHit(intensity = 10, isBigLaser = false) {
-            if (shieldPower <= 0) return;
+            if (shieldPower <= 0 || gameOver) return;
 
             // Le gros laser fait 15% de dégâts, les petits 5%
             shieldPower -= isBigLaser ? 15 : 5;
+            shieldPower = Math.max(0, shieldPower);
 
             document.getElementById('shield-bar').style.width = shieldPower + "%";
             shakeIntensity = intensity;
             shieldMesh.material.opacity = 0.8;
             setTimeout(() => shieldMesh.material.opacity = 0, 300);
+            if (shieldPower <= 0) triggerGameOver();
+        }
+
+        function setupBossHud(type, boss) {
+            const card = document.getElementById('boss-hud-card');
+            const name = document.getElementById('boss-name');
+            const shieldWrap = document.getElementById('boss-shield-wrap');
+            const fleetWrap = document.getElementById('boss-fleet-bars');
+            const hullWrap = document.getElementById('boss-hull-wrap');
+            if (type === 'atlante') {
+                card.classList.remove('border-red-600');
+                card.classList.add('border-cyan-500');
+                name.classList.remove('text-red-500');
+                name.classList.add('text-cyan-300');
+                name.innerText = 'Atlante Warship Detected';
+                shieldWrap.classList.remove('hidden');
+                hullWrap.classList.remove('hidden');
+                const fleet = boss.userData.fleet || [boss];
+                fleetWrap.innerHTML = fleet.map((_, i) => `
+                    <div class="text-[8px] text-cyan-200/80 uppercase tracking-[0.2em] mb-0.5">Atlante ${i + 1}</div>
+                    <div class="w-64 h-1.5 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30 mb-1">
+                        <div id="boss-fleet-hp-${i}" class="h-full bg-cyan-400 transition-all duration-100" style="width:100%"></div>
+                    </div>
+                `).join('');
+                fleetWrap.classList.remove('hidden');
+            } else if (type === 'kira') {
+                card.classList.remove('border-red-600');
+                card.classList.add('border-cyan-500');
+                name.classList.remove('text-red-500');
+                name.classList.add('text-cyan-300');
+                name.innerText = 'Kira-3 Squadron Detected';
+                shieldWrap.classList.remove('hidden');
+                hullWrap.classList.remove('hidden');
+                const fleet = boss.userData.fleet || [boss];
+                fleetWrap.innerHTML = fleet.map((_, i) => `
+                    <div class="text-[8px] text-cyan-200/80 uppercase tracking-[0.2em] mb-0.5">Kira ${i + 1}</div>
+                    <div class="w-64 h-1.5 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30 mb-1">
+                        <div id="boss-fleet-hp-${i}" class="h-full bg-cyan-400 transition-all duration-100" style="width:100%"></div>
+                    </div>
+                `).join('');
+                fleetWrap.classList.remove('hidden');
+            } else {
+                card.classList.remove('border-cyan-500');
+                card.classList.add('border-red-600');
+                name.classList.remove('text-cyan-300');
+                name.classList.add('text-red-500');
+                name.innerText = 'Wraith Hive Ship Detected';
+                shieldWrap.classList.add('hidden');
+                hullWrap.classList.add('hidden');
+                const fleet = boss.userData.fleet || [boss];
+                fleetWrap.innerHTML = fleet.map((_, i) => `
+                    <div class="text-[8px] text-red-200/80 uppercase tracking-[0.2em] mb-0.5">Croiseur ${i + 1}</div>
+                    <div class="w-64 h-1.5 bg-red-950 rounded-full overflow-hidden border border-red-600/30 mb-1">
+                        <div id="boss-fleet-hp-${i}" class="h-full bg-red-500 transition-all duration-100" style="width:100%"></div>
+                    </div>
+                `).join('');
+                fleetWrap.classList.remove('hidden');
+            }
+            const hpPct = (boss.userData.hp / boss.userData.maxHp) * 100;
+            document.getElementById('boss-hp-bar').style.width = hpPct + '%';
+            const shieldPct = boss.userData.maxShield > 0 ? (boss.userData.shield / boss.userData.maxShield) * 100 : 0;
+            document.getElementById('boss-shield-bar').style.width = shieldPct + '%';
+        }
+
+        function refreshWraithFleetHud() {
+            if (!currentBoss || !currentBoss.userData) return;
+            const fleet = currentBoss.userData.fleet || [];
+            for (let i = 0; i < fleet.length; i++) {
+                const bar = document.getElementById(`boss-fleet-hp-${i}`);
+                if (!bar) continue;
+                const shipData = fleet[i].userData || {};
+                const hp = shipData.hp || 0;
+                const maxHp = shipData.maxHp || 1;
+                bar.style.width = `${Math.max(0, (hp / maxHp) * 100)}%`;
+            }
+        }
+
+        function getNearestFleetShip(fromPos, type) {
+            if (!currentBoss || currentBoss.userData.type !== type) return currentBoss;
+            const fleet = (currentBoss.userData.fleet || []).filter(s => s && s.userData && s.userData.hp > 0);
+            if (!fleet.length) return null;
+            let nearest = fleet[0];
+            let best = nearest.position.distanceTo(fromPos);
+            for (let i = 1; i < fleet.length; i++) {
+                const d = fleet[i].position.distanceTo(fromPos);
+                if (d < best) { best = d; nearest = fleet[i]; }
+            }
+            return nearest;
+        }
+
+        function estimateShieldWorldRadius(ship) {
+            if (!ship || !ship.userData || !ship.userData.shieldMesh) return 0;
+            const shieldMesh = ship.userData.shieldMesh;
+            const params = shieldMesh.geometry && shieldMesh.geometry.parameters ? shieldMesh.geometry.parameters : null;
+            const localRadius = params && params.radius ? params.radius : 0;
+            if (!localRadius) return 0;
+            const worldScale = new THREE.Vector3();
+            shieldMesh.getWorldScale(worldScale);
+            return localRadius * Math.max(worldScale.x, worldScale.y, worldScale.z);
+        }
+
+        function enforceShieldNoContact(leader, escorts, padding = 60) {
+            const fleet = [leader].concat(escorts || []);
+            if (fleet.length < 2) return;
+            for (let iter = 0; iter < 10; iter++) {
+                let moved = false;
+                for (let i = 0; i < fleet.length; i++) {
+                    for (let j = i + 1; j < fleet.length; j++) {
+                        const a = fleet[i];
+                        const b = fleet[j];
+                        const ra = estimateShieldWorldRadius(a);
+                        const rb = estimateShieldWorldRadius(b);
+                        if (ra <= 0 || rb <= 0) continue;
+                        const minDist = ra + rb + padding;
+                        const delta = new THREE.Vector3().subVectors(b.position, a.position);
+                        let dist = delta.length();
+                        if (dist < 0.001) {
+                            delta.set(1, 0, 0);
+                            dist = 0.001;
+                        }
+                        if (dist < minDist) {
+                            const push = (minDist - dist);
+                            const dir = delta.normalize();
+                            if (i === 0) {
+                                // Garde le leader au centre, pousse seulement l'escorte.
+                                b.position.add(dir.clone().multiplyScalar(push));
+                            } else {
+                                a.position.add(dir.clone().multiplyScalar(-push * 0.5));
+                                b.position.add(dir.clone().multiplyScalar(push * 0.5));
+                            }
+                            moved = true;
+                        }
+                    }
+                }
+                if (!moved) break;
+            }
+            // Recalcule les offsets après séparation.
+            for (let i = 0; i < escorts.length; i++) {
+                const e = escorts[i];
+                e.userData = {
+                    ...(e.userData || {}),
+                    offsetX: e.position.x - leader.position.x,
+                    offsetY: e.position.y - leader.position.y,
+                    offsetZ: e.position.z - leader.position.z
+                };
+            }
+        }
+
+        function spawnProgressiveBossHits(target, burstCount = 10, durationMs = 650, baseScale = 2.4) {
+            if (!target || !target.parent) return;
+            const stepMs = Math.max(35, Math.floor(durationMs / Math.max(1, burstCount)));
+            for (let i = 0; i < burstCount; i++) {
+                setTimeout(() => {
+                    if (!target || !target.parent) return;
+                    const hitFx = hitEffectModel ? hitEffectModel.clone() : explosionModel.clone();
+                    const jitter = new THREE.Vector3(
+                        (Math.random() - 0.5) * 170,
+                        (Math.random() - 0.5) * 120,
+                        (Math.random() - 0.5) * 160
+                    );
+                    hitFx.position.copy(target.position).add(jitter);
+                    const s = baseScale + (i / Math.max(1, burstCount - 1)) * (baseScale * 0.9);
+                    hitFx.scale.set(s, s, s);
+                    scene.add(hitFx);
+                    setTimeout(() => scene.remove(hitFx), 360 + i * 20);
+                }, i * stepMs);
+            }
+        }
+
+        function spawnGuaranteedBossHitFx(targetShip, baseScale = 10) {
+            if (!targetShip || !targetShip.parent) return;
+            const center = targetShip.position.clone().add(new THREE.Vector3(
+                (Math.random() - 0.5) * 60,
+                (Math.random() - 0.5) * 40,
+                (Math.random() - 0.5) * 60
+            ));
+
+            const core = new THREE.Mesh(
+                new THREE.SphereGeometry(1.6, 10, 10),
+                new THREE.MeshBasicMaterial({
+                    color: 0xffe066,
+                    transparent: true,
+                    opacity: 0.95,
+                    blending: THREE.AdditiveBlending,
+                    depthTest: false,
+                    depthWrite: false
+                })
+            );
+            core.position.copy(center);
+            core.scale.set(baseScale, baseScale, baseScale);
+            scene.add(core);
+
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(1.2, 0.22, 8, 22),
+                new THREE.MeshBasicMaterial({
+                    color: 0xffb703,
+                    transparent: true,
+                    opacity: 0.88,
+                    blending: THREE.AdditiveBlending,
+                    depthTest: false,
+                    depthWrite: false
+                })
+            );
+            ring.position.copy(center);
+            ring.rotation.x = Math.random() * Math.PI;
+            ring.rotation.y = Math.random() * Math.PI;
+            ring.scale.set(baseScale * 0.75, baseScale * 0.75, baseScale * 0.75);
+            scene.add(ring);
+
+            setTimeout(() => scene.remove(core), 180);
+            setTimeout(() => scene.remove(ring), 220);
+        }
+
+        function playCinematicFleetDestruction(ships, onFinished) {
+            const aliveShips = (ships || []).filter((s) => s && s.parent);
+            if (!aliveShips.length) {
+                if (onFinished) onFinished();
+                return;
+            }
+
+            let center = new THREE.Vector3(0, 0, 0);
+            for (let i = 0; i < aliveShips.length; i++) center.add(aliveShips[i].position);
+            center.multiplyScalar(1 / aliveShips.length);
+
+            const stepMs = 220;
+            for (let i = 0; i < aliveShips.length; i++) {
+                const shipRef = aliveShips[i];
+                setTimeout(() => {
+                    if (!shipRef || !shipRef.parent) return;
+                    spawnProgressiveBossHits(shipRef, 6, 460, 2.9);
+                    spawnGuaranteedBossHitFx(shipRef, 11.5);
+                    const localBoom = explosionModel.clone();
+                    localBoom.position.copy(shipRef.position);
+                    localBoom.scale.set(5.5, 5.5, 5.5);
+                    scene.add(localBoom);
+                    setTimeout(() => scene.remove(localBoom), 540);
+                }, i * stepMs);
+            }
+
+            const finalDelay = aliveShips.length * stepMs + 500;
+            setTimeout(() => {
+                const finalExplo = explosionModel.clone();
+                finalExplo.position.copy(center);
+                finalExplo.scale.set(15, 15, 15);
+                scene.add(finalExplo);
+                for (let i = 0; i < 4; i++) {
+                    setTimeout(() => {
+                        const pulse = new THREE.Mesh(
+                            new THREE.SphereGeometry(2.2, 12, 12),
+                            new THREE.MeshBasicMaterial({
+                                color: 0xffb703,
+                                transparent: true,
+                                opacity: 0.85,
+                                blending: THREE.AdditiveBlending,
+                                depthTest: false,
+                                depthWrite: false
+                            })
+                        );
+                        pulse.position.copy(center).add(new THREE.Vector3(
+                            (Math.random() - 0.5) * 120,
+                            (Math.random() - 0.5) * 90,
+                            (Math.random() - 0.5) * 120
+                        ));
+                        const s = 8 + i * 2.5;
+                        pulse.scale.set(s, s, s);
+                        scene.add(pulse);
+                        setTimeout(() => scene.remove(pulse), 260);
+                    }, i * 90);
+                }
+                setTimeout(() => scene.remove(finalExplo), 980);
+            }, finalDelay);
+
+            setTimeout(() => {
+                aliveShips.forEach((shipRef) => {
+                    if (shipRef && shipRef.parent) scene.remove(shipRef);
+                });
+                if (onFinished) onFinished();
+            }, finalDelay + 760);
+        }
+
+        function attachDroneYellowLight(drone, intensity = 1.8, distance = 42) {
+            // Remplace le PointLight (couteux) par un halo emissif pour eviter les micro-freezes.
+            if (drone.userData && drone.userData.hasDroneGlow) return;
+            const glow = new THREE.Mesh(
+                new THREE.SphereGeometry(1.1, 8, 8),
+                new THREE.MeshBasicMaterial({
+                    color: 0xffd84d,
+                    transparent: true,
+                    opacity: 0.9
+                })
+            );
+            const glowScale = Math.max(0.6, Math.min(1.6, (intensity * distance) / 80));
+            glow.scale.set(glowScale, glowScale, glowScale);
+            glow.position.set(0, 0, 0);
+            drone.add(glow);
+            if (!drone.userData) drone.userData = {};
+            drone.userData.hasDroneGlow = true;
+        }
+
+        function createPlayerDroneVisual() {
+            let drone;
+            if (droneModel) {
+                drone = droneModel.clone();
+                drone.scale.set(4.2, 4.2, 4.2);
+            } else {
+                drone = new THREE.Mesh(
+                    new THREE.SphereGeometry(2.8, 12, 12),
+                    new THREE.MeshBasicMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 2 })
+                );
+            }
+            // Lumiere volontairement douce pour limiter les micro-freezes quand on spam le tir.
+            attachDroneYellowLight(drone, 1.0, 24);
+            drone.userData = { ...(drone.userData || {}), isPlayerDroneVisual: true };
+            return drone;
+        }
+
+        function warmPlayerDronePool(count = 10) {
+            playerDronePool.length = 0;
+            for (let i = 0; i < count; i++) {
+                playerDronePool.push(createPlayerDroneVisual());
+            }
+        }
+
+        function acquirePlayerDroneVisual() {
+            return playerDronePool.pop() || createPlayerDroneVisual();
+        }
+
+        function releasePlayerDroneVisual(drone) {
+            if (!drone) return;
+            scene.remove(drone);
+            if (drone.userData && drone.userData.isPlayerDroneVisual && playerDronePool.length < 16) {
+                playerDronePool.push(drone);
+            }
+        }
+
+        function centerModelOnVisualPivot(model) {
+            if (!model) return;
+            model.updateMatrixWorld(true);
+            const bbox = new THREE.Box3().setFromObject(model);
+            const worldCenter = bbox.getCenter(new THREE.Vector3());
+            const localCenter = model.worldToLocal(worldCenter.clone());
+            model.children.forEach((child) => {
+                if (child.isMesh || child.isGroup || child.type === 'Object3D') {
+                    child.position.sub(localCenter);
+                }
+            });
+            model.updateMatrixWorld(true);
+        }
+
+        function applyKiraMetalMaterial(model) {
+            if (!model) return;
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: 0x8f3a16,
+                        emissive: 0x2a1208,
+                        emissiveIntensity: 0.22,
+                        metalness: 0.9,
+                        roughness: 0.3
+                    });
+                }
+            });
+        }
+
+        function applyAtlanteMetalMaterial(model) {
+            if (!model) return;
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: 0x8b949e,
+                        emissive: 0x1f2937,
+                        emissiveIntensity: 0.2,
+                        metalness: 0.92,
+                        roughness: 0.26
+                    });
+                }
+            });
+        }
+
+        function damageBoss(amount, targetBoss = null) {
+            if (!currentBoss || !bossActive || gameOver) return;
+            const victim = targetBoss || currentBoss;
+            if (!victim || !victim.userData) return;
+
+            if ((currentBoss.userData.type === 'atlante' || currentBoss.userData.type === 'kira') && victim.userData.shield > 0) {
+                victim.userData.shield = Math.max(0, victim.userData.shield - amount);
+                addScore(6);
+                const shieldPct = (currentBoss.userData.shield / currentBoss.userData.maxShield) * 100;
+                document.getElementById('boss-shield-bar').style.width = shieldPct + '%';
+                if (victim.userData.shield <= 0) {
+                    if (victim.userData.shieldMesh) victim.userData.shieldMesh.material.opacity = 0;
+                } else {
+                    if (victim.userData.shieldMesh) victim.userData.shieldMesh.material.opacity = 0.85;
+                    setTimeout(() => {
+                        if (victim && victim.userData && victim.userData.shieldMesh) {
+                            victim.userData.shieldMesh.material.opacity = 0;
+                        }
+                    }, 140);
+                }
+                return;
+            }
+
+            victim.userData.hp = Math.max(0, victim.userData.hp - amount);
+            addScore(12);
+            // Atlante: hit coque systématique quand le bouclier est tombé.
+            if (currentBoss.userData.type === 'atlante' && (victim.userData.shield || 0) <= 0) {
+                spawnGuaranteedBossHitFx(victim, 13);
+                const hullHit = hitEffectModel ? hitEffectModel.clone() : explosionModel.clone();
+                hullHit.position.copy(victim.position);
+                hullHit.scale.set(12, 12, 12);
+                scene.add(hullHit);
+                setTimeout(() => scene.remove(hullHit), 300);
+            }
+            const hpPct = (currentBoss.userData.hp / currentBoss.userData.maxHp) * 100;
+            document.getElementById('boss-hp-bar').style.width = hpPct + '%';
+            if (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante') {
+                if (victim.userData.hp <= 0) {
+                    const prevLeader = currentBoss;
+                    const survivorsAfterKill = (prevLeader.userData.fleet || []).filter(
+                        (s) => s && s !== victim && s.userData && s.userData.hp > 0
+                    );
+                    const finalKill = survivorsAfterKill.length === 0;
+                    victim.userData.destroying = true;
+
+                    // Effet de destruction "locale" seulement si le combat continue,
+                    // sinon victory() joue la cinématique finale propre.
+                    if (!finalKill) {
+                        const burstScale = currentBoss.userData.type === 'kira'
+                            ? 3.4
+                            : (currentBoss.userData.type === 'atlante' ? 3.0 : 2.8);
+                        spawnProgressiveBossHits(victim, 12, 760, burstScale);
+
+                        const shipExplo = explosionModel.clone();
+                        shipExplo.position.copy(victim.position);
+                        if (currentBoss.userData.type === 'kira') {
+                            shipExplo.scale.set(10, 5.2, 5.2);
+                        } else if (currentBoss.userData.type === 'atlante') {
+                            shipExplo.scale.set(8, 4.4, 4.4);
+                        } else {
+                            shipExplo.scale.set(10, 2.2, 2.2);
+                        }
+                        scene.add(shipExplo);
+                        setTimeout(() => scene.remove(shipExplo), 450);
+                    }
+
+                    if (finalKill) {
+                        // Laisse victory() piloter la cinématique finale proprement.
+                        if (victim !== currentBoss) {
+                            currentBoss.userData.escorts = [victim];
+                            currentBoss.userData.fleet = [victim];
+                        }
+                    }
+
+                    if (!finalKill && victim === prevLeader && survivorsAfterKill.length > 0) {
+                        // Garde le leader initial comme ancre invisible pour éviter tout déplacement de flotte.
+                        victim.visible = false;
+                        victim.userData.hp = 0;
+                        victim.userData.maxHp = victim.userData.maxHp || 1;
+                        currentBoss.userData.fleet = survivorsAfterKill;
+                        currentBoss.userData.escorts = survivorsAfterKill;
+                        setupBossHud(currentBoss.userData.type, currentBoss);
+                    } else if (!finalKill) {
+                        setTimeout(() => {
+                            if (victim) scene.remove(victim);
+                        }, 680);
+                        currentBoss.userData.fleet = survivorsAfterKill;
+                        currentBoss.userData.escorts = survivorsAfterKill.filter((s) => s !== currentBoss);
+                    } else {
+                        // On garde la/les dernière(s) carcasse(s) pour la cinématique de victory().
+                    }
+                }
+
+                refreshWraithFleetHud();
+                const survivors = (currentBoss.userData.fleet || []).filter(s => s && s.userData && s.userData.hp > 0);
+                if (survivors.length === 0) {
+                    currentBoss.userData.hp = 0;
+                    document.getElementById('boss-hp-bar').style.width = '0%';
+                    victory();
+                }
+                return;
+            }
+            if (currentBoss.userData.hp <= 0) victory();
+        }
+
+        function spawnAtlanteDroneSalvo(shooter = currentBoss) {
+            for (let i = 0; i < 40; i++) {
+                const angle = (i / 40) * Math.PI * 2;
+                const offset = new THREE.Vector3(Math.cos(angle) * 70, Math.sin(angle) * 35, -20);
+                const spawn = shooter.position.clone().add(offset);
+                let drone;
+                if (droneModel) {
+                    drone = droneModel.clone();
+                    drone.scale.set(6.2, 6.2, 6.2);
+                } else {
+                    drone = new THREE.Mesh(
+                        new THREE.SphereGeometry(6.5, 10, 10),
+                        new THREE.MeshBasicMaterial({ color: 0xffd000, emissive: 0xffcc00, emissiveIntensity: 2.8 })
+                    );
+                }
+                drone.position.copy(spawn);
+                attachDroneYellowLight(drone, 1.2, 26);
+                drone.userData = {
+                    velocity: new THREE.Vector3(0, 0, 0),
+                    bornAt: clock.getElapsedTime(),
+                    ttl: 6.2,
+                    lockAt: 1.25 + Math.random() * 0.25,
+                    locked: false,
+                    lockSpeed: 19,
+                    lockTarget: null,
+                    // Phase 1: montée + vrille
+                    spiralCenter: spawn.clone(),
+                    spiralRadius: 60 + Math.random() * 24,
+                    spiralAngle: Math.random() * Math.PI * 2,
+                    spiralSpeed: 0.16 + Math.random() * 0.22,
+                    ascendSpeed: 10 + Math.random() * 8,
+                    driftZ: 6 + Math.random() * 5,
+                    // Imprécision de lock (plus haut = plus esquivable)
+                    spread: 0.22
+                };
+                scene.add(drone);
+                enemyDrones.push(drone);
+            }
+        }
+
+        function spawnKiraDroneSalvo(shooter) {
+            const base = shooter.position.clone();
+            for (let i = 0; i < 20; i++) {
+                const angle = (i / 20) * Math.PI * 2;
+                const ring = 120 + (i % 5) * 18;
+                const spawn = base.clone().add(new THREE.Vector3(
+                    Math.cos(angle) * ring * 0.8,
+                    Math.sin(angle) * ring * 0.45,
+                    -40 + (i % 4) * 12
+                ));
+                const radial = new THREE.Vector3(Math.cos(angle), Math.sin(angle) * 0.6, -0.2).normalize();
+                let drone;
+                if (droneModel) {
+                    drone = droneModel.clone();
+                    drone.scale.set(5.6, 5.6, 5.6);
+                } else {
+                    drone = new THREE.Mesh(
+                        new THREE.SphereGeometry(5.2, 9, 9),
+                        new THREE.MeshBasicMaterial({ color: 0xffd000, emissive: 0xffcc00, emissiveIntensity: 3.2 })
+                    );
+                }
+                drone.position.copy(spawn);
+                attachDroneYellowLight(drone, 2.0, 46);
+                drone.userData = {
+                    velocity: radial.clone().multiplyScalar(5),
+                    bornAt: clock.getElapsedTime(),
+                    ttl: 7.2,
+                    lockAt: 1.45 + Math.random() * 0.35,
+                    locked: false,
+                    lockSpeed: 17,
+                    lockTarget: null,
+                    // Phase 1: vrille plus large pour Kira
+                    spiralCenter: spawn.clone(),
+                    spiralRadius: 90 + Math.random() * 30,
+                    spiralAngle: angle,
+                    spiralSpeed: 0.2 + Math.random() * 0.26,
+                    ascendSpeed: 9 + Math.random() * 7,
+                    driftZ: 5 + Math.random() * 4,
+                    spread: 0.28
+                };
+                scene.add(drone);
+                enemyDrones.push(drone);
+            }
+        }
+
+        function pickDroneLockTarget() {
+            // Cible prioritaire: joueur, mais peut verrouiller un friend actif.
+            const shipPos = ship.position.clone();
+            if (!friendShips.length) return shipPos;
+            if (Math.random() < 0.7) return shipPos;
+            const friend = friendShips[Math.floor(Math.random() * friendShips.length)];
+            return friend ? friend.position.clone() : shipPos;
         }
 
         window.onkeydown = e => {
+            if (gameOver) return;
             keys[e.key.toLowerCase()] = true;
-            if(e.code === 'Space') { e.preventDefault(); spawnDrone(); }
+            if (e.code === 'Space') {
+                e.preventDefault();
+                isSpaceHeld = true;
+                if (spawnDrone()) {
+                    lastPlayerShotAt = clock.getElapsedTime();
+                }
+            }
         };
-        window.onkeyup = e => keys[e.key.toLowerCase()] = false;
-        window.addEventListener('mousedown', spawnDrone);
+        window.onkeyup = e => {
+            keys[e.key.toLowerCase()] = false;
+            if (e.code === 'Space') isSpaceHeld = false;
+        };
 
         function animate() {
             requestAnimationFrame(animate);
@@ -252,16 +1050,56 @@
 
             const delta = clock.getDelta();
             const elapsedTime = clock.getElapsedTime();
-            const factor = delta * 60; // Normalisation pour 60 FPS
+            const factor = delta * 60;
+
+            // Tir continu au maintien de l'espace, plafonné à 6 projectiles.
+            if (isSpaceHeld && (elapsedTime - lastPlayerShotAt) > 0.12) {
+                if (spawnDrone()) {
+                    lastPlayerShotAt = elapsedTime;
+                }
+            }
+
+            if (gameOver) {
+                renderer.render(scene, camera);
+                return;
+            }
 
             // ==========================================
             // 1. PARTICULES DE CHARGE (PROPULSION)
             // ==========================================
             for (let i = chargeParticles.length - 1; i >= 0; i--) {
                 const p = chargeParticles[i];
-                p.position.add(p.userData.velocity);
-                p.scale.multiplyScalar(0.95); // Rétrécissement
-                if (p.scale.x < 0.1) {
+                if (currentPhase === 'charging') {
+                    if (p.userData.kind === 'thruster') {
+                        p.userData.life *= 0.985;
+                        p.position.x = ship.position.x + p.userData.nozzleX + (Math.random() - 0.5) * p.userData.wobble;
+                        p.position.y = ship.position.y + p.userData.nozzleY + (Math.random() - 0.5) * p.userData.wobble;
+                        p.position.z += p.userData.driftZ * factor * 0.12;
+                        p.material.opacity = Math.max(0.14, p.userData.life);
+                        p.scale.x *= 1.004;
+                        p.scale.y *= 1.004;
+                        p.scale.z *= p.userData.grow;
+                    } else {
+                        p.userData.angle += p.userData.spin * factor * 0.35;
+                        p.userData.radius *= p.userData.radiusDecay;
+                        p.userData.life *= 0.992;
+                        p.position.x = ship.position.x + Math.cos(p.userData.angle) * p.userData.radius;
+                        p.position.y = ship.position.y + Math.sin(p.userData.angle) * (p.userData.radius * 0.55);
+                        p.position.z += p.userData.driftZ * factor * 0.08;
+                        p.material.opacity = Math.max(0.15, p.userData.life);
+                        p.scale.multiplyScalar(0.994);
+                    }
+                } else {
+                    p.position.z += 16 * factor;
+                    p.material.opacity *= 0.9;
+                    p.scale.multiplyScalar(0.95);
+                }
+
+                if (
+                    (p.userData.radius !== undefined && p.userData.radius < 2) ||
+                    p.scale.x < 0.08 ||
+                    p.material.opacity < 0.05
+                ) {
                     scene.remove(p);
                     chargeParticles.splice(i, 1);
                 }
@@ -277,10 +1115,9 @@
             camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.05);
             camera.updateProjectionMatrix();
 
-            // Distances de proximité (Très proche en combat)
-            let targetCamZ = 65, targetCamY = 25;
+            let targetCamZ = 160; targetCamY = 40;
             if (currentPhase === 'charging') { targetCamZ = 160; targetCamY = 40; }
-            else if (currentPhase === 'boss_fight') { targetCamZ = 12; targetCamY = 6; }
+            else if (currentPhase === 'boss_fight') { targetCamZ = 160; targetCamY = 40;  }
             else if (currentPhase === 'hyperspace') { targetCamZ = 8; targetCamY = 4; }
 
             camera.position.lerp(new THREE.Vector3(ship.position.x, ship.position.y + targetCamY, ship.position.z + targetCamZ), 0.2);
@@ -309,7 +1146,10 @@
                 starField.position.z = ship.position.z;
                 starField.geometry.attributes.position.needsUpdate = true;
             } else {
-                if (currentPhase !== 'charging') ship.position.z -= 22 * factor;
+                // En combat de boss, on fige la progression avant/arrière.
+                if (currentPhase !== 'charging' && currentPhase !== 'boss_fight') {
+                    ship.position.z -= 22 * factor;
+                }
                 if(starField) starField.material.opacity = THREE.MathUtils.lerp(starField.material.opacity, 0, 0.1);
             }
 
@@ -324,6 +1164,12 @@
                 if (keys['s'] && ship.position.y > -limY) ship.position.y -= 4.2 * factor;
             }
 
+            // Inclinaison visuelle du vaisseau selon les déplacements
+            const targetRoll = (keys['q'] ? -0.22 : 0) + (keys['d'] ? 0.22 : 0);
+            const targetPitch = (keys['z'] ? 0.12 : 0) + (keys['s'] ? -0.12 : 0);
+            ship.rotation.z = THREE.MathUtils.lerp(ship.rotation.z, targetRoll, 0.12);
+            ship.rotation.x = THREE.MathUtils.lerp(ship.rotation.x, targetPitch, 0.12);
+
             if (shakeIntensity > 0.1) {
                 camera.position.x += (Math.random() - 0.5) * shakeIntensity;
                 camera.position.y += (Math.random() - 0.5) * shakeIntensity;
@@ -332,102 +1178,513 @@
             camera.lookAt(ship.position.x, ship.position.y, ship.position.z - 20);
 
             // ==========================================
-            // 5. LOGIQUE DU BOSS (TIRS PRÉDICTIFS 60%)
+            // 4-bis. BONUS GATES (alliés friend)
+            // ==========================================
+            if (currentPhase === 'cruise' && !bossActive && bonusGates.length === 0 && (elapsedTime - lastBonusGateAt) > 14) {
+                spawnBonusGate();
+                lastBonusGateAt = elapsedTime;
+            }
+            for (let i = bonusGates.length - 1; i >= 0; i--) {
+                const g = bonusGates[i];
+                if (g.position.z > ship.position.z + 240) {
+                    scene.remove(g);
+                    bonusGates.splice(i, 1);
+                    continue;
+                }
+                const prevDeltaZ = g.userData.prevDeltaZ;
+                const deltaZ = ship.position.z - g.position.z;
+                const crossedGatePlane =
+                    (prevDeltaZ > 0 && deltaZ <= 0) ||
+                    (prevDeltaZ < 0 && deltaZ >= 0);
+                g.userData.prevDeltaZ = deltaZ;
+                const lateralDist = Math.hypot(ship.position.x - g.position.x, ship.position.y - g.position.y);
+                // Bonus uniquement si le joueur traverse réellement l'ouverture de la porte.
+                if (
+                    !g.userData.collected &&
+                    (crossedGatePlane || Math.abs(deltaZ) < 70) &&
+                    lateralDist < 80
+                ) {
+                    g.userData.collected = true;
+                    addScore(120);
+                    spawnFriendSupport();
+                    document.getElementById('status-text').innerText = 'Support Wing Online';
+                    scene.remove(g);
+                    bonusGates.splice(i, 1);
+                }
+            }
+
+            // ==========================================
+            // 4-ter. ALLIÉS FRIEND + MITRAILLETTE DROITE
+            // ==========================================
+            for (let i = friendShips.length - 1; i >= 0; i--) {
+                const ally = friendShips[i];
+                const side = ally.userData.side || 1;
+                const targetPos = ship.position.clone().add(new THREE.Vector3(side * 50, 10, -35));
+                ally.position.lerp(targetPos, 0.18);
+                ally.lookAt(ally.position.x, ally.position.y, ally.position.z - 500);
+
+                // Un seul impact détruit un friend (astéroïdes compris)
+                let destroyed = false;
+                for (let a = 0; a < asteroids.length; a++) {
+                    const ast = asteroids[a];
+                    if (!ast.visible) continue;
+                    if (ally.position.distanceTo(ast.position) < 70) {
+                        const fx = explosionModel.clone();
+                        fx.position.copy(ally.position);
+                        fx.scale.set(1.0, 1.0, 1.0);
+                        scene.add(fx);
+                        setTimeout(() => scene.remove(fx), 350);
+                        scene.remove(ally);
+                        friendShips.splice(i, 1);
+                        destroyed = true;
+                        break;
+                    }
+                }
+                if (destroyed) continue;
+
+                const fleetTarget = (bossActive && currentBoss && (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante'))
+                    ? getNearestFleetShip(ally.position, currentBoss.userData.type)
+                    : null;
+                const target = fleetTarget || (bossActive && currentBoss ? currentBoss : getBestAsteroidForFriend(ally));
+
+                if (target && (elapsedTime - ally.userData.lastShotAt) > 0.1) {
+                    const shotDir = new THREE.Vector3().subVectors(target.position, ally.position).normalize();
+                    const bullet = new THREE.Mesh(
+                        new THREE.SphereGeometry(1.35, 8, 8),
+                        new THREE.MeshBasicMaterial({ color: 0xfff59d, emissive: 0xffe066, emissiveIntensity: 2 })
+                    );
+                    bullet.position.copy(ally.position).add(new THREE.Vector3(0, 0, -15));
+                    bullet.userData = { velocity: shotDir.clone().multiplyScalar(72), speed: 72, turnRate: 0.26, target: target, damage: 2 };
+                    scene.add(bullet);
+                    friendBullets.push(bullet);
+                    ally.userData.lastShotAt = elapsedTime;
+                }
+            }
+            for (let i = friendBullets.length - 1; i >= 0; i--) {
+                const b = friendBullets[i];
+                // Auto-guidage léger vers l'astéroïde cible
+                if (b.userData.target && b.userData.target.parent) {
+                    const desired = new THREE.Vector3().subVectors(b.userData.target.position, b.position).normalize().multiplyScalar(b.userData.speed);
+                    b.userData.velocity.lerp(desired, b.userData.turnRate);
+                }
+                b.position.add(b.userData.velocity.clone().multiplyScalar(factor));
+                let targetAst = (b.userData.target && b.userData.target.parent) ? b.userData.target : null;
+                if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.fleet) {
+                    const fleetAlive = (currentBoss.userData.fleet || []).filter(s => s && s.parent && s.userData && s.userData.hp > 0);
+                    let bestShip = null;
+                    let bestDist = Infinity;
+                    for (let k = 0; k < fleetAlive.length; k++) {
+                        const shipRef = fleetAlive[k];
+                        const dist = b.position.distanceTo(shipRef.position);
+                        if (dist < 95 && dist < bestDist) {
+                            bestDist = dist;
+                            bestShip = shipRef;
+                        }
+                    }
+                    if (bestShip) targetAst = bestShip;
+                }
+                if (targetAst && targetAst.parent && b.position.distanceTo(targetAst.position) < 95) {
+                    // Si la cible est un boss (ou croiseur), on applique les dégâts boss.
+                    if (targetAst.userData && targetAst.userData.maxHp) {
+                        damageBoss(b.userData.damage, targetAst);
+                        scene.remove(b);
+                        friendBullets.splice(i, 1);
+                        continue;
+                    }
+                    const fx = explosionModel.clone();
+                    fx.position.copy(targetAst.position);
+                    fx.scale.set(1.2, 1.2, 1.2);
+                    scene.add(fx);
+                    setTimeout(() => scene.remove(fx), 350);
+                    targetAst.userData.friendHp = (targetAst.userData.friendHp || 3) - 0.5;
+                    if (targetAst.userData.friendHp <= 0) {
+                        addScore(10);
+                        // Astéroïde détruit après plusieurs impacts friend
+                        targetAst.position.z = ship.position.z - 9000 - (Math.random() * 2500);
+                        targetAst.position.x = (Math.random() - 0.5) * 2000;
+                        targetAst.position.y = (Math.random() - 0.5) * 1200;
+                        targetAst.userData.velocity = null;
+                        targetAst.userData.hitCooldown = 0;
+                        targetAst.userData.friendHp = 3;
+                    }
+                    scene.remove(b);
+                    friendBullets.splice(i, 1);
+                } else if (b.position.z < ship.position.z - 6000 || b.position.z > ship.position.z + 300) {
+                    scene.remove(b);
+                    friendBullets.splice(i, 1);
+                }
+            }
+
+            // ==========================================
+            // 5. LOGIQUE DU BOSS (Wraith Triple Blaster)
             // ==========================================
             if (bossActive && currentBoss) {
-                // Fixe au centre
-                currentBoss.position.x = 0;
-                currentBoss.position.y = 0;
-                currentBoss.position.z = ship.position.z - 1600;
-
-                // Préparation de la visée prédictive
-                const predictionLevel = 0.6; // 60% de précision
-                const playerInputVel = new THREE.Vector3(
-                    (keys['d'] ? 4.2 : 0) - (keys['q'] ? 4.2 : 0),
-                    (keys['z'] ? 4.2 : 0) - (keys['s'] ? 4.2 : 0),
-                    0
-                ).multiplyScalar(factor * 25 * predictionLevel);
-
-                const targetPoint = ship.position.clone().add(playerInputVel);
-
-                // --- A. GROS BLASTER CENTRAL (Lent, Puissant) ---
-                if (elapsedTime - currentBoss.userData.lastShotCenter > 1.2) {
-                    const bolt = new THREE.Mesh(
-                        new THREE.CylinderGeometry(4, 4, 120, 8),
-                        new THREE.MeshBasicMaterial({ color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 5 })
-                    );
-                    bolt.position.copy(currentBoss.position);
-                    const dir = new THREE.Vector3().subVectors(targetPoint, bolt.position).normalize();
-                    bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-                    bolt.userData = { velocity: dir.multiplyScalar(38), damageScale: 30, isBig: true };
-                    scene.add(bolt); bossProjectiles.push(bolt);
-                    currentBoss.userData.lastShotCenter = elapsedTime;
+                if (currentBoss.userData.type === 'atlante') {
+                    currentBoss.position.x = 0;
+                    currentBoss.position.y = 8;
+                    currentBoss.position.z = ship.position.z - 1540;
+                    if (currentBoss.userData.escorts && currentBoss.userData.escorts.length) {
+                        currentBoss.userData.escorts.forEach((escort) => {
+                            escort.position.x = currentBoss.position.x + (escort.userData.offsetX || 0);
+                            escort.position.y = currentBoss.position.y + (escort.userData.offsetY || 0);
+                            escort.position.z = currentBoss.position.z + (escort.userData.offsetZ || 0);
+                            escort.rotation.x = -0.08;
+                            escort.rotation.z = 0.07;
+                            escort.rotation.y = -0.2;
+                        });
+                    }
+                } else if (currentBoss.userData.type === 'kira') {
+                    currentBoss.position.x = 0;
+                    currentBoss.position.y = 30;
+                    currentBoss.position.z = ship.position.z - 1780;
+                    currentBoss.rotation.y = -THREE.MathUtils.degToRad(50);
+                    currentBoss.rotation.x = -0.06;
+                    currentBoss.rotation.z = 0.05;
+                    if (currentBoss.userData.escorts && currentBoss.userData.escorts.length) {
+                        currentBoss.userData.escorts.forEach((escort) => {
+                            escort.position.x = currentBoss.position.x + (escort.userData.offsetX || 0);
+                            escort.position.y = currentBoss.position.y + (escort.userData.offsetY || 0);
+                            escort.position.z = currentBoss.position.z + (escort.userData.offsetZ || 0);
+                            escort.rotation.y = -THREE.MathUtils.degToRad(50);
+                            escort.rotation.x = -0.06;
+                            escort.rotation.z = 0.05;
+                        });
+                    }
+                } else {
+                    currentBoss.position.x = 0;
+                    currentBoss.position.y = 0;
+                    currentBoss.position.z = ship.position.z - 1600;
+                    if (currentBoss.userData.escorts && currentBoss.userData.escorts.length) {
+                        currentBoss.userData.escorts.forEach((escort) => {
+                            escort.position.x = currentBoss.position.x + (escort.userData.offsetX || 0);
+                            escort.position.y = currentBoss.position.y + (escort.userData.offsetY || 0);
+                            escort.position.z = currentBoss.position.z + (escort.userData.offsetZ || 0);
+                        });
+                    }
                 }
 
-                // --- B. CANONS LATÉRAUX (Rapides, Moins puissants) ---
-                if (elapsedTime - currentBoss.userData.lastShotWing > 0.4) {
-                    // Alternance Gauche / Droite
-                    const side = currentBoss.userData.wingSide || 1;
-                    const wingBolt = new THREE.Mesh(
-                        new THREE.SphereGeometry(3, 8, 8),
-                        new THREE.MeshBasicMaterial({ color: 0xccff00, emissive: 0xccff00, emissiveIntensity: 3 })
+                const shipWorld = new THREE.Vector3();
+                ship.getWorldPosition(shipWorld);
+
+                if (currentBoss.userData.type === 'wraith') {
+                    const shooters = [currentBoss].concat(currentBoss.userData.escorts || []).filter(
+                        (s) => s && s.parent && s.visible !== false && s.userData && (s.userData.hp || 0) > 0 && !s.userData.destroying
                     );
+                    for (let s = 0; s < shooters.length; s++) {
+                        const shooter = shooters[s];
+                        if (elapsedTime - shooter.userData.lastShotCenter > 1.2) {
+                            const spawnPos = shooter.position.clone();
+                            const dir = new THREE.Vector3().subVectors(shipWorld, spawnPos).normalize();
+                            spawnPos.add(dir.clone().multiplyScalar(150));
+                            const bolt = new THREE.Mesh(
+                                new THREE.CylinderGeometry(4.2, 4.2, 95, 10),
+                                new THREE.MeshBasicMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 5 })
+                            );
+                            bolt.position.copy(spawnPos);
+                            bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+                            bolt.userData = { velocity: dir.clone().multiplyScalar(20), speed: 20, damageScale: 30, isBig: true };
+                            scene.add(bolt); bossProjectiles.push(bolt);
+                            shooter.userData.lastShotCenter = elapsedTime;
+                        }
 
-                    // Positionnement sur les ailes
-                    wingBolt.position.copy(currentBoss.position);
-                    wingBolt.position.x += side * 100;
-                    wingBolt.position.y -= 10;
-
-                    const dirWing = new THREE.Vector3().subVectors(targetPoint, wingBolt.position).normalize();
-                    wingBolt.userData = { velocity: dirWing.multiplyScalar(55), damageScale: 10, isBig: false };
-
-                    scene.add(wingBolt); bossProjectiles.push(wingBolt);
-                    currentBoss.userData.lastShotWing = elapsedTime;
-                    currentBoss.userData.wingSide = side * -1; // Alterne pour le prochain tir
+                        if (elapsedTime - shooter.userData.lastShotWing > 0.26) {
+                            const side = shooter.userData.wingSide || 1;
+                            const wingSpawn = shooter.position.clone().add(new THREE.Vector3(side * 100, -10, 0));
+                            const dirWing = new THREE.Vector3().subVectors(shipWorld, wingSpawn).normalize();
+                            const spread = [0.88, 1.12];
+                            for (let j = 0; j < spread.length; j++) {
+                                const wingBolt = new THREE.Mesh(new THREE.SphereGeometry(2.7, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 3 }));
+                                wingBolt.position.copy(wingSpawn).add(new THREE.Vector3(0, (j === 0 ? -8 : 8), 0));
+                                wingBolt.userData = { velocity: dirWing.clone().multiplyScalar(24 * spread[j]), speed: 24, damageScale: 10, isBig: false };
+                                scene.add(wingBolt); bossProjectiles.push(wingBolt);
+                            }
+                            shooter.userData.lastShotWing = elapsedTime;
+                            shooter.userData.wingSide = side * -1;
+                        }
+                    }
+                } else if (currentBoss.userData.type === 'atlante') {
+                    const shooters = [currentBoss].concat(currentBoss.userData.escorts || []).filter(
+                        (s) => s && s.parent && s.visible !== false && s.userData && (s.userData.hp || 0) > 0 && !s.userData.destroying
+                    );
+                    for (let s = 0; s < shooters.length; s++) {
+                        const shooter = shooters[s];
+                        if (elapsedTime - shooter.userData.lastSalvoAt > 2.3) {
+                            spawnAtlanteDroneSalvo(shooter);
+                            shooter.userData.lastSalvoAt = elapsedTime;
+                        }
+                    }
+                } else if (currentBoss.userData.type === 'kira') {
+                    const shooters = [currentBoss].concat(currentBoss.userData.escorts || []).filter(
+                        (s) => s && s.parent && s.visible !== false && s.userData && (s.userData.hp || 0) > 0 && !s.userData.destroying
+                    );
+                    for (let s = 0; s < shooters.length; s++) {
+                        const shooter = shooters[s];
+                        if (elapsedTime - shooter.userData.lastSalvoAt > 3.1) {
+                            spawnKiraDroneSalvo(shooter);
+                            shooter.userData.lastSalvoAt = elapsedTime;
+                        }
+                    }
                 }
             }
 
-            // --- MISE À JOUR PROJECTILES BOSS ---
+            // Maj Projectiles Wraith (trajectoire fixe après tir)
+            const shipWorldPos = new THREE.Vector3();
+            ship.getWorldPosition(shipWorldPos);
             for (let i = bossProjectiles.length - 1; i >= 0; i--) {
                 const p = bossProjectiles[i];
-                p.position.add(p.userData.velocity);
+                p.position.add(p.userData.velocity.clone().multiplyScalar(factor));
 
-                if (p.position.distanceTo(ship.position) < 45) {
+                // Les friends n'ont pas de bouclier : un hit les détruit
+                let hitFriend = false;
+                for (let f = friendShips.length - 1; f >= 0; f--) {
+                    const ally = friendShips[f];
+                    if (p.position.distanceTo(ally.position) < 48) {
+                        const fx = explosionModel.clone();
+                        fx.position.copy(ally.position);
+                        fx.scale.set(1.0, 1.0, 1.0);
+                        scene.add(fx);
+                        setTimeout(() => scene.remove(fx), 300);
+                        scene.remove(ally);
+                        friendShips.splice(f, 1);
+                        scene.remove(p);
+                        bossProjectiles.splice(i, 1);
+                        hitFriend = true;
+                        break;
+                    }
+                }
+                if (hitFriend) continue;
+
+                if (p.position.distanceTo(shipWorldPos) < 45) {
                     onShieldHit(p.userData.damageScale, p.userData.isBig);
                     scene.remove(p); bossProjectiles.splice(i, 1);
-                } else if (p.position.z > ship.position.z + 500) {
+                } else if (
+                    p.position.z > shipWorldPos.z + 500 ||    // passé devant le joueur
+                    p.position.z < shipWorldPos.z - 2800 ||   // trop loin derrière
+                    p.position.distanceTo(shipWorldPos) > 4200 // trop loin globalement
+                ) {
                     scene.remove(p); bossProjectiles.splice(i, 1);
+                }
+            }
+
+            // Drones ennemis (Atlante/Kira) : montée+vrille -> lock mi-parcours -> tir droit
+            for (let i = enemyDrones.length - 1; i >= 0; i--) {
+                const d = enemyDrones[i];
+                const tShip = new THREE.Vector3();
+                ship.getWorldPosition(tShip);
+                const droneAge = elapsedTime - d.userData.bornAt;
+
+                if (!d.userData.locked) {
+                    // Phase 1 : montée et vrille aléatoire
+                    d.userData.spiralAngle += d.userData.spiralSpeed * factor;
+                    d.userData.spiralRadius *= 0.992;
+                    d.position.x = d.userData.spiralCenter.x + Math.cos(d.userData.spiralAngle) * d.userData.spiralRadius;
+                    d.position.y += d.userData.ascendSpeed * factor * 0.2;
+                    d.position.z += d.userData.driftZ * factor;
+
+                    // Phase 2 : lock à mi-parcours puis trajectoire droite
+                    if (droneAge >= d.userData.lockAt) {
+                        const lockTarget = pickDroneLockTarget();
+                        d.userData.lockTarget = lockTarget.clone();
+                        const rawDir = new THREE.Vector3().subVectors(lockTarget, d.position).normalize();
+                        const randomSpread = new THREE.Vector3(
+                            (Math.random() - 0.5) * d.userData.spread,
+                            (Math.random() - 0.5) * d.userData.spread,
+                            (Math.random() - 0.5) * d.userData.spread
+                        );
+                        const lockDir = rawDir.add(randomSpread).normalize();
+                        d.userData.velocity = lockDir.multiplyScalar(d.userData.lockSpeed);
+                        d.userData.locked = true;
+                    }
+                } else {
+                    d.position.add(d.userData.velocity.clone().multiplyScalar(factor));
+                }
+
+                // Les drones ennemis détruisent aussi les friends en un coup
+                let hitFriend = false;
+                for (let f = friendShips.length - 1; f >= 0; f--) {
+                    const ally = friendShips[f];
+                    if (d.position.distanceTo(ally.position) < 42) {
+                        const fx = explosionModel.clone();
+                        fx.position.copy(ally.position);
+                        fx.scale.set(1.0, 1.0, 1.0);
+                        scene.add(fx);
+                        setTimeout(() => scene.remove(fx), 300);
+                        scene.remove(ally);
+                        friendShips.splice(f, 1);
+                        scene.remove(d);
+                        enemyDrones.splice(i, 1);
+                        hitFriend = true;
+                        break;
+                    }
+                }
+                if (hitFriend) continue;
+
+                if (d.position.distanceTo(tShip) < 42) {
+                    onShieldHit(8, false);
+                    scene.remove(d);
+                    enemyDrones.splice(i, 1);
+                    continue;
+                }
+                if ((elapsedTime - d.userData.bornAt) > d.userData.ttl || d.position.z > ship.position.z + 600 || d.position.distanceTo(tShip) > 5200) {
+                    scene.remove(d);
+                    enemyDrones.splice(i, 1);
                 }
             }
 
             // ==========================================
-            // 6. DRONES ET ASTÉROÏDES
+            // 6. DRONES
             // ==========================================
             for (let i = drones.length - 1; i >= 0; i--) {
                 const d = drones[i];
-                const dir = new THREE.Vector3().subVectors(d.userData.target.position, d.position).normalize();
-                d.position.add(dir.multiplyScalar(75 * factor));
-                if (d.position.distanceTo(d.userData.target.position) < 70) {
+                const droneAge = elapsedTime - d.userData.bornAt;
+
+                if (!d.userData.locked) {
+                    if (bossActive && currentBoss && (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante')) {
+                        // Re-ciblage avant lock uniquement si cible invalide.
+                        if (!d.userData.target || !d.userData.target.parent || (d.userData.target.userData && d.userData.target.userData.hp <= 0)) {
+                            const nearest = getNearestFleetShip(d.position, currentBoss.userData.type);
+                            if (nearest) d.userData.target = nearest;
+                        }
+                    } else if (!bossActive) {
+                        const bestAsteroid = getBestAsteroidForFriend(d);
+                        if (bestAsteroid) d.userData.target = bestAsteroid;
+                    }
+
+                    // Phase 1 : montée + vrille
+                    d.userData.spiralAngle += d.userData.spiralSpeed * factor;
+                    d.userData.spiralRadius *= 0.986;
+                    d.userData.spiralCenter.z += d.userData.driftZ * factor;
+                    d.userData.spiralCenter.y += d.userData.ascendSpeed * factor * 0.18;
+                    d.position.x = d.userData.spiralCenter.x + Math.cos(d.userData.spiralAngle) * d.userData.spiralRadius;
+                    d.position.y = d.userData.spiralCenter.y + Math.sin(d.userData.spiralAngle) * (d.userData.spiralRadius * 0.6);
+                    d.position.z = d.userData.spiralCenter.z;
+
+                    // Phase 2 : lock mi-parcours puis vol droit non-locké.
+                    if (droneAge >= d.userData.lockAt && d.userData.target && d.userData.target.parent) {
+                        const aimPoint = d.userData.target.position.clone();
+                        if (bossActive) {
+                            aimPoint.add(new THREE.Vector3(
+                                (Math.random() - 0.5) * 35,
+                                (Math.random() - 0.5) * 25,
+                                (Math.random() - 0.5) * 25
+                            ));
+                        }
+                        const lockDir = new THREE.Vector3().subVectors(aimPoint, d.position).normalize();
+                        d.userData.velocity = lockDir.multiplyScalar(d.userData.lockSpeed);
+                        d.userData.locked = true;
+                    }
+                } else {
+                    // En phase asteroides: homing continu pour fiabiliser l'impact en maintien espace.
+                    if (!bossActive && d.userData.target && d.userData.target.parent) {
+                        const toAsteroid = new THREE.Vector3().subVectors(d.userData.target.position, d.position);
+                        if (toAsteroid.lengthSq() > 0.0001) {
+                            d.userData.velocity = toAsteroid.normalize().multiplyScalar(d.userData.lockSpeed);
+                        }
+                    }
+                    d.position.add(d.userData.velocity.clone().multiplyScalar(factor));
+                }
+
+                let impactTarget = (d.userData.target && d.userData.target.parent) ? d.userData.target : null;
+                if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.fleet) {
+                    const fleetAlive = (currentBoss.userData.fleet || []).filter(s => s && s.parent && s.userData && s.userData.hp > 0);
+                    let bestShip = null;
+                    let bestDist = Infinity;
+                    for (let k = 0; k < fleetAlive.length; k++) {
+                        const shipRef = fleetAlive[k];
+                        const dist = d.position.distanceTo(shipRef.position);
+                        if (dist < 95 && dist < bestDist) {
+                            bestDist = dist;
+                            bestShip = shipRef;
+                        }
+                    }
+                    if (bestShip) impactTarget = bestShip;
+                }
+
+                if (impactTarget && impactTarget.parent && d.position.distanceTo(impactTarget.position) < 95) {
                     const explo = (bossActive ? hitEffectModel.clone() : explosionModel.clone());
                     explo.position.copy(d.position);
-                    explo.scale.set(1.2, 1.2, 1.2); // Explosions impacts
+                    // Impact plus visible sur Kira
+                    if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'kira') {
+                        spawnGuaranteedBossHitFx(impactTarget, 16);
+                        explo.scale.set(14, 14, 14);
+                    } else if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'atlante') {
+                        spawnGuaranteedBossHitFx(impactTarget, 12);
+                        explo.scale.set(6, 6, 6);
+                    } else if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'wraith') {
+                        explo.scale.set(5.2, 5.2, 5.2);
+                    } else {
+                        explo.scale.set(1.2, 1.2, 1.2);
+                    }
                     scene.add(explo);
                     setTimeout(() => scene.remove(explo), 400);
                     if (bossActive) {
-                        currentBoss.userData.hp -= 10;
-                        document.getElementById('boss-hp-bar').style.width = currentBoss.userData.hp + "%";
-                        if (currentBoss.userData.hp <= 0) victory();
-                    } else { d.userData.target.position.z -= 10000; }
-                    scene.remove(d); drones.splice(i, 1);
+                        // Dégâts strictement appliqués à la cible verrouillée (pas de fallback sur un autre croiseur).
+                        damageBoss(6, impactTarget);
+                    } else {
+                        addScore(20);
+                        impactTarget.position.z = ship.position.z - 9000 - (Math.random() * 2500);
+                        impactTarget.position.x = (Math.random() - 0.5) * 2000;
+                        impactTarget.position.y = (Math.random() - 0.5) * 1200;
+                        impactTarget.userData.velocity = null;
+                        impactTarget.userData.hitCooldown = 0;
+                        impactTarget.userData.friendHp = 3;
+
+                        if ((d.userData.pierceRemaining || 1) > 1) {
+                            d.userData.pierceRemaining -= 1;
+                            const nextAsteroid = getBestAsteroidForFriend(d);
+                            if (nextAsteroid) {
+                                d.userData.target = nextAsteroid;
+                                d.userData.locked = true;
+                                const straight = new THREE.Vector3().subVectors(nextAsteroid.position, d.position).normalize();
+                                d.userData.velocity = straight.multiplyScalar(d.userData.lockSpeed);
+                                continue;
+                            }
+                        }
+                    }
+                    releasePlayerDroneVisual(d); drones.splice(i, 1);
+                    continue;
+                }
+
+                if (droneAge > d.userData.ttl || d.position.z < ship.position.z - 6500 || d.position.distanceTo(ship.position) > 7600) {
+                    releasePlayerDroneVisual(d);
+                    drones.splice(i, 1);
                 }
             }
 
+            // ==========================================
+            // 7. ASTÉROÏDES (Gestion & Collisions Rayon 80)
+            // ==========================================
             asteroids.forEach(a => {
-                if (currentPhase === 'boss_fight') { a.visible = false; return; }
+                if (currentPhase === 'boss_fight' || currentPhase === 'hyperspace') { 
+                    a.visible = false; 
+                    return; 
+                }
                 a.visible = true;
+
+                // Appliquer la vélocité de repousse si l'astéroïde a été touché
+                if (a.userData.velocity) {
+                    a.position.add(a.userData.velocity.clone().multiplyScalar(factor));
+                    a.userData.velocity.multiplyScalar(0.92);
+                    if (a.userData.velocity.lengthSq() < 1) a.userData.velocity = null;
+                }
+
+                // Recyclage des astéroïdes
                 if (a.position.z > ship.position.z + 300) {
                     a.position.z = ship.position.z - 6000 - (Math.random() * 2000);
                     a.position.x = (Math.random() - 0.5) * 2000;
+                    a.userData.velocity = null;
+                    a.userData.hitCooldown = 0;
+                    a.userData.friendHp = 3;
+                }
+
+                // --- DÉTECTION DE COLLISION (Rayon 80) ---
+                if (a.userData.hitCooldown) a.userData.hitCooldown--;
+                const dist = a.position.distanceTo(ship.position);
+                if (dist < 80 && !a.userData.hitCooldown) {
+                    onShieldHit(15, true); // Dégâts à l'impact
+                    const pushDir = new THREE.Vector3().subVectors(a.position, ship.position).normalize();
+                    a.userData.velocity = pushDir.multiplyScalar(150);
+                    a.userData.hitCooldown = 45;
                 }
             });
 
@@ -435,50 +1692,429 @@
         }
 
         function startHyperspace(gate) {
+            if (gameOver) return;
             currentPhase = 'hyperspace';
+            bonusGates.forEach(g => scene.remove(g));
+            bonusGates.length = 0;
             hyperspaceTunnel.visible = true;
             setTimeout(() => {
                 hyperspaceTunnel.visible = false;
-                currentBoss = bossModel.clone();
-                currentBoss.position.set(0, 0, ship.position.z - 1600);
-                currentBoss.scale.set(4, 4, 4);
-                currentBoss.userData = { hp: 100, gate: gate, data: experiences[experienceIndex % experiences.length], lastShotCenter: 0, lastShotWing: 0, wingSide: 1 };
+                const wraithCountByScore = Math.min(10, 1 + Math.floor(score / 900));
+                const kiraCountByScore = Math.min(5, 1 + Math.floor(score / 1800));
+                const atlanteCountByScore = Math.min(2, 1 + Math.floor(score / 3200));
+
+                // Pondération progressive + anti-répétition (évite trop de Wraith d'affilée).
+                let wraithWeight = 0.45, atlanteWeight = 0.30;
+                if (score >= 2000 && score < 5000) {
+                    wraithWeight = 0.40; atlanteWeight = 0.30;
+                } else if (score >= 5000) {
+                    wraithWeight = 0.35; atlanteWeight = 0.25;
+                }
+                let kiraWeight = Math.max(0.1, 1 - (wraithWeight + atlanteWeight));
+                const weights = { wraith: wraithWeight, atlante: atlanteWeight, kira: kiraWeight };
+                if (lastBossType && weights[lastBossType] !== undefined) {
+                    weights[lastBossType] *= 0.35;
+                }
+                const total = weights.wraith + weights.atlante + weights.kira;
+                const roll = Math.random() * total;
+                let bossType = 'kira';
+                if (roll < weights.wraith) {
+                    bossType = 'wraith';
+                } else if (roll < (weights.wraith + weights.atlante)) {
+                    bossType = 'atlante';
+                }
+                lastBossType = bossType;
+                currentBoss = (
+                    bossType === 'atlante'
+                        ? atlanteBossModel
+                        : (bossType === 'kira' ? kiraBossModel : wraithBossModel)
+                ).clone();
+                if (bossType === 'atlante') {
+                    // Atlante : plus grand, recentré à l'écran, avec légère inclinaison
+                    applyAtlanteMetalMaterial(currentBoss);
+                    currentBoss.scale.set(6.5, 6.5, 6.5);
+                    currentBoss.position.set(0, 8, ship.position.z - 1540);
+                    currentBoss.rotation.x = -0.08;
+                    currentBoss.rotation.z = 0.07;
+                    currentBoss.rotation.y = -0.2;
+
+                    // Mesure du centre visuel du mesh pour aligner boss + bouclier
+                    currentBoss.updateMatrixWorld(true);
+                    const bbox = new THREE.Box3().setFromObject(currentBoss);
+                    const worldCenter = bbox.getCenter(new THREE.Vector3());
+                    const localCenter = currentBoss.worldToLocal(worldCenter.clone());
+
+                    // Recentre le modèle Atlante autour de son pivot pour éviter le décalage écran/bouclier.
+                    currentBoss.children.forEach((child) => {
+                        if (child.isMesh || child.isGroup || child.type === 'Object3D') {
+                            child.position.sub(localCenter);
+                        }
+                    });
+                    currentBoss.updateMatrixWorld(true);
+
+                    // Bouclier calé sur le centre visuel du modèle
+                    const shieldRadius = 85;
+
+                    const bossShield = new THREE.Mesh(
+                        new THREE.SphereGeometry(shieldRadius, 32, 32),
+                        new THREE.MeshBasicMaterial({
+                            color: 0x00f2ff,
+                            transparent: true,
+                            opacity: 0,
+                            blending: THREE.AdditiveBlending,
+                            side: THREE.DoubleSide
+                        })
+                    );
+                    bossShield.position.set(0, 0, 0);
+                    currentBoss.add(bossShield);
+                    const atlanteOffsets = [-920, 920];
+                    const escorts = [];
+                    for (let i = 0; i < atlanteCountByScore - 1; i++) {
+                        const escort = atlanteBossModel.clone();
+                        applyAtlanteMetalMaterial(escort);
+                        escort.scale.set(6.2, 6.2, 6.2);
+                        escort.position.set(
+                            currentBoss.position.x + atlanteOffsets[i],
+                            currentBoss.position.y + (i === 0 ? 26 : -26),
+                            currentBoss.position.z - 120
+                        );
+                        escort.rotation.x = -0.08;
+                        escort.rotation.z = 0.07;
+                        escort.rotation.y = -0.2;
+                        centerModelOnVisualPivot(escort);
+                        const escortShield = new THREE.Mesh(
+                            new THREE.SphereGeometry(78, 24, 24),
+                            new THREE.MeshBasicMaterial({
+                                color: 0x00f2ff,
+                                transparent: true,
+                                opacity: 0,
+                                blending: THREE.AdditiveBlending,
+                                side: THREE.DoubleSide
+                            })
+                        );
+                        escort.add(escortShield);
+                        escort.userData = {
+                            offsetX: atlanteOffsets[i],
+                            offsetY: (i === 0 ? 26 : -26),
+                            offsetZ: -120,
+                            lastSalvoAt: 0,
+                            shieldMesh: escortShield,
+                            shield: 170,
+                            maxShield: 170,
+                            hp: 130,
+                            maxHp: 130
+                        };
+                        escorts.push(escort);
+                        scene.add(escort);
+                    }
+                    enforceShieldNoContact(currentBoss, escorts, 90);
+
+                    const fleet = [currentBoss].concat(escorts);
+                    currentBoss.userData = {
+                        type: 'atlante',
+                        hp: 140,
+                        maxHp: 140,
+                        shield: 220,
+                        maxShield: 220,
+                        shieldMesh: bossShield,
+                        gate: gate,
+                        data: experiences[experienceIndex % experiences.length],
+                        lastSalvoAt: 0,
+                        escorts: escorts,
+                        fleet: fleet
+                    };
+                    currentBoss.userData.fleet.forEach((shipRef) => {
+                        if (!shipRef.userData) shipRef.userData = {};
+                        shipRef.userData.hp = shipRef.userData.hp || 140;
+                        shipRef.userData.maxHp = shipRef.userData.maxHp || 140;
+                        shipRef.userData.shield = shipRef.userData.shield || 220;
+                        shipRef.userData.maxShield = shipRef.userData.maxShield || 220;
+                        shipRef.userData.lastSalvoAt = shipRef.userData.lastSalvoAt || 0;
+                    });
+                } else if (bossType === 'kira') {
+                    applyKiraMetalMaterial(currentBoss);
+                    centerModelOnVisualPivot(currentBoss);
+                    currentBoss.scale.set(40, 40, 40);
+                    currentBoss.position.set(0, 30, ship.position.z - 1780);
+                    currentBoss.rotation.y = -THREE.MathUtils.degToRad(50);
+                    currentBoss.rotation.x = -0.06;
+                    currentBoss.rotation.z = 0.05;
+                    const kiraCount = kiraCountByScore;
+                    const escorts = [];
+
+                    // Bouclier flagship
+                    const shieldMain = new THREE.Mesh(
+                        new THREE.SphereGeometry(19, 28, 28),
+                        new THREE.MeshBasicMaterial({
+                            color: 0x00f2ff,
+                            transparent: true,
+                            opacity: 0,
+                            blending: THREE.AdditiveBlending,
+                            side: THREE.DoubleSide
+                        })
+                    );
+                    currentBoss.add(shieldMain);
+                    currentBoss.userData.shieldMesh = shieldMain;
+                    currentBoss.userData.shield = 110;
+                    currentBoss.userData.maxShield = 110;
+
+                    for (let i = 0; i < kiraCount - 1; i++) {
+                        const row = Math.floor(i / 2);
+                        const side = i % 2 === 0 ? -1 : 1;
+                        const offsetX = side * (420 + row * 210);
+                        const kiraHeightPattern = [120, -120, 70, -70, 35, -35, 0];
+                        const offsetY = kiraHeightPattern[i % kiraHeightPattern.length];
+                        const offsetZ = -80 - (row * 30);
+                        const escort = kiraBossModel.clone();
+                        applyKiraMetalMaterial(escort);
+                        centerModelOnVisualPivot(escort);
+                        escort.scale.set(40, 40, 40);
+                        escort.rotation.y = -THREE.MathUtils.degToRad(50);
+                        escort.rotation.x = -0.06;
+                        escort.rotation.z = 0.05;
+                        escort.position.set(
+                            currentBoss.position.x + offsetX,
+                            currentBoss.position.y + offsetY,
+                            currentBoss.position.z + offsetZ
+                        );
+                        const escortShield = new THREE.Mesh(
+                            new THREE.SphereGeometry(18, 24, 24),
+                            new THREE.MeshBasicMaterial({
+                                color: 0x00f2ff,
+                                transparent: true,
+                                opacity: 0,
+                                blending: THREE.AdditiveBlending,
+                                side: THREE.DoubleSide
+                            })
+                        );
+                        escort.add(escortShield);
+                        escort.userData = {
+                            offsetX: offsetX,
+                            offsetY: offsetY,
+                            offsetZ: offsetZ,
+                            lastSalvoAt: 0,
+                            shieldMesh: escortShield,
+                            shield: 95,
+                            maxShield: 95,
+                            hp: 120,
+                            maxHp: 120
+                        };
+                        escorts.push(escort);
+                        scene.add(escort);
+                    }
+                    enforceShieldNoContact(currentBoss, escorts, 90);
+
+                    const fleet = [currentBoss].concat(escorts);
+                    currentBoss.userData = {
+                        type: 'kira',
+                        hp: 130,
+                        maxHp: 130,
+                        shield: 110,
+                        maxShield: 110,
+                        shieldMesh: shieldMain,
+                        gate: gate,
+                        data: experiences[experienceIndex % experiences.length],
+                        lastSalvoAt: 0,
+                        escorts: escorts,
+                        fleet: fleet
+                    };
+                    currentBoss.userData.fleet.forEach((shipRef) => {
+                        if (!shipRef.userData) shipRef.userData = {};
+                        if (shipRef !== currentBoss && shipRef.userData.hp) return;
+                        shipRef.userData.hp = shipRef.userData.hp || 130;
+                        shipRef.userData.maxHp = shipRef.userData.maxHp || 130;
+                        shipRef.userData.shield = shipRef.userData.shield || 110;
+                        shipRef.userData.maxShield = shipRef.userData.maxShield || 110;
+                    });
+                } else {
+                    currentBoss.scale.set(4, 4, 4);
+                    currentBoss.position.set(0, 0, ship.position.z - 1600);
+                    const wraithCount = wraithCountByScore;
+                    const escorts = [];
+                    const escortOffsets = [];
+                    for (let i = 0; i < wraithCount - 1; i++) {
+                        let offsetX = 0;
+                        let offsetY = 0;
+                        let offsetZ = 0;
+                        let placed = false;
+
+                        // Répartition 3D large + anti-collision stricte entre escorts.
+                        for (let attempt = 0; attempt < 28; attempt++) {
+                            const ring = Math.floor(i / 4) + 1;
+                            const angleBase = ((i + 1) / (wraithCount)) * Math.PI * 2;
+                            const angle = angleBase + attempt * 0.31;
+                            const radius = 760 + (ring * 260) + (attempt * 16);
+                            const candX = Math.cos(angle) * radius;
+                            const candY = Math.sin(angle * 1.35) * (180 + ring * 45);
+                            const candZ = -180 - (ring * 130) + Math.cos(angle * 0.8) * 120;
+
+                            const noCollision = escortOffsets.every((o) => {
+                                const dx = candX - o.x;
+                                const dy = candY - o.y;
+                                const dz = candZ - o.z;
+                                return Math.sqrt(dx * dx + dy * dy + dz * dz) > 520;
+                            });
+                            if (noCollision) {
+                                offsetX = candX;
+                                offsetY = candY;
+                                offsetZ = candZ;
+                                placed = true;
+                                break;
+                            }
+                        }
+
+                        if (!placed) {
+                            const fallbackRadius = 1300 + (i * 140);
+                            const fallbackAngle = (i / Math.max(1, (wraithCount - 1))) * Math.PI * 2;
+                            offsetX = Math.cos(fallbackAngle) * fallbackRadius;
+                            offsetY = Math.sin(fallbackAngle) * 240;
+                            offsetZ = -260 - i * 60;
+                        }
+
+                        escortOffsets.push({ x: offsetX, y: offsetY, z: offsetZ });
+                        const escort = wraithBossModel.clone();
+                        escort.scale.set(3.5, 3.5, 3.5);
+                        escort.position.set(
+                            currentBoss.position.x + offsetX,
+                            currentBoss.position.y + offsetY,
+                            currentBoss.position.z + offsetZ
+                        );
+                        escort.userData = {
+                            offsetX: offsetX,
+                            offsetY: offsetY,
+                            offsetZ: offsetZ,
+                            lastShotCenter: 0,
+                            lastShotWing: 0,
+                            wingSide: offsetX >= 0 ? 1 : -1
+                        };
+                        escorts.push(escort);
+                        scene.add(escort);
+                    }
+                    const fleet = [currentBoss].concat(escorts);
+                    currentBoss.userData = {
+                        type: 'wraith',
+                        hp: 160,
+                        maxHp: 160,
+                        shield: 0,
+                        maxShield: 0,
+                        gate: gate,
+                        data: experiences[experienceIndex % experiences.length],
+                        lastShotCenter: 0,
+                        lastShotWing: 0,
+                        wingSide: 1,
+                        escorts: escorts,
+                        fleet: fleet
+                    };
+                    currentBoss.userData.fleet.forEach((shipRef) => {
+                        if (!shipRef.userData) shipRef.userData = {};
+                        shipRef.userData.hp = 160;
+                        shipRef.userData.maxHp = 160;
+                    });
+                }
                 scene.add(currentBoss);
                 bossActive = true;
                 currentPhase = 'boss_fight';
+                setupBossHud(bossType, currentBoss);
                 document.getElementById('boss-hud').classList.replace('opacity-0', 'opacity-100');
             }, 2000);
         }
 
         function spawnDrone() {
-            if(!ship || currentPhase === 'hyperspace' || currentPhase === 'charging') return;
-            let target = bossActive ? currentBoss : asteroids.find(a => a.position.z < ship.position.z && ship.position.distanceTo(a.position) < 3000);
-            if(!target) return;
-            const drone = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 12), new THREE.MeshBasicMaterial({color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 2}));
+            if(!ship || gameOver || currentPhase === 'hyperspace' || currentPhase === 'charging') return false;
+            if (drones.length >= 6) return false;
+            let target = null;
+            if (bossActive) {
+                if (currentBoss && currentBoss.userData && (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante')) {
+                    target = getNearestFleetShip(ship.position, currentBoss.userData.type) || currentBoss;
+                } else {
+                    target = currentBoss;
+                }
+            } else {
+                target = getBestAsteroidForFriend(ship);
+            }
+            if(!target) return false;
+            const drone = acquirePlayerDroneVisual();
             drone.position.copy(ship.position);
             drone.position.x += (droneSide * 10);
-            drone.userData = { target: target };
+            drone.userData = {
+                target: target,
+                bornAt: clock.getElapsedTime(),
+                ttl: 7.5,
+                locked: false,
+                lockAt: bossActive ? (0.7 + Math.random() * 0.35) : (0.35 + Math.random() * 0.2),
+                lockSpeed: bossActive ? 54 : 80,
+                velocity: new THREE.Vector3(0, 0, 0),
+                pierceRemaining: 2,
+                isPlayerDroneVisual: true,
+                // Phase 1 : montée + vrille
+                spiralCenter: drone.position.clone(),
+                spiralRadius: 20 + Math.random() * 16,
+                spiralAngle: Math.random() * Math.PI * 2,
+                spiralSpeed: 0.26 + Math.random() * 0.24,
+                ascendSpeed: 16 + Math.random() * 7,
+                driftZ: -(12 + Math.random() * 8)
+            };
             scene.add(drone); drones.push(drone);
             droneSide *= -1;
+            return true;
         }
 
         function victory() {
+            if (!bossActive) return;
+            addScore(
+                currentBoss && currentBoss.userData && currentBoss.userData.type === 'atlante'
+                    ? 1200
+                    : (currentBoss && currentBoss.userData && currentBoss.userData.type === 'kira' ? 1500 : 700)
+            );
             bossActive = false;
+            bossProjectiles.forEach(p => scene.remove(p));
+            bossProjectiles.length = 0;
+            enemyDrones.forEach(d => scene.remove(d));
+            enemyDrones.length = 0;
+            
             document.getElementById('boss-hud').classList.replace('opacity-100', 'opacity-0');
-            const finalExplo = explosionModel.clone();
-            finalExplo.position.copy(currentBoss.position);
-            finalExplo.scale.set(30, 30, 30);
-            scene.add(finalExplo);
-            setTimeout(() => scene.remove(finalExplo), 1200);
+
             const data = currentBoss.userData.data;
-            scene.remove(currentBoss);
-            if(currentBoss.userData.gate) scene.remove(currentBoss.userData.gate);
+            const gateToRemove = currentBoss.userData.gate;
+            const escortsToRemove = currentBoss.userData.escorts || [];
+
+            const allBossShips = [currentBoss].concat(escortsToRemove || []).filter(
+                (shipRef) => shipRef && shipRef.parent && shipRef.visible !== false
+            );
+            allBossShips.forEach((shipRef, idx) => {
+                spawnProgressiveBossHits(shipRef, 9 + idx * 2, 720, 3.0 + idx * 0.3);
+            });
+
+            const fleetWrap = document.getElementById('boss-fleet-bars');
+            fleetWrap.classList.add('hidden');
+            fleetWrap.innerHTML = '';
+
+            setTimeout(() => {
+                const finalExplo = explosionModel.clone();
+                finalExplo.position.copy(currentBoss.position);
+                finalExplo.scale.set(8, 8, 8);
+                scene.add(finalExplo);
+                setTimeout(() => scene.remove(finalExplo), 820);
+            }, 460);
+
+            setTimeout(() => {
+                allBossShips.forEach((shipRef) => scene.remove(shipRef));
+                if (gateToRemove) scene.remove(gateToRemove);
+            }, 860);
+
+            // Affichage vignette
             const v = document.getElementById('experience-vignette');
             document.getElementById('exp-title').innerText = data.title;
             document.getElementById('exp-company').innerText = data.company;
             document.getElementById('exp-desc').innerText = data.desc;
             v.classList.replace('opacity-0', 'opacity-100');
-            setTimeout(() => { v.classList.replace('opacity-100', 'opacity-0'); currentPhase = 'cruise'; experienceIndex++; }, 8000);
+            
+            setTimeout(() => { 
+                v.classList.replace('opacity-100', 'opacity-0'); 
+                currentPhase = 'cruise'; 
+                resetAsteroidField();
+                experienceIndex++; 
+            }, 8000);
         }
     })();
 </script>
