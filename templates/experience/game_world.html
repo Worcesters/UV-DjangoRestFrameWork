@@ -81,7 +81,7 @@
         </div>
     </div>
 
-    <canvas id="space-canvas" class="w-full h-full"></canvas>
+    <canvas id="space-canvas" class="w-full h-full touch-none"></canvas>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -133,6 +133,10 @@
         let lastBossType = null;
         let lastBonusGateAt = 0;
         let isSpaceHeld = false;
+        let isTouchFireHeld = false;
+        let touchControlActive = false;
+        let touchTargetX = 0;
+        let touchTargetY = 0;
         let lastPlayerShotAt = -999;
         const playerDronePool = [];
         const keys = {};
@@ -1230,6 +1234,50 @@
             if (e.code === 'Space') isSpaceHeld = false;
         };
 
+        function updateTouchTargetFromClient(clientX, clientY) {
+            const rect = container.getBoundingClientRect();
+            const nx = ((clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
+            const ny = ((clientY - rect.top) / Math.max(1, rect.height)) * 2 - 1;
+            const limX = 550;
+            const limY = 450;
+            touchTargetX = THREE.MathUtils.clamp(nx * limX, -limX, limX);
+            touchTargetY = THREE.MathUtils.clamp(-ny * limY, -limY, limY);
+        }
+
+        const canvasEl = document.getElementById('space-canvas');
+        canvasEl.addEventListener('touchstart', (e) => {
+            if (gameOver) return;
+            if (!e.touches || !e.touches.length) return;
+            const t = e.touches[0];
+            updateTouchTargetFromClient(t.clientX, t.clientY);
+            touchControlActive = true;
+            isTouchFireHeld = true;
+            e.preventDefault();
+        }, { passive: false });
+
+        canvasEl.addEventListener('touchmove', (e) => {
+            if (!e.touches || !e.touches.length) return;
+            const t = e.touches[0];
+            updateTouchTargetFromClient(t.clientX, t.clientY);
+            touchControlActive = true;
+            e.preventDefault();
+        }, { passive: false });
+
+        const stopTouchControl = () => {
+            touchControlActive = false;
+            isTouchFireHeld = false;
+        };
+        canvasEl.addEventListener('touchend', (e) => {
+            if (!e.touches || e.touches.length === 0) {
+                stopTouchControl();
+            } else {
+                const t = e.touches[0];
+                updateTouchTargetFromClient(t.clientX, t.clientY);
+            }
+            e.preventDefault();
+        }, { passive: false });
+        canvasEl.addEventListener('touchcancel', stopTouchControl, { passive: true });
+
         function animate() {
             requestAnimationFrame(animate);
             if (!ship) return;
@@ -1239,7 +1287,7 @@
             const factor = delta * 60;
 
             // Tir continu au maintien de l'espace, plafonné à 6 projectiles.
-            if (isSpaceHeld && (elapsedTime - lastPlayerShotAt) > 0.12) {
+            if ((isSpaceHeld || isTouchFireHeld) && (elapsedTime - lastPlayerShotAt) > 0.12) {
                 if (spawnDrone()) {
                     lastPlayerShotAt = elapsedTime;
                 }
@@ -1353,6 +1401,13 @@
                 if (keys['d'] && ship.position.x < limX) ship.position.x += 4.2 * factor * controlMul;
                 if (keys['z'] && ship.position.y < limY) ship.position.y += 4.2 * factor * controlMul;
                 if (keys['s'] && ship.position.y > -limY) ship.position.y -= 4.2 * factor * controlMul;
+                if (touchControlActive) {
+                    const touchLerp = Math.min(0.28, 0.16 * controlMul);
+                    ship.position.x = THREE.MathUtils.lerp(ship.position.x, touchTargetX, touchLerp);
+                    ship.position.y = THREE.MathUtils.lerp(ship.position.y, touchTargetY, touchLerp);
+                }
+                ship.position.x = THREE.MathUtils.clamp(ship.position.x, -limX, limX);
+                ship.position.y = THREE.MathUtils.clamp(ship.position.y, -limY, limY);
             }
 
             // Inclinaison visuelle du vaisseau selon les déplacements
