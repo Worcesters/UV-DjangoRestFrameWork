@@ -2,10 +2,10 @@
 {% load static %}
 
 {% block content %}
-<div id="game-container" class="relative w-full h-[800px] bg-[#000d1a] overflow-hidden font-mono" data-models-base="{% static 'models/' %}">
+<div id="game-container" class="relative w-full h-[72vh] min-h-[560px] md:h-[800px] bg-[#000d1a] overflow-hidden font-mono" data-models-base="{% static 'models/' %}">
 
-    <div class="absolute top-10 left-10 z-50 pointer-events-none">
-        <div class="bg-black/60 backdrop-blur-md p-4 border-l-4 border-cyan-500 shadow-2xl">
+    <div class="absolute top-3 left-3 md:top-10 md:left-10 z-50 pointer-events-none max-w-[92vw]">
+        <div class="bg-black/60 backdrop-blur-md p-3 md:p-4 border-l-4 border-cyan-500 shadow-2xl">
             <div class="text-cyan-400 text-[10px] tracking-[0.4em] font-bold uppercase mb-1">Status: <span id="status-text" class="text-white">Ancient Shield Active</span></div>
             <div class="w-48 h-2 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30">
                 <div id="shield-bar" class="h-full bg-cyan-400 shadow-[0_0_20px_#00f2ff] transition-all duration-300" style="width: 100%"></div>
@@ -23,8 +23,8 @@
         </div>
     </div>
 
-    <div id="boss-hud" class="absolute top-10 right-10 z-50 pointer-events-none transition-opacity duration-500 opacity-0">
-        <div id="boss-hud-card" class="bg-black/60 backdrop-blur-md p-4 border-r-4 border-red-600 shadow-2xl text-right">
+    <div id="boss-hud" class="absolute top-3 right-3 md:top-10 md:right-10 z-50 pointer-events-none transition-opacity duration-500 opacity-0 max-w-[92vw]">
+        <div id="boss-hud-card" class="bg-black/60 backdrop-blur-md p-3 md:p-4 border-r-4 border-red-600 shadow-2xl text-right">
             <div id="boss-name" class="text-red-500 text-[10px] tracking-[0.4em] font-bold uppercase mb-2">Wraith Hive Ship Detected</div>
             <div id="boss-shield-wrap" class="mb-2 hidden">
                 <div class="text-[9px] text-cyan-300/80 uppercase tracking-[0.25em] mb-1">Shield</div>
@@ -42,13 +42,13 @@
         </div>
     </div>
 
-    <div class="absolute bottom-10 right-10 z-50 flex flex-col items-center">
-        <div class="relative p-6 bg-cyan-950/20 backdrop-blur-md border border-cyan-500/30 rounded-xl shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+    <div class="absolute bottom-3 right-3 md:bottom-10 md:right-10 z-50 flex flex-col items-center scale-90 md:scale-100 origin-bottom-right">
+        <div class="relative p-4 md:p-6 bg-cyan-950/20 backdrop-blur-md border border-cyan-500/30 rounded-xl shadow-[0_0_50px_rgba(6,182,212,0.15)]">
             <div class="text-[9px] text-cyan-400/60 mb-4 tracking-[0.3em] uppercase text-center">Subspace Capacitor Link</div>
 
             <div class="grid grid-cols-4 gap-2 mb-6">
                 {% for i in "123456789ABC" %}
-                <button onclick="dialGlyph(this)" class="w-10 h-10 border border-cyan-500/40 rounded rotate-45 flex items-center justify-center hover:bg-cyan-500/40 hover:shadow-[0_0_15px_#22d3ee] transition-all group">
+                <button onclick="dialGlyph(this)" class="w-8 h-8 md:w-10 md:h-10 border border-cyan-500/40 rounded rotate-45 flex items-center justify-center hover:bg-cyan-500/40 hover:shadow-[0_0_15px_#22d3ee] transition-all group">
                     <span class="-rotate-45 text-cyan-300 font-bold group-active:scale-75">◈</span>
                 </button>
                 {% endfor %}
@@ -61,7 +61,7 @@
     </div>
 
     <div id="experience-vignette" class="absolute inset-0 flex items-center justify-center z-[100] pointer-events-none opacity-0 transition-all duration-1000 scale-90">
-        <div class="bg-black/90 backdrop-blur-xl border-2 border-cyan-500 p-8 w-[600px] shadow-[0_0_50px_rgba(0,242,255,0.4)] relative pointer-events-auto text-center">
+        <div class="bg-black/90 backdrop-blur-xl border-2 border-cyan-500 p-6 md:p-8 w-[92vw] max-w-[600px] shadow-[0_0_50px_rgba(0,242,255,0.4)] relative pointer-events-auto text-center">
             <h2 id="exp-company" class="text-white text-3xl font-black uppercase mb-1 italic">ENTREPRISE</h2>
             <h3 id="exp-title" class="text-yellow-500 text-xl font-bold mb-4 border-b border-white/10 pb-2">POSTE OCCUPÉ</h3>
             <p id="exp-desc" class="text-cyan-100/80 text-sm italic">Détails de la mission...</p>
@@ -102,10 +102,22 @@
         const camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.1, 40000);
         const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('space-canvas'), antialias: true});
         renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 2.0;
 
-        scene.add(new THREE.AmbientLight(0x4040ff, 1.2));
+        function handleResize() {
+            const width = Math.max(1, container.clientWidth);
+            const height = Math.max(1, container.clientHeight);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height, false);
+        }
+        window.addEventListener('resize', handleResize);
+        handleResize();
+
+        const ambientLight = new THREE.AmbientLight(0x4040ff, 1.2);
+        scene.add(ambientLight);
         const mainLight = new THREE.DirectionalLight(0xffffff, 3);
         mainLight.position.set(100, 200, -500);
         scene.add(mainLight);
@@ -129,6 +141,142 @@
 
         const experiences = JSON.parse(document.getElementById('experiences-data').textContent || '[]');
         const modelsBase = document.getElementById('game-container').dataset.modelsBase || '/static/models/';
+        const sectors = [
+            {
+                id: 'deep_void',
+                name: 'Deep Void',
+                bg: 0x000814,
+                fogColor: 0x020617,
+                fogDensity: 0.00009,
+                ambient: 1.05,
+                mainLight: 2.6,
+                exposure: 1.9,
+                modifiers: { controlMul: 1.0, cruiseSpeedMul: 1.0, enemyFireMul: 1.0 }
+            },
+            {
+                id: 'nebula',
+                name: 'Nebula Rift',
+                bg: 0x120a2a,
+                fogColor: 0x2d1b69,
+                fogDensity: 0.00024,
+                ambient: 1.35,
+                mainLight: 1.9,
+                exposure: 2.2,
+                modifiers: { controlMul: 0.88, cruiseSpeedMul: 0.9, enemyFireMul: 1.1 }
+            },
+            {
+                id: 'anomaly',
+                name: 'Anomaly Field',
+                bg: 0x0a1f2e,
+                fogColor: 0x0b5563,
+                fogDensity: 0.00016,
+                ambient: 1.2,
+                mainLight: 2.2,
+                exposure: 2.0,
+                modifiers: { controlMul: 0.94, cruiseSpeedMul: 1.05, enemyFireMul: 1.2 }
+            },
+            {
+                id: 'dense_grav',
+                name: 'Gravitic Well',
+                bg: 0x1b1b1b,
+                fogColor: 0x2f2f2f,
+                fogDensity: 0.00018,
+                ambient: 1.0,
+                mainLight: 2.8,
+                exposure: 1.8,
+                modifiers: { controlMul: 0.78, cruiseSpeedMul: 0.86, enemyFireMul: 0.95 }
+            }
+        ];
+        let currentSector = sectors[0];
+        const sectorDecor = [];
+
+        function applySector(sector) {
+            currentSector = sector || sectors[0];
+            scene.background = new THREE.Color(currentSector.bg);
+            scene.fog = new THREE.FogExp2(currentSector.fogColor, currentSector.fogDensity);
+            ambientLight.intensity = currentSector.ambient;
+            mainLight.intensity = currentSector.mainLight;
+            renderer.toneMappingExposure = currentSector.exposure;
+            document.getElementById('status-text').innerText = `Sector: ${currentSector.name}`;
+            clearSectorDecor();
+            buildSectorDecor(currentSector);
+        }
+
+        function pickNextSector() {
+            if (sectors.length <= 1) return sectors[0];
+            let candidate = sectors[Math.floor(Math.random() * sectors.length)];
+            if (currentSector && candidate.id === currentSector.id) {
+                candidate = sectors[(sectors.indexOf(candidate) + 1) % sectors.length];
+            }
+            return candidate;
+        }
+
+        function clearSectorDecor() {
+            for (let i = 0; i < sectorDecor.length; i++) {
+                scene.remove(sectorDecor[i]);
+            }
+            sectorDecor.length = 0;
+        }
+
+        function buildSectorDecor(sector) {
+            const makeItem = (geo, mat, count, radiusX, radiusY, zMin, zMax, rotSpeed) => {
+                for (let i = 0; i < count; i++) {
+                    const m = new THREE.Mesh(geo, mat.clone());
+                    m.position.set(
+                        (Math.random() - 0.5) * radiusX,
+                        (Math.random() - 0.5) * radiusY,
+                        ship.position.z - zMin - Math.random() * (zMax - zMin)
+                    );
+                    m.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                    m.userData = {
+                        rotSpeed: rotSpeed * (0.6 + Math.random() * 1.2),
+                        drift: 0.15 + Math.random() * 0.4
+                    };
+                    scene.add(m);
+                    sectorDecor.push(m);
+                }
+            };
+
+            if (sector.id === 'nebula') {
+                makeItem(
+                    new THREE.SphereGeometry(28, 10, 10),
+                    new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false }),
+                    26, 4200, 2200, 2600, 12000, 0.002
+                );
+            } else if (sector.id === 'anomaly') {
+                makeItem(
+                    new THREE.TorusGeometry(16, 3.2, 8, 20),
+                    new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }),
+                    22, 3600, 2000, 2200, 10500, 0.008
+                );
+            } else if (sector.id === 'dense_grav') {
+                makeItem(
+                    new THREE.IcosahedronGeometry(12, 0),
+                    new THREE.MeshStandardMaterial({ color: 0x4b5563, emissive: 0x111827, metalness: 0.8, roughness: 0.35, transparent: true, opacity: 0.9 }),
+                    18, 3800, 2100, 2400, 11000, 0.003
+                );
+            } else {
+                makeItem(
+                    new THREE.SphereGeometry(9, 8, 8),
+                    new THREE.MeshBasicMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }),
+                    14, 3600, 1800, 2500, 9000, 0.002
+                );
+            }
+        }
+
+        function updateSectorDecor(factor) {
+            for (let i = 0; i < sectorDecor.length; i++) {
+                const m = sectorDecor[i];
+                m.position.z += (20 + (m.userData.drift || 0.2) * 8) * factor;
+                m.rotation.y += (m.userData.rotSpeed || 0.002) * factor;
+                m.rotation.x += (m.userData.rotSpeed || 0.002) * 0.6 * factor;
+                if (m.position.z > ship.position.z + 350) {
+                    m.position.z = ship.position.z - 9000 - Math.random() * 4000;
+                    m.position.x = (Math.random() - 0.5) * 4200;
+                    m.position.y = (Math.random() - 0.5) * 2400;
+                }
+            }
+        }
 
         async function loadAllModels() {
             const load = (path) => new Promise((resolve, reject) => {
@@ -194,6 +342,7 @@
                     console.warn("drone.glb introuvable, fallback géométrique utilisé.");
                 }
                 warmPlayerDronePool(10);
+                applySector(currentSector);
 
                 for(let i=0; i<300; i++) spawnAsteroid();
                 animate();
@@ -248,7 +397,7 @@
                     p.position.set(
                         ship.position.x + nozzleX,
                         ship.position.y + nozzleY,
-                        ship.position.z + 18 + Math.random() * 6
+                        ship.position.z + 10 + Math.random() * 4
                     );
                     const thrust = 16 + (charge * 0.42) + Math.random() * 14;
                     p.userData = {
@@ -449,7 +598,13 @@
             document.getElementById('shield-bar').style.width = shieldPower + "%";
             shakeIntensity = intensity;
             shieldMesh.material.opacity = 0.8;
-            setTimeout(() => shieldMesh.material.opacity = 0, 300);
+            if (shieldMesh.userData && shieldMesh.userData.fadeTimeout) {
+                clearTimeout(shieldMesh.userData.fadeTimeout);
+            }
+            if (!shieldMesh.userData) shieldMesh.userData = {};
+            shieldMesh.userData.fadeTimeout = setTimeout(() => {
+                shieldMesh.material.opacity = 0;
+            }, 1000);
             if (shieldPower <= 0) triggerGameOver();
         }
 
@@ -467,30 +622,18 @@
                 name.innerText = 'Atlante Warship Detected';
                 shieldWrap.classList.remove('hidden');
                 hullWrap.classList.remove('hidden');
-                const fleet = boss.userData.fleet || [boss];
-                fleetWrap.innerHTML = fleet.map((_, i) => `
-                    <div class="text-[8px] text-cyan-200/80 uppercase tracking-[0.2em] mb-0.5">Atlante ${i + 1}</div>
-                    <div class="w-64 h-1.5 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30 mb-1">
-                        <div id="boss-fleet-hp-${i}" class="h-full bg-cyan-400 transition-all duration-100" style="width:100%"></div>
-                    </div>
-                `).join('');
-                fleetWrap.classList.remove('hidden');
+                fleetWrap.classList.add('hidden');
+                fleetWrap.innerHTML = '';
             } else if (type === 'kira') {
                 card.classList.remove('border-red-600');
                 card.classList.add('border-cyan-500');
                 name.classList.remove('text-red-500');
                 name.classList.add('text-cyan-300');
-                name.innerText = 'Kira-3 Squadron Detected';
+                name.innerText = 'Kira-3 Target Locked';
                 shieldWrap.classList.remove('hidden');
                 hullWrap.classList.remove('hidden');
-                const fleet = boss.userData.fleet || [boss];
-                fleetWrap.innerHTML = fleet.map((_, i) => `
-                    <div class="text-[8px] text-cyan-200/80 uppercase tracking-[0.2em] mb-0.5">Kira ${i + 1}</div>
-                    <div class="w-64 h-1.5 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30 mb-1">
-                        <div id="boss-fleet-hp-${i}" class="h-full bg-cyan-400 transition-all duration-100" style="width:100%"></div>
-                    </div>
-                `).join('');
-                fleetWrap.classList.remove('hidden');
+                fleetWrap.classList.add('hidden');
+                fleetWrap.innerHTML = '';
             } else {
                 card.classList.remove('border-cyan-500');
                 card.classList.add('border-red-600');
@@ -498,20 +641,29 @@
                 name.classList.add('text-red-500');
                 name.innerText = 'Wraith Hive Ship Detected';
                 shieldWrap.classList.add('hidden');
-                hullWrap.classList.add('hidden');
-                const fleet = boss.userData.fleet || [boss];
-                fleetWrap.innerHTML = fleet.map((_, i) => `
-                    <div class="text-[8px] text-red-200/80 uppercase tracking-[0.2em] mb-0.5">Croiseur ${i + 1}</div>
-                    <div class="w-64 h-1.5 bg-red-950 rounded-full overflow-hidden border border-red-600/30 mb-1">
-                        <div id="boss-fleet-hp-${i}" class="h-full bg-red-500 transition-all duration-100" style="width:100%"></div>
-                    </div>
-                `).join('');
-                fleetWrap.classList.remove('hidden');
+                hullWrap.classList.remove('hidden');
+                fleetWrap.classList.add('hidden');
+                fleetWrap.innerHTML = '';
             }
             const hpPct = (boss.userData.hp / boss.userData.maxHp) * 100;
             document.getElementById('boss-hp-bar').style.width = hpPct + '%';
             const shieldPct = boss.userData.maxShield > 0 ? (boss.userData.shield / boss.userData.maxShield) * 100 : 0;
             document.getElementById('boss-shield-bar').style.width = shieldPct + '%';
+        }
+
+        function focusHudOnVictim(victim) {
+            if (!victim || !victim.userData) return;
+            const shieldWrap = document.getElementById('boss-shield-wrap');
+            const hpPct = ((victim.userData.hp || 0) / Math.max(1, (victim.userData.maxHp || 1))) * 100;
+            const shieldPct = ((victim.userData.shield || 0) / Math.max(1, (victim.userData.maxShield || 1))) * 100;
+            document.getElementById('boss-hp-bar').style.width = `${Math.max(0, hpPct)}%`;
+            if ((victim.userData.maxShield || 0) > 0) {
+                shieldWrap.classList.remove('hidden');
+                document.getElementById('boss-shield-bar').style.width = `${Math.max(0, shieldPct)}%`;
+            } else {
+                shieldWrap.classList.add('hidden');
+                document.getElementById('boss-shield-bar').style.width = '0%';
+            }
         }
 
         function refreshWraithFleetHud() {
@@ -525,6 +677,18 @@
                 const maxHp = shipData.maxHp || 1;
                 bar.style.width = `${Math.max(0, (hp / maxHp) * 100)}%`;
             }
+        }
+
+        function refreshKiraTargetHud() {
+            if (!currentBoss || !currentBoss.userData || currentBoss.userData.type !== 'kira') return;
+            const target = getNearestFleetShip(ship.position, 'kira');
+            if (!target || !target.userData) return;
+            const hp = target.userData.hp || 0;
+            const maxHp = target.userData.maxHp || 1;
+            const shield = target.userData.shield || 0;
+            const maxShield = target.userData.maxShield || 1;
+            document.getElementById('boss-hp-bar').style.width = `${Math.max(0, (hp / maxHp) * 100)}%`;
+            document.getElementById('boss-shield-bar').style.width = `${Math.max(0, (shield / maxShield) * 100)}%`;
         }
 
         function getNearestFleetShip(fromPos, type) {
@@ -674,13 +838,14 @@
             for (let i = 0; i < aliveShips.length; i++) center.add(aliveShips[i].position);
             center.multiplyScalar(1 / aliveShips.length);
 
-            const stepMs = 220;
+            // Un tempo assez espacé pour éviter les explosions superposées.
+            const stepMs = 620;
             for (let i = 0; i < aliveShips.length; i++) {
                 const shipRef = aliveShips[i];
                 setTimeout(() => {
                     if (!shipRef || !shipRef.parent) return;
-                    spawnProgressiveBossHits(shipRef, 6, 460, 2.9);
-                    spawnGuaranteedBossHitFx(shipRef, 11.5);
+                    spawnProgressiveBossHits(shipRef, 5, 420, 2.6);
+                    spawnGuaranteedBossHitFx(shipRef, 10.5);
                     const localBoom = explosionModel.clone();
                     localBoom.position.copy(shipRef.position);
                     localBoom.scale.set(5.5, 5.5, 5.5);
@@ -837,17 +1002,22 @@
             if ((currentBoss.userData.type === 'atlante' || currentBoss.userData.type === 'kira') && victim.userData.shield > 0) {
                 victim.userData.shield = Math.max(0, victim.userData.shield - amount);
                 addScore(6);
-                const shieldPct = (currentBoss.userData.shield / currentBoss.userData.maxShield) * 100;
-                document.getElementById('boss-shield-bar').style.width = shieldPct + '%';
+                focusHudOnVictim(victim);
                 if (victim.userData.shield <= 0) {
                     if (victim.userData.shieldMesh) victim.userData.shieldMesh.material.opacity = 0;
                 } else {
                     if (victim.userData.shieldMesh) victim.userData.shieldMesh.material.opacity = 0.85;
-                    setTimeout(() => {
-                        if (victim && victim.userData && victim.userData.shieldMesh) {
-                            victim.userData.shieldMesh.material.opacity = 0;
+                    if (victim.userData.shieldMesh) {
+                        if (!victim.userData.shieldMesh.userData) victim.userData.shieldMesh.userData = {};
+                        if (victim.userData.shieldMesh.userData.fadeTimeout) {
+                            clearTimeout(victim.userData.shieldMesh.userData.fadeTimeout);
                         }
-                    }, 140);
+                        victim.userData.shieldMesh.userData.fadeTimeout = setTimeout(() => {
+                            if (victim && victim.userData && victim.userData.shieldMesh) {
+                                victim.userData.shieldMesh.material.opacity = 0;
+                            }
+                        }, 2000);
+                    }
                 }
                 return;
             }
@@ -863,8 +1033,7 @@
                 scene.add(hullHit);
                 setTimeout(() => scene.remove(hullHit), 300);
             }
-            const hpPct = (currentBoss.userData.hp / currentBoss.userData.maxHp) * 100;
-            document.getElementById('boss-hp-bar').style.width = hpPct + '%';
+            focusHudOnVictim(victim);
             if (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante') {
                 if (victim.userData.hp <= 0) {
                     const prevLeader = currentBoss;
@@ -873,6 +1042,7 @@
                     );
                     const finalKill = survivorsAfterKill.length === 0;
                     victim.userData.destroying = true;
+                    victim.userData.frozenPosition = victim.position.clone();
 
                     // Effet de destruction "locale" seulement si le combat continue,
                     // sinon victory() joue la cinématique finale propre.
@@ -898,8 +1068,25 @@
                     if (finalKill) {
                         // Laisse victory() piloter la cinématique finale proprement.
                         if (victim !== currentBoss) {
-                            currentBoss.userData.escorts = [victim];
-                            currentBoss.userData.fleet = [victim];
+                            // Supprime l'ancienne ancre pour éviter tout "vaisseau fantôme" au loin.
+                            if (currentBoss && currentBoss.parent) {
+                                scene.remove(currentBoss);
+                            }
+                            currentBoss = victim;
+                        }
+                        currentBoss.userData = {
+                            ...(currentBoss.userData || {}),
+                            type: prevLeader.userData.type,
+                            gate: prevLeader.userData.gate,
+                            data: prevLeader.userData.data,
+                            escorts: [],
+                            fleet: [currentBoss]
+                        };
+                        // Masque toutes les anciennes barres de flotte avant la cinématique finale.
+                        const fleetWrap = document.getElementById('boss-fleet-bars');
+                        if (fleetWrap) {
+                            fleetWrap.classList.add('hidden');
+                            fleetWrap.innerHTML = '';
                         }
                     }
 
@@ -922,7 +1109,6 @@
                     }
                 }
 
-                refreshWraithFleetHud();
                 const survivors = (currentBoss.userData.fleet || []).filter(s => s && s.userData && s.userData.hp > 0);
                 if (survivors.length === 0) {
                     currentBoss.userData.hp = 0;
@@ -1105,6 +1291,9 @@
                 }
             }
 
+            // Décor et anomalies du secteur actif.
+            updateSectorDecor(factor);
+
             // ==========================================
             // 2. CAMÉRA ET ZOOM (FOV)
             // ==========================================
@@ -1148,7 +1337,8 @@
             } else {
                 // En combat de boss, on fige la progression avant/arrière.
                 if (currentPhase !== 'charging' && currentPhase !== 'boss_fight') {
-                    ship.position.z -= 22 * factor;
+                    const cruiseMul = currentSector && currentSector.modifiers ? currentSector.modifiers.cruiseSpeedMul : 1;
+                    ship.position.z -= 22 * factor * cruiseMul;
                 }
                 if(starField) starField.material.opacity = THREE.MathUtils.lerp(starField.material.opacity, 0, 0.1);
             }
@@ -1158,10 +1348,11 @@
             // ==========================================
             if (currentPhase !== 'hyperspace' && currentPhase !== 'charging') {
                 const limX = 550, limY = 450;
-                if (keys['q'] && ship.position.x > -limX) ship.position.x -= 4.2 * factor;
-                if (keys['d'] && ship.position.x < limX) ship.position.x += 4.2 * factor;
-                if (keys['z'] && ship.position.y < limY) ship.position.y += 4.2 * factor;
-                if (keys['s'] && ship.position.y > -limY) ship.position.y -= 4.2 * factor;
+                const controlMul = currentSector && currentSector.modifiers ? currentSector.modifiers.controlMul : 1;
+                if (keys['q'] && ship.position.x > -limX) ship.position.x -= 4.2 * factor * controlMul;
+                if (keys['d'] && ship.position.x < limX) ship.position.x += 4.2 * factor * controlMul;
+                if (keys['z'] && ship.position.y < limY) ship.position.y += 4.2 * factor * controlMul;
+                if (keys['s'] && ship.position.y > -limY) ship.position.y -= 4.2 * factor * controlMul;
             }
 
             // Inclinaison visuelle du vaisseau selon les déplacements
@@ -1201,8 +1392,8 @@
                 // Bonus uniquement si le joueur traverse réellement l'ouverture de la porte.
                 if (
                     !g.userData.collected &&
-                    (crossedGatePlane || Math.abs(deltaZ) < 70) &&
-                    lateralDist < 80
+                    (crossedGatePlane || Math.abs(deltaZ) < 130) &&
+                    lateralDist < 150
                 ) {
                     g.userData.collected = true;
                     addScore(120);
@@ -1319,12 +1510,20 @@
             // 5. LOGIQUE DU BOSS (Wraith Triple Blaster)
             // ==========================================
             if (bossActive && currentBoss) {
+                const enemyFireMul = currentSector && currentSector.modifiers ? currentSector.modifiers.enemyFireMul : 1;
+                if (currentBoss.userData && currentBoss.userData.destroying && currentBoss.userData.frozenPosition) {
+                    currentBoss.position.copy(currentBoss.userData.frozenPosition);
+                } else
                 if (currentBoss.userData.type === 'atlante') {
                     currentBoss.position.x = 0;
                     currentBoss.position.y = 8;
                     currentBoss.position.z = ship.position.z - 1540;
                     if (currentBoss.userData.escorts && currentBoss.userData.escorts.length) {
                         currentBoss.userData.escorts.forEach((escort) => {
+                            if (escort.userData && escort.userData.destroying && escort.userData.frozenPosition) {
+                                escort.position.copy(escort.userData.frozenPosition);
+                                return;
+                            }
                             escort.position.x = currentBoss.position.x + (escort.userData.offsetX || 0);
                             escort.position.y = currentBoss.position.y + (escort.userData.offsetY || 0);
                             escort.position.z = currentBoss.position.z + (escort.userData.offsetZ || 0);
@@ -1342,6 +1541,10 @@
                     currentBoss.rotation.z = 0.05;
                     if (currentBoss.userData.escorts && currentBoss.userData.escorts.length) {
                         currentBoss.userData.escorts.forEach((escort) => {
+                            if (escort.userData && escort.userData.destroying && escort.userData.frozenPosition) {
+                                escort.position.copy(escort.userData.frozenPosition);
+                                return;
+                            }
                             escort.position.x = currentBoss.position.x + (escort.userData.offsetX || 0);
                             escort.position.y = currentBoss.position.y + (escort.userData.offsetY || 0);
                             escort.position.z = currentBoss.position.z + (escort.userData.offsetZ || 0);
@@ -1356,6 +1559,10 @@
                     currentBoss.position.z = ship.position.z - 1600;
                     if (currentBoss.userData.escorts && currentBoss.userData.escorts.length) {
                         currentBoss.userData.escorts.forEach((escort) => {
+                            if (escort.userData && escort.userData.destroying && escort.userData.frozenPosition) {
+                                escort.position.copy(escort.userData.frozenPosition);
+                                return;
+                            }
                             escort.position.x = currentBoss.position.x + (escort.userData.offsetX || 0);
                             escort.position.y = currentBoss.position.y + (escort.userData.offsetY || 0);
                             escort.position.z = currentBoss.position.z + (escort.userData.offsetZ || 0);
@@ -1372,7 +1579,7 @@
                     );
                     for (let s = 0; s < shooters.length; s++) {
                         const shooter = shooters[s];
-                        if (elapsedTime - shooter.userData.lastShotCenter > 1.2) {
+                        if (elapsedTime - shooter.userData.lastShotCenter > (1.2 / enemyFireMul)) {
                             const spawnPos = shooter.position.clone();
                             const dir = new THREE.Vector3().subVectors(shipWorld, spawnPos).normalize();
                             spawnPos.add(dir.clone().multiplyScalar(150));
@@ -1387,7 +1594,7 @@
                             shooter.userData.lastShotCenter = elapsedTime;
                         }
 
-                        if (elapsedTime - shooter.userData.lastShotWing > 0.26) {
+                        if (elapsedTime - shooter.userData.lastShotWing > (0.26 / enemyFireMul)) {
                             const side = shooter.userData.wingSide || 1;
                             const wingSpawn = shooter.position.clone().add(new THREE.Vector3(side * 100, -10, 0));
                             const dirWing = new THREE.Vector3().subVectors(shipWorld, wingSpawn).normalize();
@@ -1408,7 +1615,7 @@
                     );
                     for (let s = 0; s < shooters.length; s++) {
                         const shooter = shooters[s];
-                        if (elapsedTime - shooter.userData.lastSalvoAt > 2.3) {
+                        if (elapsedTime - shooter.userData.lastSalvoAt > (2.3 / enemyFireMul)) {
                             spawnAtlanteDroneSalvo(shooter);
                             shooter.userData.lastSalvoAt = elapsedTime;
                         }
@@ -1419,7 +1626,7 @@
                     );
                     for (let s = 0; s < shooters.length; s++) {
                         const shooter = shooters[s];
-                        if (elapsedTime - shooter.userData.lastSalvoAt > 3.1) {
+                        if (elapsedTime - shooter.userData.lastSalvoAt > (3.1 / enemyFireMul)) {
                             spawnKiraDroneSalvo(shooter);
                             shooter.userData.lastSalvoAt = elapsedTime;
                         }
@@ -1699,6 +1906,7 @@
             hyperspaceTunnel.visible = true;
             setTimeout(() => {
                 hyperspaceTunnel.visible = false;
+                applySector(pickNextSector());
                 const wraithCountByScore = Math.min(10, 1 + Math.floor(score / 900));
                 const kiraCountByScore = Math.min(5, 1 + Math.floor(score / 1800));
                 const atlanteCountByScore = Math.min(2, 1 + Math.floor(score / 3200));
@@ -1858,13 +2066,17 @@
                     currentBoss.userData.shield = 110;
                     currentBoss.userData.maxShield = 110;
 
+                    const kiraSlots = [
+                        { x: -560, y: 180, z: -120 },
+                        { x: 560, y: -180, z: -120 },
+                        { x: -520, y: -210, z: -180 },
+                        { x: 520, y: 210, z: -180 }
+                    ];
                     for (let i = 0; i < kiraCount - 1; i++) {
-                        const row = Math.floor(i / 2);
-                        const side = i % 2 === 0 ? -1 : 1;
-                        const offsetX = side * (420 + row * 210);
-                        const kiraHeightPattern = [120, -120, 70, -70, 35, -35, 0];
-                        const offsetY = kiraHeightPattern[i % kiraHeightPattern.length];
-                        const offsetZ = -80 - (row * 30);
+                        const slot = kiraSlots[i % kiraSlots.length];
+                        const offsetX = slot.x;
+                        const offsetY = slot.y;
+                        const offsetZ = slot.z;
                         const escort = kiraBossModel.clone();
                         applyKiraMetalMaterial(escort);
                         centerModelOnVisualPivot(escort);
@@ -1931,47 +2143,23 @@
                     currentBoss.position.set(0, 0, ship.position.z - 1600);
                     const wraithCount = wraithCountByScore;
                     const escorts = [];
-                    const escortOffsets = [];
+                    // Slots cadrés pour rester dans le champ caméra tout en espaçant les croiseurs.
+                    const wraithSlots = [
+                        { x: -560, y: 230, z: -170 },
+                        { x: 560, y: -230, z: -170 },
+                        { x: -620, y: -160, z: -240 },
+                        { x: 620, y: 160, z: -240 },
+                        { x: -360, y: 260, z: -300 },
+                        { x: 360, y: -260, z: -300 },
+                        { x: -700, y: 40, z: -340 },
+                        { x: 700, y: -40, z: -340 },
+                        { x: 0, y: 300, z: -380 }
+                    ];
                     for (let i = 0; i < wraithCount - 1; i++) {
-                        let offsetX = 0;
-                        let offsetY = 0;
-                        let offsetZ = 0;
-                        let placed = false;
-
-                        // Répartition 3D large + anti-collision stricte entre escorts.
-                        for (let attempt = 0; attempt < 28; attempt++) {
-                            const ring = Math.floor(i / 4) + 1;
-                            const angleBase = ((i + 1) / (wraithCount)) * Math.PI * 2;
-                            const angle = angleBase + attempt * 0.31;
-                            const radius = 760 + (ring * 260) + (attempt * 16);
-                            const candX = Math.cos(angle) * radius;
-                            const candY = Math.sin(angle * 1.35) * (180 + ring * 45);
-                            const candZ = -180 - (ring * 130) + Math.cos(angle * 0.8) * 120;
-
-                            const noCollision = escortOffsets.every((o) => {
-                                const dx = candX - o.x;
-                                const dy = candY - o.y;
-                                const dz = candZ - o.z;
-                                return Math.sqrt(dx * dx + dy * dy + dz * dz) > 520;
-                            });
-                            if (noCollision) {
-                                offsetX = candX;
-                                offsetY = candY;
-                                offsetZ = candZ;
-                                placed = true;
-                                break;
-                            }
-                        }
-
-                        if (!placed) {
-                            const fallbackRadius = 1300 + (i * 140);
-                            const fallbackAngle = (i / Math.max(1, (wraithCount - 1))) * Math.PI * 2;
-                            offsetX = Math.cos(fallbackAngle) * fallbackRadius;
-                            offsetY = Math.sin(fallbackAngle) * 240;
-                            offsetZ = -260 - i * 60;
-                        }
-
-                        escortOffsets.push({ x: offsetX, y: offsetY, z: offsetZ });
+                        const slot = wraithSlots[i % wraithSlots.length];
+                        const offsetX = slot.x;
+                        const offsetY = slot.y;
+                        const offsetZ = slot.z;
                         const escort = wraithBossModel.clone();
                         escort.scale.set(3.5, 3.5, 3.5);
                         escort.position.set(
@@ -2081,26 +2269,15 @@
             const allBossShips = [currentBoss].concat(escortsToRemove || []).filter(
                 (shipRef) => shipRef && shipRef.parent && shipRef.visible !== false
             );
-            allBossShips.forEach((shipRef, idx) => {
-                spawnProgressiveBossHits(shipRef, 9 + idx * 2, 720, 3.0 + idx * 0.3);
-            });
 
             const fleetWrap = document.getElementById('boss-fleet-bars');
             fleetWrap.classList.add('hidden');
             fleetWrap.innerHTML = '';
 
-            setTimeout(() => {
-                const finalExplo = explosionModel.clone();
-                finalExplo.position.copy(currentBoss.position);
-                finalExplo.scale.set(8, 8, 8);
-                scene.add(finalExplo);
-                setTimeout(() => scene.remove(finalExplo), 820);
-            }, 460);
-
-            setTimeout(() => {
-                allBossShips.forEach((shipRef) => scene.remove(shipRef));
+            // Séquence propre: explosions en série (vaisseau par vaisseau) + blast final massif.
+            playCinematicFleetDestruction(allBossShips, () => {
                 if (gateToRemove) scene.remove(gateToRemove);
-            }, 860);
+            });
 
             // Affichage vignette
             const v = document.getElementById('experience-vignette');
