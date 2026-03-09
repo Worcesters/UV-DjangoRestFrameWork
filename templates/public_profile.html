@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil Public - CV Interactif{% endblock %}
+
+{% block content %}
+<section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white p-10 md:p-14">
+    <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_#60a5fa,_transparent_45%)]"></div>
+    <div class="relative z-10">
+        <p class="inline-flex px-4 py-1 rounded-full text-xs font-black tracking-[0.16em] uppercase bg-white/10 border border-white/20">
+            Profil public
+        </p>
+        <h1 class="mt-5 text-4xl md:text-6xl font-black leading-tight">
+            CV interactif <span class="text-cyan-300">nouvelle génération</span>
+        </h1>
+        <p class="mt-4 max-w-3xl text-blue-100/90 text-lg">
+            Développement fullstack orienté performance, UX et expériences web immersives.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% url 'experience:explore' %}" class="px-7 py-3 rounded-2xl bg-cyan-400 text-slate-900 font-extrabold hover:bg-cyan-300 transition-colors">
+                Jouer la démo 3D
+            </a>
+            <a href="{% url 'users:documents' %}" class="px-7 py-3 rounded-2xl border border-white/30 text-white font-bold hover:bg-white/10 transition-colors">
+                Voir les documents
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <article class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+        <h2 class="text-2xl font-black text-slate-900">Timeline</h2>
+        <div class="mt-6 space-y-5">
+            {% for item in timeline %}
+            <div class="relative pl-6">
+                <div class="absolute left-0 top-2 w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+                <p class="text-xs font-bold tracking-[0.12em] uppercase text-blue-600">{{ item.period }}</p>
+                <h3 class="mt-1 text-lg font-extrabold text-slate-900">{{ item.title }}</h3>
+                <p class="text-sm font-semibold text-slate-500">{{ item.company }}</p>
+                <p class="mt-1 text-sm text-slate-600 leading-relaxed">{{ item.summary }}</p>
+            </div>
+            {% empty %}
+            <p class="text-sm text-slate-500">Timeline en cours de préparation.</p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+        <h2 class="text-2xl font-black text-slate-900">Stack</h2>
+        <div class="mt-6 space-y-6">
+            {% for section in stack_sections %}
+            <div>
+                <p class="text-xs font-black tracking-[0.12em] uppercase text-slate-500">{{ section.label }}</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                    {% for tech in section.items %}
+                    <span class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ tech }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="mt-8 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+        <h2 class="text-2xl font-black text-slate-900">Projets</h2>
+        <a href="{% url 'experience:explore' %}" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">
+            Lancer la démo 3D →
+        </a>
+    </div>
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+        {% for project in projects %}
+        <article class="rounded-2xl border border-slate-100 bg-slate-50/70 p-5 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-extrabold text-slate-900">{{ project.name }}</h3>
+            <p class="mt-2 text-sm text-slate-600 leading-relaxed">{{ project.description }}</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+                {% for tag in project.tags %}
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-black tracking-wide uppercase bg-blue-100 text-blue-700">
+                    {{ tag }}
+                </span>
+                {% endfor %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

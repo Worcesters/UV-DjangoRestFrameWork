@@ -10,6 +10,9 @@
             <div class="w-48 h-2 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30">
                 <div id="shield-bar" class="h-full bg-cyan-400 shadow-[0_0_20px_#00f2ff] transition-all duration-300" style="width: 100%"></div>
             </div>
+            <div class="mt-1 text-cyan-200 text-[10px] tracking-[0.2em] uppercase font-bold">
+                Bouclier: <span id="shield-percent">100%</span>
+            </div>
             <div class="mt-4">
                 <div class="text-cyan-400 text-[9px] tracking-[0.3em] font-bold uppercase mb-1">Score</div>
                 <div id="score-value" class="text-white text-2xl font-black tracking-wider leading-none">000000</div>
@@ -34,9 +37,9 @@
             </div>
             <div id="boss-hull-wrap">
                 <div class="text-[9px] text-red-300/80 uppercase tracking-[0.25em] mb-1">Hull</div>
-                <div class="w-64 h-2 bg-red-950 rounded-full overflow-hidden border border-red-600/30">
-                    <div id="boss-hp-bar" class="h-full bg-red-600 shadow-[0_0_20px_#ff0000] transition-all duration-100" style="width: 100%"></div>
-                </div>
+            <div class="w-64 h-2 bg-red-950 rounded-full overflow-hidden border border-red-600/30">
+                <div id="boss-hp-bar" class="h-full bg-red-600 shadow-[0_0_20px_#ff0000] transition-all duration-100" style="width: 100%"></div>
+            </div>
             </div>
             <div id="boss-fleet-bars" class="mt-3 space-y-1 hidden"></div>
         </div>
@@ -68,6 +71,12 @@
         </div>
     </div>
 
+    <div id="bonus-toast" class="absolute top-6 left-1/2 -translate-x-1/2 z-[115] pointer-events-none opacity-0 transition-all duration-300">
+        <div id="bonus-toast-inner" class="px-5 py-3 rounded-2xl border border-cyan-300/50 bg-cyan-500/15 backdrop-blur-md text-cyan-100 text-sm font-black tracking-[0.12em] uppercase shadow-[0_0_26px_rgba(34,211,238,0.35)]">
+            Bonus obtenu
+        </div>
+    </div>
+
     <div id="game-over-screen" class="absolute inset-0 z-[120] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
         <div class="w-[520px] max-w-[92%] p-8 border border-red-500/40 rounded-2xl bg-[#090f1c] text-center shadow-[0_0_50px_rgba(239,68,68,0.25)]">
             <p class="text-red-400 text-xs tracking-[0.35em] uppercase font-bold mb-3">Critical Failure</p>
@@ -78,6 +87,92 @@
             <button onclick="window.location.reload()" class="px-6 py-3 bg-cyan-500/20 border border-cyan-400 text-cyan-100 font-black tracking-[0.2em] text-xs hover:bg-cyan-400 hover:text-black transition-all">
                 RESTART MISSION
             </button>
+        </div>
+    </div>
+
+    <div id="tutorial-overlay" class="absolute inset-0 z-[130] flex items-center justify-center bg-black/75 backdrop-blur-sm">
+        <div class="w-[760px] max-w-[94%] rounded-2xl border border-cyan-400/30 bg-[#071120] shadow-[0_0_55px_rgba(34,211,238,0.22)] p-6 md:p-8">
+            <div class="flex items-center justify-between mb-6">
+                <p class="text-cyan-300 text-xs tracking-[0.35em] uppercase font-bold">Mission Briefing</p>
+                <button onclick="closeTutorial()" class="text-cyan-200/80 hover:text-cyan-100 text-xs tracking-[0.2em] uppercase">Passer</button>
+            </div>
+
+            <div id="tutorial-slide-0" class="tutorial-slide">
+                <h3 class="text-white text-2xl font-black mb-4">Deplacement du vaisseau</h3>
+                <p class="text-slate-300 mb-6">Utilise <span class="text-cyan-300 font-bold">ZQSD</span> pour manoeuvrer dans le secteur.</p>
+                <div class="flex items-center justify-center">
+                    <div class="grid grid-cols-3 gap-2">
+                        <span></span>
+                        <div class="w-14 h-14 rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-200 flex items-center justify-center font-black text-xl">Z</div>
+                        <span></span>
+                        <div class="w-14 h-14 rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-200 flex items-center justify-center font-black text-xl">Q</div>
+                        <div class="w-14 h-14 rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-200 flex items-center justify-center font-black text-xl">S</div>
+                        <div class="w-14 h-14 rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-200 flex items-center justify-center font-black text-xl">D</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tutorial-slide-1" class="tutorial-slide hidden">
+                <h3 class="text-white text-2xl font-black mb-4">Tir et guidage des drones</h3>
+                <p class="text-slate-300 mb-6">Maintiens <span class="text-cyan-300 font-bold">Espace</span> pour tirer. Les drones se guident automatiquement vers les cibles hostiles.</p>
+                <div class="flex items-center justify-center gap-4">
+                    <div class="px-4 py-3 rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-100 text-xs font-black tracking-[0.2em] uppercase">Espace</div>
+                </div>
+
+            </div>
+
+            <div id="tutorial-slide-2" class="tutorial-slide hidden">
+                <h3 class="text-white text-2xl font-black mb-4">Esquive tactique</h3>
+                <p class="text-slate-300 mb-6">Utilise <span class="text-cyan-300 font-bold">Shift + Q</span> (gauche) ou <span class="text-cyan-300 font-bold">Shift + D</span> (droite) pour esquiver rapidement les tirs et collisions.</p>
+                <div class="flex items-center justify-center gap-4">
+                    <div class="px-4 py-3 rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-100 text-xs font-black tracking-[0.2em] uppercase">Shift + Q</div>
+                    <div class="text-cyan-300 text-2xl">|</div>
+                    <div class="px-4 py-3 rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-100 text-xs font-black tracking-[0.2em] uppercase">Shift + D</div>
+                </div>
+            </div>
+
+            <div id="tutorial-slide-3" class="tutorial-slide hidden">
+                <h3 class="text-white text-2xl font-black mb-4">Porte des etoiles & bonus</h3>
+                <p class="text-slate-300 mb-6">Traverse une porte pour declencher un bonus et ajouter un <span class="text-cyan-300 font-bold">allie</span> ou régénère le <span class="text-cyan-300 font-bold">bouclier</span> de support.</p>
+                <div class="flex items-center justify-center gap-6">
+                    <div class="w-40 h-28 rounded-2xl border border-cyan-400/40 bg-[#020617] overflow-hidden shadow-[0_0_30px_rgba(34,211,238,0.25)]">
+                        <canvas id="tuto-gate-canvas" class="w-full h-full"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tutorial-slide-4" class="tutorial-slide hidden">
+                <h3 class="text-white text-2xl font-black mb-4">Hyperespace</h3>
+                <p class="text-slate-300 mb-6">Active <span class="text-cyan-300 font-bold">ENGAGE VORTEX</span> pour declencher l'hyperespace et lancer directement la rencontre boss.</p>
+                <div class="flex items-center justify-center gap-5">
+                    <div class="px-4 py-3 rounded-xl border border-orange-400/40 bg-orange-500/10 text-orange-200 text-xs font-black tracking-[0.2em] uppercase">Engage Vortex</div>
+                </div>
+            </div>
+
+            <div id="tutorial-slide-5" class="tutorial-slide hidden">
+                <h3 class="text-white text-2xl font-black mb-4">Les 3 boss possibles</h3>
+                <p class="text-slate-300 mb-6">Rencontres aleatoires : <span class="text-cyan-300 font-bold">Wraith</span>, <span class="text-cyan-300 font-bold">Atlante</span> et <span class="text-cyan-300 font-bold">Kira</span>.</p>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="rounded-xl border border-red-500/30 bg-[#0b1220] p-2">
+                        <canvas id="tuto-boss-wraith-canvas" class="w-full h-24"></canvas>
+                        <p class="text-center text-red-300 text-[11px] font-bold tracking-[0.2em] uppercase mt-1">Wraith</p>
+                    </div>
+                    <div class="rounded-xl border border-cyan-500/30 bg-[#0b1220] p-2">
+                        <canvas id="tuto-boss-atlante-canvas" class="w-full h-24"></canvas>
+                        <p class="text-center text-cyan-300 text-[11px] font-bold tracking-[0.2em] uppercase mt-1">Atlante</p>
+                    </div>
+                    <div class="rounded-xl border border-violet-500/30 bg-[#0b1220] p-2">
+                        <canvas id="tuto-boss-kira-canvas" class="w-full h-24"></canvas>
+                        <p class="text-center text-violet-300 text-[11px] font-bold tracking-[0.2em] uppercase mt-1">Kira</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-8">
+                <button onclick="prevTutorialSlide()" id="tutorial-prev" class="px-4 py-2 rounded-lg border border-cyan-400/30 text-cyan-200 text-sm disabled:opacity-30 disabled:cursor-not-allowed">Precedent</button>
+                <p id="tutorial-counter" class="text-cyan-300/90 text-xs tracking-[0.28em] uppercase">1 / 6</p>
+                <button onclick="nextTutorialSlide()" id="tutorial-next" class="px-5 py-2 rounded-lg bg-cyan-500/20 border border-cyan-400 text-cyan-100 text-sm font-bold">Suivant</button>
+            </div>
         </div>
     </div>
 
@@ -95,14 +190,22 @@
         const scene = new THREE.Scene();
         const clock = new THREE.Clock();
         let starField;
-        const STAR_COUNT = 1000;
+        const STAR_COUNT = 500;
         let chargeParticles = [];
+        let leftReactorTrail, rightReactorTrail;
+        let reactorTrailGeo, reactorTrailMatA, reactorTrailMatB, lastReactorEmitAt = 0;
+        let friendBulletGeo, friendBulletMat;
+        const friendBulletPool = [];
 
         scene.background = new THREE.Color(0x000814);
         const camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.1, 40000);
-        const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('space-canvas'), antialias: true});
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('space-canvas'),
+            antialias: false,
+            powerPreference: 'high-performance'
+        });
         renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 2.0;
 
@@ -124,13 +227,18 @@
 
         const loader = new THREE.GLTFLoader();
         let ship, shieldMesh, asteroidModel, explosionModel, gateActiveModel, wraithBossModel, atlanteBossModel, kiraBossModel, friendModel, droneModel, hitEffectModel, hyperspaceTunnel, engineLight;
+        const tempVecA = new THREE.Vector3();
+        const tempVecB = new THREE.Vector3();
+        const tempVecC = new THREE.Vector3();
+        const tempVecD = new THREE.Vector3();
+        const tempCamTarget = new THREE.Vector3();
+        let lastAppliedFov = camera.fov;
         const asteroids = [], drones = [], bossProjectiles = [], enemyDrones = [], friendShips = [], friendBullets = [], bonusGates = [];
 
-        let shieldPower = 100000, droneSide = 1, currentPhase = 'cruise';
+        let shieldPower = 100, droneSide = 1, currentPhase = 'cruise';
         let score = 0;
         let gameOver = false;
         let bossActive = false, currentBoss = null, experienceIndex = 0;
-        let lastBossType = null;
         let lastBonusGateAt = 0;
         let isSpaceHeld = false;
         let lastPlayerShotAt = -999;
@@ -138,6 +246,12 @@
         const keys = {};
         let shakeIntensity = 0;
         const shakeDecay = 0.9;
+        const bossFleetCaps = { wraith: 3, kira: 1, atlante: 1 };
+        const dodgeState = { active: false, dir: 1, remaining: 0, duration: 0.42, cooldownUntil: 0, startRoll: 0, startX: 0, targetX: 0 };
+        let tutorialActive = true;
+        let tutorialSlideIndex = 0;
+        const tutorialPreviews = [];
+        let bonusToastTimeout = null;
 
         const experiences = JSON.parse(document.getElementById('experiences-data').textContent || '[]');
         const modelsBase = document.getElementById('game-container').dataset.modelsBase || '/static/models/';
@@ -307,6 +421,8 @@
                 engineLight = new THREE.PointLight(0x00f2ff, 0, 50);
                 engineLight.position.set(0, 0, 10);
                 ship.add(engineLight);
+                initLinearReactorTrails();
+                initFriendBulletAssets();
 
                 shieldMesh = new THREE.Mesh(
                     new THREE.SphereGeometry(12, 32, 32),
@@ -343,13 +459,72 @@
                 }
                 warmPlayerDronePool(10);
                 applySector(currentSector);
+                initTutorialPreviews();
 
-                for(let i=0; i<300; i++) spawnAsteroid();
+                for(let i=0; i<160; i++) spawnAsteroid();
                 animate();
             } catch(e) { console.error(e); }
         }
 
         loadAllModels();
+
+        function createTutorialPreview(canvasId, model, opts = {}) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || !model) return;
+            const width = canvas.clientWidth || 160;
+            const height = canvas.clientHeight || 100;
+            const previewRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            previewRenderer.setSize(width, height, false);
+            previewRenderer.setPixelRatio(1);
+            previewRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+            previewRenderer.toneMappingExposure = 1.05;
+            const previewScene = new THREE.Scene();
+            const previewCamera = new THREE.PerspectiveCamera(42, width / height, 0.1, 5000);
+            previewCamera.position.set(0, 0, opts.cameraZ || 160);
+            previewScene.add(new THREE.AmbientLight(0x9db4c8, 0.52));
+            const keyLight = new THREE.DirectionalLight(0x9ed8ff, 0.78);
+            keyLight.position.set(20, 30, 32);
+            previewScene.add(keyLight);
+            const rimLight = new THREE.DirectionalLight(0x4f8bb7, 0.35);
+            rimLight.position.set(-24, -12, -30);
+            previewScene.add(rimLight);
+
+            const root = new THREE.Group();
+            const clone = model.clone();
+            if (opts.centerPivot && typeof centerModelOnVisualPivot === 'function') {
+                centerModelOnVisualPivot(clone);
+            }
+            clone.scale.setScalar(opts.scale || 1);
+            root.add(clone);
+            root.position.set(opts.offsetX || 0, opts.offsetY || 0, opts.offsetZ || 0);
+            root.rotation.set(opts.rotX || 0, opts.rotY || 0, opts.rotZ || 0);
+            previewScene.add(root);
+
+            tutorialPreviews.push({
+                renderer: previewRenderer,
+                scene: previewScene,
+                camera: previewCamera,
+                root,
+                speed: opts.speed || 0.008
+            });
+        }
+
+        function initTutorialPreviews() {
+            createTutorialPreview('tuto-gate-canvas', gateActiveModel, { scale: 20, cameraZ: 205, speed: 0.05, centerPivot: true, rotX: -0.06, rotZ: 0.04 });
+            createTutorialPreview('tuto-hyper-gate-canvas', gateActiveModel, { scale: 10.5, cameraZ: 205, speed: -0.01, centerPivot: true, rotX: -0.06, rotZ: -0.04 });
+            createTutorialPreview('tuto-boss-wraith-canvas', wraithBossModel, { scale: 2.0, cameraZ: 255, speed: 0.007, offsetY: -7, centerPivot: true, rotX: -0.05, rotZ: 0.05 });
+            createTutorialPreview('tuto-boss-atlante-canvas', atlanteBossModel, { scale: 2.75, cameraZ: 210, speed: -0.006, offsetY: -8, centerPivot: true, rotX: -0.04, rotZ: 0.04 });
+            createTutorialPreview('tuto-boss-kira-canvas', kiraBossModel, { scale: 16, cameraZ: 480, speed: 0.006, offsetY: -32, centerPivot: true, rotX: -0.05, rotZ: -0.04 });
+        }
+
+        function renderTutorialPreviews() {
+            if (!tutorialActive) return;
+            for (let i = 0; i < tutorialPreviews.length; i++) {
+                const p = tutorialPreviews[i];
+                p.root.rotation.y += p.speed;
+                p.renderer.render(p.scene, p.camera);
+            }
+        }
 
         // NOUVELLE GESTION DHD & PROPULSION
         window.dialGlyph = function(btn) {
@@ -448,7 +623,13 @@
             const a = asteroidModel.clone();
             a.position.set((Math.random()-0.5)*2000, (Math.random()-0.5)*1200, ship.position.z - Math.random()*6000);
             a.scale.setScalar(Math.random() * 0.6 + 0.2);
-            a.userData = { reboundVelocity: null, friendHp: 3 };
+            a.userData = {
+                reboundVelocity: null,
+                friendHp: 3,
+                isAsteroid: true,
+                inferredVelocity: new THREE.Vector3(),
+                prevPos: a.position.clone()
+            };
             scene.add(a);
             asteroids.push(a);
         }
@@ -464,6 +645,10 @@
                 a.userData.velocity = null;
                 a.userData.hitCooldown = 0;
                 a.userData.friendHp = 3;
+                if (!a.userData.inferredVelocity) a.userData.inferredVelocity = new THREE.Vector3();
+                a.userData.inferredVelocity.set(0, 0, 0);
+                if (!a.userData.prevPos) a.userData.prevPos = a.position.clone();
+                a.userData.prevPos.copy(a.position);
             }
         }
 
@@ -473,12 +658,12 @@
             let foundSpot = false;
             for (let attempt = 0; attempt < 25; attempt++) {
                 const candidate = new THREE.Vector3(
-                    (Math.random() - 0.5) * 260,
-                    (Math.random() - 0.5) * 180,
+                    (Math.random() - 0.5) * 1700,
+                    (Math.random() - 0.5) * 1000,
                     ship.position.z - (4200 + Math.random() * 2200)
                 );
                 // Empêche une porte dans/près d'un astéroïde.
-                const blocked = asteroids.some((a) => a.position.distanceTo(candidate) < 240);
+                const blocked = asteroids.some((a) => a.position.distanceTo(candidate) < 220);
                 if (!blocked) {
                     gate.position.copy(candidate);
                     foundSpot = true;
@@ -523,9 +708,68 @@
                 ally.rotation.x = Math.PI / 2;
             }
             ally.position.copy(ship.position).add(new THREE.Vector3(side * 45, 8, -35));
-            ally.userData = { side: side, lastShotAt: 0 };
+            ally.userData = { side: side, lastShotAt: 0, target: null, nextTargetAt: 0 };
             scene.add(ally);
             friendShips.push(ally);
+        }
+
+        function applyRandomGateBonus() {
+            // 50/50 : allié F-32 ou recharge bouclier.
+            const roll = Math.random();
+            const status = document.getElementById('status-text');
+            if (roll < 0.5 && friendShips.length < 2) {
+                spawnFriendSupport();
+                if (status) status.innerText = 'Bonus obtenu: F-32 allie';
+                showBonusToast('Bonus obtenu: F-32 allie', 'ally');
+                return;
+            }
+            const prevShield = shieldPower;
+            shieldPower = Math.min(100, shieldPower + 20);
+            document.getElementById('shield-bar').style.width = `${shieldPower}%`;
+            document.getElementById('shield-percent').innerText = `${Math.round(shieldPower)}%`;
+            if (status) {
+                status.innerText = shieldPower > prevShield
+                    ? 'Bonus obtenu: +20% bouclier'
+                    : 'Bonus obtenu: bouclier deja max';
+            }
+            showBonusToast(
+                shieldPower > prevShield ? 'Bonus obtenu: +20% bouclier' : 'Bonus obtenu: bouclier deja max',
+                'shield'
+            );
+        }
+
+        function showBonusToast(message, kind = 'ally') {
+            const wrap = document.getElementById('bonus-toast');
+            const inner = document.getElementById('bonus-toast-inner');
+            if (!wrap || !inner) return;
+            inner.innerText = message;
+            if (kind === 'shield') {
+                inner.className = 'px-5 py-3 rounded-2xl border border-emerald-300/50 bg-emerald-500/15 backdrop-blur-md text-emerald-100 text-sm font-black tracking-[0.12em] uppercase shadow-[0_0_26px_rgba(16,185,129,0.35)]';
+            } else {
+                inner.className = 'px-5 py-3 rounded-2xl border border-cyan-300/50 bg-cyan-500/15 backdrop-blur-md text-cyan-100 text-sm font-black tracking-[0.12em] uppercase shadow-[0_0_26px_rgba(34,211,238,0.35)]';
+            }
+            wrap.classList.remove('opacity-0', 'translate-y-2');
+            wrap.classList.add('opacity-100', 'translate-y-0');
+            if (bonusToastTimeout) clearTimeout(bonusToastTimeout);
+            bonusToastTimeout = setTimeout(() => {
+                wrap.classList.remove('opacity-100', 'translate-y-0');
+                wrap.classList.add('opacity-0', 'translate-y-2');
+            }, 1800);
+        }
+
+        function getPredictedAsteroidPoint(fromPos, asteroid, projectileSpeedPerSec = 4800) {
+            if (!asteroid || !asteroid.visible) return null;
+            const speed = Math.max(1200, projectileSpeedPerSec);
+            const vel = (asteroid.userData && asteroid.userData.inferredVelocity) ? asteroid.userData.inferredVelocity : null;
+            let eta = Math.min(1.5, Math.max(0.04, fromPos.distanceTo(asteroid.position) / speed));
+            tempVecD.copy(asteroid.position);
+            if (vel && vel.lengthSq() > 0.01) {
+                for (let i = 0; i < 2; i++) {
+                    tempVecD.copy(asteroid.position).addScaledVector(vel, eta);
+                    eta = fromPos.distanceTo(tempVecD) / speed;
+                }
+            }
+            return tempVecD;
         }
 
         function getBestAsteroidForFriend(ally) {
@@ -534,21 +778,81 @@
             for (let i = 0; i < asteroids.length; i++) {
                 const a = asteroids[i];
                 if (!a.visible) continue;
+                const predicted = getPredictedAsteroidPoint(ally.position, a, 80 * 60) || a.position;
                 // Astéroïdes devant l'allié dans sa trajectoire
-                if (a.position.z >= ally.position.z) continue;
-                const dz = Math.abs(a.position.z - ally.position.z);
+                if (predicted.z >= ally.position.z) continue;
+                const dz = Math.abs(predicted.z - ally.position.z);
                 if (dz > 3800) continue;
-                const dx = Math.abs(a.position.x - ally.position.x);
-                const dy = Math.abs(a.position.y - ally.position.y);
+                const dx = predicted.x - ally.position.x;
+                const dy = predicted.y - ally.position.y;
                 // Favorise les astéroïdes proches de l'axe de tir (z)
-                const scoreAxis = dx * 1.4 + dy * 1.1;
-                const score = scoreAxis + (dz * 0.12);
+                const scoreAxis = (Math.abs(dx) * 1.4) + (Math.abs(dy) * 1.1);
+                const score = scoreAxis + (dz * 0.12) + ((a.userData.inferredVelocity ? a.userData.inferredVelocity.length() : 0) * 0.02);
                 if (score < bestScore) {
                     bestScore = score;
                     best = a;
                 }
             }
             return best;
+        }
+
+        function getBestAsteroidForPlayerDrone(fromPos) {
+            const claimed = new Set();
+            for (let i = 0; i < drones.length; i++) {
+                const t = drones[i] && drones[i].userData ? drones[i].userData.target : null;
+                if (t && t.userData && t.userData.isAsteroid && t.visible) claimed.add(t);
+            }
+            let best = null;
+            let bestScore = Infinity;
+            for (let i = 0; i < asteroids.length; i++) {
+                const a = asteroids[i];
+                if (!a || !a.visible || claimed.has(a)) continue;
+                const predicted = getPredictedAsteroidPoint(fromPos, a, 80 * 60) || a.position;
+                if (predicted.z >= fromPos.z) continue;
+                const dz = Math.abs(predicted.z - fromPos.z);
+                if (dz > 4200) continue;
+                const dx = predicted.x - fromPos.x;
+                const dy = predicted.y - fromPos.y;
+                const score = (Math.abs(dx) * 1.35) + (Math.abs(dy) * 1.1) + (dz * 0.1);
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = a;
+                }
+            }
+            return best || getBestAsteroidForFriend({ position: fromPos });
+        }
+
+        function initFriendBulletAssets() {
+            friendBulletGeo = new THREE.SphereGeometry(1.35, 8, 8);
+            friendBulletMat = new THREE.MeshBasicMaterial({
+                color: 0xfff59d,
+                emissive: 0xffe066,
+                emissiveIntensity: 2
+            });
+        }
+
+        function acquireFriendBullet() {
+            return friendBulletPool.pop() || new THREE.Mesh(friendBulletGeo, friendBulletMat);
+        }
+
+        function releaseFriendBullet(bullet, idx = -1) {
+            if (!bullet) return;
+            scene.remove(bullet);
+            if (idx >= 0) friendBullets.splice(idx, 1);
+            if (friendBulletPool.length < 80) {
+                bullet.userData = {};
+                friendBulletPool.push(bullet);
+            }
+        }
+
+        function isAsteroidTargetStale(drone, asteroidTarget) {
+            if (!drone || !asteroidTarget || !asteroidTarget.visible) return true;
+            const dist = drone.position.distanceTo(asteroidTarget.position);
+            // Cible probablement "recyclée" très loin après impact d'un autre drone.
+            if (dist > 2600) return true;
+            if (asteroidTarget.position.z > ship.position.z + 420) return true;
+            if (asteroidTarget.position.z < ship.position.z - 7000) return true;
+            return false;
         }
 
         function addScore(points) {
@@ -571,7 +875,7 @@
             enemyDrones.length = 0;
             drones.forEach(d => releasePlayerDroneVisual(d));
             drones.length = 0;
-            friendBullets.forEach(b => scene.remove(b));
+            friendBullets.forEach((b) => releaseFriendBullet(b));
             friendBullets.length = 0;
             friendShips.forEach(f => scene.remove(f));
             friendShips.length = 0;
@@ -596,6 +900,7 @@
             shieldPower = Math.max(0, shieldPower);
 
             document.getElementById('shield-bar').style.width = shieldPower + "%";
+            document.getElementById('shield-percent').innerText = `${Math.round(shieldPower)}%`;
             shakeIntensity = intensity;
             shieldMesh.material.opacity = 0.8;
             if (shieldMesh.userData && shieldMesh.userData.fadeTimeout) {
@@ -1214,9 +1519,165 @@
             return friend ? friend.position.clone() : shipPos;
         }
 
+        function createLinearTrailMesh(nozzleX, nozzleY, nozzleZ) {
+            return { x: nozzleX, y: nozzleY, z: nozzleZ };
+        }
+
+        function getReactorNozzleWorld(nozzle, outVec) {
+            const shipRoll = ship.rotation.z || 0;
+            const rz = -shipRoll;
+            const c = Math.cos(rz);
+            const s = Math.sin(rz);
+            // Pivot visuel ajusté: évite la dérive des réacteurs sous la coque en roulis.
+            const pivotX = -10;
+            const pivotY = -15;
+            const lx = (nozzle ? nozzle.x : 0) - pivotX;
+            const ly = (nozzle ? nozzle.y : 0) - pivotY;
+            const rx = (lx * c) - (ly * s) + pivotX ;
+            const ry = (lx * s) + (ly * c) + pivotY ;
+            return outVec.set(
+                ship.position.x + rx,
+                ship.position.y + ry,
+                ship.position.z + (nozzle ? nozzle.z : 0)
+            );
+        }
+
+        function initLinearReactorTrails() {
+            leftReactorTrail = createLinearTrailMesh(-18.5, -0.4, 4.6);
+            rightReactorTrail = createLinearTrailMesh(-2.5, -0.4, 4.6);
+            reactorTrailGeo = new THREE.CylinderGeometry(0.42, 1.35, 8.4, 8);
+            reactorTrailMatA = new THREE.MeshBasicMaterial({
+                color: 0x38bdf8,
+                transparent: true,
+                opacity: 0.78,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                depthTest: false
+            });
+            reactorTrailMatB = new THREE.MeshBasicMaterial({
+                color: 0x2563eb,
+                transparent: true,
+                opacity: 0.74,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                depthTest: false
+            });
+        }
+
+        function updateLinearReactorTrails(active) {
+            if (!leftReactorTrail || !rightReactorTrail || !ship) return;
+            if (!active) {
+                return;
+            }
+            const now = clock.getElapsedTime();
+            if ((now - lastReactorEmitAt) < 0.065) return;
+            lastReactorEmitAt = now;
+
+            const nozzles = [leftReactorTrail, rightReactorTrail];
+            for (let i = 0; i < nozzles.length; i++) {
+                const n = nozzles[i];
+                const nozzleWorld = getReactorNozzleWorld(n, tempVecA);
+                const p = new THREE.Mesh(
+                    reactorTrailGeo,
+                    (Math.random() > 0.35 ? reactorTrailMatA : reactorTrailMatB).clone()
+                );
+                p.rotation.x = Math.PI / 2;
+                p.position.set(
+                    nozzleWorld.x + (Math.random() - 0.5) * 0.35,
+                    nozzleWorld.y + (Math.random() - 0.5) * 0.3,
+                    nozzleWorld.z + Math.random() * 0.5
+                );
+                const s = 0.78 + Math.random() * 0.22;
+                p.scale.set(s, s, 0.95 + Math.random() * 0.2);
+                const baseOpacity = 0.68 + Math.random() * 0.16;
+                p.material.opacity = baseOpacity;
+                p.userData = {
+                    kind: 'reactorThruster',
+                    nozzleX: n.x,
+                    nozzleY: n.y,
+                    nozzleZ: n.z,
+                    nozzleRef: n,
+                    driftZ: 2.6 + Math.random() * 1.1,
+                    life: 0.86,
+                    wobble: 0.22 + Math.random() * 0.16,
+                    grow: 1.006 + Math.random() * 0.004,
+                    bornAt: now,
+                    ttl: 0.72 + Math.random() * 0.18,
+                    baseOpacity: baseOpacity,
+                    trailOffset: 0
+                };
+                scene.add(p);
+                chargeParticles.push(p);
+            }
+        }
+
+        function renderTutorialSlide() {
+            const slides = document.querySelectorAll('.tutorial-slide');
+            const counter = document.getElementById('tutorial-counter');
+            const prevBtn = document.getElementById('tutorial-prev');
+            const nextBtn = document.getElementById('tutorial-next');
+            slides.forEach((slide, idx) => slide.classList.toggle('hidden', idx !== tutorialSlideIndex));
+            if (counter) counter.innerText = `${tutorialSlideIndex + 1} / ${slides.length}`;
+            if (prevBtn) prevBtn.disabled = tutorialSlideIndex === 0;
+            if (nextBtn) nextBtn.innerText = tutorialSlideIndex === slides.length - 1 ? 'Commencer' : 'Suivant';
+        }
+
+        window.prevTutorialSlide = function() {
+            tutorialSlideIndex = Math.max(0, tutorialSlideIndex - 1);
+            renderTutorialSlide();
+        };
+
+        window.nextTutorialSlide = function() {
+            const slidesCount = document.querySelectorAll('.tutorial-slide').length;
+            if (tutorialSlideIndex >= slidesCount - 1) {
+                window.closeTutorial();
+                return;
+            }
+            tutorialSlideIndex += 1;
+            renderTutorialSlide();
+        };
+
+        window.closeTutorial = function() {
+            const overlay = document.getElementById('tutorial-overlay');
+            if (overlay) overlay.classList.add('hidden');
+            tutorialActive = false;
+            document.getElementById('status-text').innerText = 'Mission Start';
+        };
+
+        renderTutorialSlide();
+
         window.onkeydown = e => {
             if (gameOver) return;
+            if (tutorialActive) {
+                if (e.code === 'Escape') window.closeTutorial();
+                if (e.code === 'ArrowRight' || e.code === 'Enter' || e.code === 'Space') {
+                    e.preventDefault();
+                    window.nextTutorialSlide();
+                }
+                if (e.code === 'ArrowLeft') {
+                    e.preventDefault();
+                    window.prevTutorialSlide();
+                }
+                return;
+            }
             keys[e.key.toLowerCase()] = true;
+            if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && ship) {
+                const now = clock.getElapsedTime();
+                const canDodge = currentPhase !== 'hyperspace' && currentPhase !== 'charging' && !dodgeState.active && now >= dodgeState.cooldownUntil;
+                if (canDodge) {
+                    let dir = 0;
+                    if (keys['q'] || keys['arrowleft']) dir = -1;
+                    else if (keys['d'] || keys['arrowright']) dir = 1;
+                    else dir = dodgeState.dir * -1; // alterne si aucune direction n'est maintenue
+                    dodgeState.active = true;
+                    dodgeState.dir = dir;
+                    dodgeState.remaining = dodgeState.duration;
+                    dodgeState.cooldownUntil = now + 0.55;
+                    dodgeState.startRoll = ship.rotation.z;
+                    dodgeState.startX = ship.position.x;
+                    dodgeState.targetX = Math.max(-550, Math.min(550, ship.position.x + (dir * 210)));
+                }
+            }
             if (e.code === 'Space') {
                 e.preventDefault();
                 isSpaceHeld = true;
@@ -1233,8 +1694,13 @@
         function animate() {
             requestAnimationFrame(animate);
             if (!ship) return;
+            if (tutorialActive) {
+                renderTutorialPreviews();
+                renderer.render(scene, camera);
+                return;
+            }
 
-            const delta = clock.getDelta();
+            const delta = Math.min(clock.getDelta(), 0.033);
             const elapsedTime = clock.getElapsedTime();
             const factor = delta * 60;
 
@@ -1255,8 +1721,29 @@
             // ==========================================
             for (let i = chargeParticles.length - 1; i >= 0; i--) {
                 const p = chargeParticles[i];
-                if (currentPhase === 'charging') {
-                    if (p.userData.kind === 'thruster') {
+                if (p.userData.kind === 'thruster' || p.userData.kind === 'reactorThruster') {
+                    if (p.userData.kind === 'reactorThruster') {
+                        // Meme logique de deplacement que la charge, mais borne en Z
+                        // pour garder une petite trainee derriere le vaisseau.
+                        p.userData.life *= 0.982;
+                        const nozzleBase = p.userData.nozzleRef
+                            ? getReactorNozzleWorld(p.userData.nozzleRef, tempVecB)
+                            : tempVecB.set(
+                                ship.position.x + p.userData.nozzleX,
+                                ship.position.y + p.userData.nozzleY,
+                                ship.position.z + (p.userData.nozzleZ || 8)
+                            );
+                        p.position.x = nozzleBase.x + (Math.random() - 0.5) * p.userData.wobble;
+                        p.position.y = nozzleBase.y + (Math.random() - 0.5) * p.userData.wobble;
+                        p.userData.trailOffset = Math.min(18, (p.userData.trailOffset || 0) + p.userData.driftZ * factor * 0.12);
+                        p.position.z = nozzleBase.z + p.userData.trailOffset;
+                        const age = elapsedTime - (p.userData.bornAt || 0);
+                        const fade = Math.max(0, 1 - (age / (p.userData.ttl || 0.6)));
+                        p.material.opacity = Math.max(0.24, (p.userData.baseOpacity || 0.74) * fade);
+                        p.scale.x *= 1.003;
+                        p.scale.y *= 1.003;
+                        p.scale.z *= p.userData.grow;
+                    } else {
                         p.userData.life *= 0.985;
                         p.position.x = ship.position.x + p.userData.nozzleX + (Math.random() - 0.5) * p.userData.wobble;
                         p.position.y = ship.position.y + p.userData.nozzleY + (Math.random() - 0.5) * p.userData.wobble;
@@ -1265,7 +1752,8 @@
                         p.scale.x *= 1.004;
                         p.scale.y *= 1.004;
                         p.scale.z *= p.userData.grow;
-                    } else {
+                    }
+                } else if (currentPhase === 'charging') {
                         p.userData.angle += p.userData.spin * factor * 0.35;
                         p.userData.radius *= p.userData.radiusDecay;
                         p.userData.life *= 0.992;
@@ -1274,7 +1762,6 @@
                         p.position.z += p.userData.driftZ * factor * 0.08;
                         p.material.opacity = Math.max(0.15, p.userData.life);
                         p.scale.multiplyScalar(0.994);
-                    }
                 } else {
                     p.position.z += 16 * factor;
                     p.material.opacity *= 0.9;
@@ -1282,17 +1769,33 @@
                 }
 
                 if (
+                    (p.userData.kind === 'reactorThruster' && (elapsedTime - (p.userData.bornAt || 0)) > (p.userData.ttl || 0.25)) ||
+                    (p.userData.kind === 'reactorThruster' && (p.userData.trailOffset || 0) > 16) ||
                     (p.userData.radius !== undefined && p.userData.radius < 2) ||
                     p.scale.x < 0.08 ||
                     p.material.opacity < 0.05
                 ) {
+                    if (p.userData.kind === 'reactorThruster' && p.material && p.material.dispose) {
+                        p.material.dispose();
+                    }
                     scene.remove(p);
                     chargeParticles.splice(i, 1);
                 }
             }
 
+            // ==========================================
+            // 1-bis. TRAINEE BLEUE LINEAIRE DES REACTEURS
+            // ==========================================
+            updateLinearReactorTrails(
+                currentPhase === 'cruise' ||
+                currentPhase === 'boss_incoming' ||
+                currentPhase === 'boss_fight'
+            );
+
             // Décor et anomalies du secteur actif.
-            updateSectorDecor(factor);
+            if (((elapsedTime * 60) | 0) % 2 === 0) {
+                updateSectorDecor(factor);
+            }
 
             // ==========================================
             // 2. CAMÉRA ET ZOOM (FOV)
@@ -1301,15 +1804,22 @@
             if (currentPhase === 'charging') targetFOV = 30;
             else if (currentPhase === 'hyperspace') targetFOV = 130;
 
-            camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.05);
-            camera.updateProjectionMatrix();
+            const nextFov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.05);
+            if (Math.abs(nextFov - lastAppliedFov) > 0.02) {
+                camera.fov = nextFov;
+                camera.updateProjectionMatrix();
+                lastAppliedFov = nextFov;
+            } else {
+                camera.fov = nextFov;
+            }
 
-            let targetCamZ = 160; targetCamY = 40;
+            let targetCamZ = 50, targetCamY = 40;
             if (currentPhase === 'charging') { targetCamZ = 160; targetCamY = 40; }
             else if (currentPhase === 'boss_fight') { targetCamZ = 160; targetCamY = 40;  }
             else if (currentPhase === 'hyperspace') { targetCamZ = 8; targetCamY = 4; }
 
-            camera.position.lerp(new THREE.Vector3(ship.position.x, ship.position.y + targetCamY, ship.position.z + targetCamZ), 0.2);
+            tempCamTarget.set(ship.position.x, ship.position.y + targetCamY, ship.position.z + targetCamZ);
+            camera.position.lerp(tempCamTarget, 0.2);
 
             // ==========================================
             // 3. LOGIQUE DE L'HYPERESPACE (ÉTOILES)
@@ -1349,16 +1859,29 @@
             if (currentPhase !== 'hyperspace' && currentPhase !== 'charging') {
                 const limX = 550, limY = 450;
                 const controlMul = currentSector && currentSector.modifiers ? currentSector.modifiers.controlMul : 1;
-                if (keys['q'] && ship.position.x > -limX) ship.position.x -= 4.2 * factor * controlMul;
-                if (keys['d'] && ship.position.x < limX) ship.position.x += 4.2 * factor * controlMul;
+                if ((keys['q'] || keys['arrowleft']) && ship.position.x > -limX) ship.position.x -= 4.2 * factor * controlMul;
+                if ((keys['d'] || keys['arrowright']) && ship.position.x < limX) ship.position.x += 4.2 * factor * controlMul;
                 if (keys['z'] && ship.position.y < limY) ship.position.y += 4.2 * factor * controlMul;
                 if (keys['s'] && ship.position.y > -limY) ship.position.y -= 4.2 * factor * controlMul;
+                if (dodgeState.active) {
+                    const progress = 1 - Math.max(0, dodgeState.remaining) / dodgeState.duration;
+                    const eased = 1 - Math.pow(1 - Math.min(1, progress), 3);
+                    ship.position.x = THREE.MathUtils.lerp(dodgeState.startX, dodgeState.targetX, eased);
+                    dodgeState.remaining -= delta;
+                    if (dodgeState.remaining <= 0) dodgeState.active = false;
+                }
             }
 
             // Inclinaison visuelle du vaisseau selon les déplacements
-            const targetRoll = (keys['q'] ? -0.22 : 0) + (keys['d'] ? 0.22 : 0);
+            const baseRoll = ((keys['q'] || keys['arrowleft']) ? -0.22 : 0) + ((keys['d'] || keys['arrowright']) ? 0.22 : 0);
             const targetPitch = (keys['z'] ? 0.12 : 0) + (keys['s'] ? -0.12 : 0);
-            ship.rotation.z = THREE.MathUtils.lerp(ship.rotation.z, targetRoll, 0.12);
+            if (dodgeState.active) {
+                const progress = 1 - Math.max(0, dodgeState.remaining) / dodgeState.duration;
+                // Roulade complete (360 deg) durant l'esquive.
+                ship.rotation.z = dodgeState.startRoll + (dodgeState.dir * Math.PI * 2 * progress);
+            } else {
+                ship.rotation.z = baseRoll;
+            }
             ship.rotation.x = THREE.MathUtils.lerp(ship.rotation.x, targetPitch, 0.12);
 
             if (shakeIntensity > 0.1) {
@@ -1397,8 +1920,7 @@
                 ) {
                     g.userData.collected = true;
                     addScore(120);
-                    spawnFriendSupport();
-                    document.getElementById('status-text').innerText = 'Support Wing Online';
+                    applyRandomGateBonus();
                     scene.remove(g);
                     bonusGates.splice(i, 1);
                 }
@@ -1410,8 +1932,8 @@
             for (let i = friendShips.length - 1; i >= 0; i--) {
                 const ally = friendShips[i];
                 const side = ally.userData.side || 1;
-                const targetPos = ship.position.clone().add(new THREE.Vector3(side * 50, 10, -35));
-                ally.position.lerp(targetPos, 0.18);
+                tempVecA.set(ship.position.x + side * 50, ship.position.y + 10, ship.position.z - 35);
+                ally.position.lerp(tempVecA, 0.18);
                 ally.lookAt(ally.position.x, ally.position.y, ally.position.z - 500);
 
                 // Un seul impact détruit un friend (astéroïdes compris)
@@ -1419,7 +1941,7 @@
                 for (let a = 0; a < asteroids.length; a++) {
                     const ast = asteroids[a];
                     if (!ast.visible) continue;
-                    if (ally.position.distanceTo(ast.position) < 70) {
+                    if (ally.position.distanceToSquared(ast.position) < 4900) {
                         const fx = explosionModel.clone();
                         fx.position.copy(ally.position);
                         fx.scale.set(1.0, 1.0, 1.0);
@@ -1436,15 +1958,25 @@
                 const fleetTarget = (bossActive && currentBoss && (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante'))
                     ? getNearestFleetShip(ally.position, currentBoss.userData.type)
                     : null;
-                const target = fleetTarget || (bossActive && currentBoss ? currentBoss : getBestAsteroidForFriend(ally));
+                if (!bossActive) {
+                    if (
+                        elapsedTime >= (ally.userData.nextTargetAt || 0) ||
+                        !ally.userData.target ||
+                        isAsteroidTargetStale(ally, ally.userData.target)
+                    ) {
+                        ally.userData.target = getBestAsteroidForFriend(ally);
+                        ally.userData.nextTargetAt = elapsedTime + 0.12;
+                    }
+                } else {
+                    ally.userData.target = null;
+                }
+                const target = fleetTarget || (bossActive && currentBoss ? currentBoss : ally.userData.target);
 
-                if (target && (elapsedTime - ally.userData.lastShotAt) > 0.1) {
-                    const shotDir = new THREE.Vector3().subVectors(target.position, ally.position).normalize();
-                    const bullet = new THREE.Mesh(
-                        new THREE.SphereGeometry(1.35, 8, 8),
-                        new THREE.MeshBasicMaterial({ color: 0xfff59d, emissive: 0xffe066, emissiveIntensity: 2 })
-                    );
-                    bullet.position.copy(ally.position).add(new THREE.Vector3(0, 0, -15));
+                if (target && (elapsedTime - ally.userData.lastShotAt) > 0.14 && friendBullets.length < 90) {
+                    const shotDir = tempVecA.subVectors(target.position, ally.position).normalize();
+                    const bullet = acquireFriendBullet();
+                    bullet.position.copy(ally.position);
+                    bullet.position.z -= 15;
                     bullet.userData = { velocity: shotDir.clone().multiplyScalar(72), speed: 72, turnRate: 0.26, target: target, damage: 2 };
                     scene.add(bullet);
                     friendBullets.push(bullet);
@@ -1455,17 +1987,18 @@
                 const b = friendBullets[i];
                 // Auto-guidage léger vers l'astéroïde cible
                 if (b.userData.target && b.userData.target.parent) {
-                    const desired = new THREE.Vector3().subVectors(b.userData.target.position, b.position).normalize().multiplyScalar(b.userData.speed);
+                    const desired = tempVecA.subVectors(b.userData.target.position, b.position).normalize().multiplyScalar(b.userData.speed);
                     b.userData.velocity.lerp(desired, b.userData.turnRate);
                 }
-                b.position.add(b.userData.velocity.clone().multiplyScalar(factor));
+                b.position.addScaledVector(b.userData.velocity, factor);
                 let targetAst = (b.userData.target && b.userData.target.parent) ? b.userData.target : null;
                 if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.fleet) {
-                    const fleetAlive = (currentBoss.userData.fleet || []).filter(s => s && s.parent && s.userData && s.userData.hp > 0);
                     let bestShip = null;
                     let bestDist = Infinity;
-                    for (let k = 0; k < fleetAlive.length; k++) {
-                        const shipRef = fleetAlive[k];
+                    const fleet = currentBoss.userData.fleet || [];
+                    for (let k = 0; k < fleet.length; k++) {
+                        const shipRef = fleet[k];
+                        if (!shipRef || !shipRef.parent || !shipRef.userData || shipRef.userData.hp <= 0) continue;
                         const dist = b.position.distanceTo(shipRef.position);
                         if (dist < 95 && dist < bestDist) {
                             bestDist = dist;
@@ -1474,12 +2007,11 @@
                     }
                     if (bestShip) targetAst = bestShip;
                 }
-                if (targetAst && targetAst.parent && b.position.distanceTo(targetAst.position) < 95) {
+                if (targetAst && targetAst.parent && b.position.distanceToSquared(targetAst.position) < 9025) {
                     // Si la cible est un boss (ou croiseur), on applique les dégâts boss.
                     if (targetAst.userData && targetAst.userData.maxHp) {
                         damageBoss(b.userData.damage, targetAst);
-                        scene.remove(b);
-                        friendBullets.splice(i, 1);
+                        releaseFriendBullet(b, i);
                         continue;
                     }
                     const fx = explosionModel.clone();
@@ -1498,11 +2030,9 @@
                         targetAst.userData.hitCooldown = 0;
                         targetAst.userData.friendHp = 3;
                     }
-                    scene.remove(b);
-                    friendBullets.splice(i, 1);
+                    releaseFriendBullet(b, i);
                 } else if (b.position.z < ship.position.z - 6000 || b.position.z > ship.position.z + 300) {
-                    scene.remove(b);
-                    friendBullets.splice(i, 1);
+                    releaseFriendBullet(b, i);
                 }
             }
 
@@ -1516,7 +2046,7 @@
                 } else
                 if (currentBoss.userData.type === 'atlante') {
                     currentBoss.position.x = 0;
-                    currentBoss.position.y = 8;
+                    currentBoss.position.y = -12;
                     currentBoss.position.z = ship.position.z - 1540;
                     if (currentBoss.userData.escorts && currentBoss.userData.escorts.length) {
                         currentBoss.userData.escorts.forEach((escort) => {
@@ -1556,7 +2086,7 @@
                 } else {
                     currentBoss.position.x = 0;
                     currentBoss.position.y = 0;
-                    currentBoss.position.z = ship.position.z - 1600;
+                currentBoss.position.z = ship.position.z - 1600;
                     if (currentBoss.userData.escorts && currentBoss.userData.escorts.length) {
                         currentBoss.userData.escorts.forEach((escort) => {
                             if (escort.userData && escort.userData.destroying && escort.userData.frozenPosition) {
@@ -1570,8 +2100,7 @@
                     }
                 }
 
-                const shipWorld = new THREE.Vector3();
-                ship.getWorldPosition(shipWorld);
+                ship.getWorldPosition(tempVecB);
 
                 if (currentBoss.userData.type === 'wraith') {
                     const shooters = [currentBoss].concat(currentBoss.userData.escorts || []).filter(
@@ -1580,8 +2109,8 @@
                     for (let s = 0; s < shooters.length; s++) {
                         const shooter = shooters[s];
                         if (elapsedTime - shooter.userData.lastShotCenter > (1.2 / enemyFireMul)) {
-                            const spawnPos = shooter.position.clone();
-                            const dir = new THREE.Vector3().subVectors(shipWorld, spawnPos).normalize();
+                            const spawnPos = tempVecC.copy(shooter.position);
+                            const dir = tempVecA.subVectors(tempVecB, spawnPos).normalize();
                             spawnPos.add(dir.clone().multiplyScalar(150));
                             const bolt = new THREE.Mesh(
                                 new THREE.CylinderGeometry(4.2, 4.2, 95, 10),
@@ -1590,14 +2119,16 @@
                             bolt.position.copy(spawnPos);
                             bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
                             bolt.userData = { velocity: dir.clone().multiplyScalar(20), speed: 20, damageScale: 30, isBig: true };
-                            scene.add(bolt); bossProjectiles.push(bolt);
+                    scene.add(bolt); bossProjectiles.push(bolt);
                             shooter.userData.lastShotCenter = elapsedTime;
                         }
 
                         if (elapsedTime - shooter.userData.lastShotWing > (0.26 / enemyFireMul)) {
                             const side = shooter.userData.wingSide || 1;
-                            const wingSpawn = shooter.position.clone().add(new THREE.Vector3(side * 100, -10, 0));
-                            const dirWing = new THREE.Vector3().subVectors(shipWorld, wingSpawn).normalize();
+                            const wingSpawn = tempVecC.copy(shooter.position);
+                            wingSpawn.x += side * 100;
+                            wingSpawn.y -= 10;
+                            const dirWing = tempVecA.subVectors(tempVecB, wingSpawn).normalize();
                             const spread = [0.88, 1.12];
                             for (let j = 0; j < spread.length; j++) {
                                 const wingBolt = new THREE.Mesh(new THREE.SphereGeometry(2.7, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 3 }));
@@ -1635,11 +2166,10 @@
             }
 
             // Maj Projectiles Wraith (trajectoire fixe après tir)
-            const shipWorldPos = new THREE.Vector3();
-            ship.getWorldPosition(shipWorldPos);
+            ship.getWorldPosition(tempVecB);
             for (let i = bossProjectiles.length - 1; i >= 0; i--) {
                 const p = bossProjectiles[i];
-                p.position.add(p.userData.velocity.clone().multiplyScalar(factor));
+                p.position.addScaledVector(p.userData.velocity, factor);
 
                 // Les friends n'ont pas de bouclier : un hit les détruit
                 let hitFriend = false;
@@ -1661,23 +2191,22 @@
                 }
                 if (hitFriend) continue;
 
-                if (p.position.distanceTo(shipWorldPos) < 45) {
+                if (p.position.distanceTo(tempVecB) < 45) {
                     onShieldHit(p.userData.damageScale, p.userData.isBig);
                     scene.remove(p); bossProjectiles.splice(i, 1);
                 } else if (
-                    p.position.z > shipWorldPos.z + 500 ||    // passé devant le joueur
-                    p.position.z < shipWorldPos.z - 2800 ||   // trop loin derrière
-                    p.position.distanceTo(shipWorldPos) > 4200 // trop loin globalement
+                    p.position.z > tempVecB.z + 500 ||    // passé devant le joueur
+                    p.position.z < tempVecB.z - 2800 ||   // trop loin derrière
+                    p.position.distanceTo(tempVecB) > 4200 // trop loin globalement
                 ) {
                     scene.remove(p); bossProjectiles.splice(i, 1);
                 }
             }
 
             // Drones ennemis (Atlante/Kira) : montée+vrille -> lock mi-parcours -> tir droit
+            ship.getWorldPosition(tempVecB);
             for (let i = enemyDrones.length - 1; i >= 0; i--) {
                 const d = enemyDrones[i];
-                const tShip = new THREE.Vector3();
-                ship.getWorldPosition(tShip);
                 const droneAge = elapsedTime - d.userData.bornAt;
 
                 if (!d.userData.locked) {
@@ -1703,7 +2232,7 @@
                         d.userData.locked = true;
                     }
                 } else {
-                    d.position.add(d.userData.velocity.clone().multiplyScalar(factor));
+                    d.position.addScaledVector(d.userData.velocity, factor);
                 }
 
                 // Les drones ennemis détruisent aussi les friends en un coup
@@ -1726,13 +2255,13 @@
                 }
                 if (hitFriend) continue;
 
-                if (d.position.distanceTo(tShip) < 42) {
+                if (d.position.distanceTo(tempVecB) < 42) {
                     onShieldHit(8, false);
                     scene.remove(d);
                     enemyDrones.splice(i, 1);
                     continue;
                 }
-                if ((elapsedTime - d.userData.bornAt) > d.userData.ttl || d.position.z > ship.position.z + 600 || d.position.distanceTo(tShip) > 5200) {
+                if ((elapsedTime - d.userData.bornAt) > d.userData.ttl || d.position.z > ship.position.z + 600 || d.position.distanceTo(tempVecB) > 5200) {
                     scene.remove(d);
                     enemyDrones.splice(i, 1);
                 }
@@ -1745,18 +2274,30 @@
                 const d = drones[i];
                 const droneAge = elapsedTime - d.userData.bornAt;
 
+                // Petit boost initial pour voir clairement le départ depuis le vaisseau.
+                if (droneAge < (d.userData.launchDuration || 0)) {
+                    d.position.addScaledVector(d.userData.launchVelocity, factor);
+                    d.userData.spiralCenter.copy(d.position);
+                    continue;
+                }
+
                 if (!d.userData.locked) {
+                    // Acquisition auto de cible (comme les allies).
                     if (bossActive && currentBoss && (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante')) {
-                        // Re-ciblage avant lock uniquement si cible invalide.
                         if (!d.userData.target || !d.userData.target.parent || (d.userData.target.userData && d.userData.target.userData.hp <= 0)) {
                             const nearest = getNearestFleetShip(d.position, currentBoss.userData.type);
                             if (nearest) d.userData.target = nearest;
                         }
                     } else if (!bossActive) {
-                        const bestAsteroid = getBestAsteroidForFriend(d);
-                        if (bestAsteroid) d.userData.target = bestAsteroid;
+                        if (
+                            elapsedTime >= (d.userData.nextRetargetAt || 0) &&
+                            (!d.userData.target || isAsteroidTargetStale(d, d.userData.target))
+                        ) {
+                            const bestAsteroid = getBestAsteroidForPlayerDrone(d.position);
+                            if (bestAsteroid) d.userData.target = bestAsteroid;
+                            d.userData.nextRetargetAt = elapsedTime + 0.12;
+                        }
                     }
-
                     // Phase 1 : montée + vrille
                     d.userData.spiralAngle += d.userData.spiralSpeed * factor;
                     d.userData.spiralRadius *= 0.986;
@@ -1766,38 +2307,48 @@
                     d.position.y = d.userData.spiralCenter.y + Math.sin(d.userData.spiralAngle) * (d.userData.spiralRadius * 0.6);
                     d.position.z = d.userData.spiralCenter.z;
 
-                    // Phase 2 : lock mi-parcours puis vol droit non-locké.
+                    // Phase 2 : lock sur la cible auto.
                     if (droneAge >= d.userData.lockAt && d.userData.target && d.userData.target.parent) {
-                        const aimPoint = d.userData.target.position.clone();
-                        if (bossActive) {
-                            aimPoint.add(new THREE.Vector3(
-                                (Math.random() - 0.5) * 35,
-                                (Math.random() - 0.5) * 25,
-                                (Math.random() - 0.5) * 25
-                            ));
-                        }
-                        const lockDir = new THREE.Vector3().subVectors(aimPoint, d.position).normalize();
+                        const aimPos = (d.userData.target.userData && d.userData.target.userData.isAsteroid)
+                            ? (getPredictedAsteroidPoint(d.position, d.userData.target, (d.userData.lockSpeed || 80) * 60) || d.userData.target.position)
+                            : d.userData.target.position;
+                        const lockDir = tempVecC.subVectors(aimPos, d.position).normalize();
                         d.userData.velocity = lockDir.multiplyScalar(d.userData.lockSpeed);
                         d.userData.locked = true;
                     }
                 } else {
-                    // En phase asteroides: homing continu pour fiabiliser l'impact en maintien espace.
-                    if (!bossActive && d.userData.target && d.userData.target.parent) {
-                        const toAsteroid = new THREE.Vector3().subVectors(d.userData.target.position, d.position);
-                        if (toAsteroid.lengthSq() > 0.0001) {
-                            d.userData.velocity = toAsteroid.normalize().multiplyScalar(d.userData.lockSpeed);
+                    // Homing continu, similaire au systeme allies.
+                    if (
+                        !bossActive &&
+                        elapsedTime >= (d.userData.nextRetargetAt || 0) &&
+                        (!d.userData.target || isAsteroidTargetStale(d, d.userData.target))
+                    ) {
+                        const nextAsteroid = getBestAsteroidForPlayerDrone(d.position);
+                        if (nextAsteroid) {
+                            d.userData.target = nextAsteroid;
+                        } else {
+                            d.userData.locked = false;
                         }
+                        d.userData.nextRetargetAt = elapsedTime + 0.12;
                     }
-                    d.position.add(d.userData.velocity.clone().multiplyScalar(factor));
+                    if (d.userData.target && d.userData.target.parent) {
+                        const aimPos = (d.userData.target.userData && d.userData.target.userData.isAsteroid)
+                            ? (getPredictedAsteroidPoint(d.position, d.userData.target, (d.userData.lockSpeed || 80) * 60) || d.userData.target.position)
+                            : d.userData.target.position;
+                        const desired = tempVecA.subVectors(aimPos, d.position).normalize().multiplyScalar(d.userData.lockSpeed);
+                        d.userData.velocity.lerp(desired, d.userData.turnRate || 0.26);
+                    }
+                    d.position.addScaledVector(d.userData.velocity, factor);
                 }
 
                 let impactTarget = (d.userData.target && d.userData.target.parent) ? d.userData.target : null;
                 if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.fleet) {
-                    const fleetAlive = (currentBoss.userData.fleet || []).filter(s => s && s.parent && s.userData && s.userData.hp > 0);
                     let bestShip = null;
                     let bestDist = Infinity;
-                    for (let k = 0; k < fleetAlive.length; k++) {
-                        const shipRef = fleetAlive[k];
+                    const fleet = currentBoss.userData.fleet || [];
+                    for (let k = 0; k < fleet.length; k++) {
+                        const shipRef = fleet[k];
+                        if (!shipRef || !shipRef.parent || !shipRef.userData || shipRef.userData.hp <= 0) continue;
                         const dist = d.position.distanceTo(shipRef.position);
                         if (dist < 95 && dist < bestDist) {
                             bestDist = dist;
@@ -1805,25 +2356,41 @@
                         }
                     }
                     if (bestShip) impactTarget = bestShip;
+                } else if (!impactTarget) {
+                    let bestAsteroid = null;
+                    let bestAsteroidDist = Infinity;
+                    for (let a = 0; a < asteroids.length; a++) {
+                        const ast = asteroids[a];
+                        if (!ast || !ast.visible) continue;
+                        const dist = d.position.distanceTo(ast.position);
+                        if (dist < 95 && dist < bestAsteroidDist) {
+                            bestAsteroid = ast;
+                            bestAsteroidDist = dist;
+                        }
+                    }
+                    if (bestAsteroid) impactTarget = bestAsteroid;
                 }
 
-                if (impactTarget && impactTarget.parent && d.position.distanceTo(impactTarget.position) < 95) {
+                if (impactTarget && impactTarget.parent && d.position.distanceToSquared(impactTarget.position) < 9025) {
+                    const hasShield = bossActive && impactTarget.userData && (impactTarget.userData.shield || 0) > 0;
+                    if (!hasShield) {
                     const explo = (bossActive ? hitEffectModel.clone() : explosionModel.clone());
-                    explo.position.copy(d.position);
-                    // Impact plus visible sur Kira
-                    if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'kira') {
-                        spawnGuaranteedBossHitFx(impactTarget, 16);
-                        explo.scale.set(14, 14, 14);
-                    } else if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'atlante') {
-                        spawnGuaranteedBossHitFx(impactTarget, 12);
-                        explo.scale.set(6, 6, 6);
-                    } else if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'wraith') {
-                        explo.scale.set(5.2, 5.2, 5.2);
-                    } else {
-                        explo.scale.set(1.2, 1.2, 1.2);
+                        explo.position.copy(d.position);
+                        // Impact plus visible sur Kira
+                        if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'kira') {
+                            spawnGuaranteedBossHitFx(impactTarget, 16);
+                            explo.scale.set(14, 14, 14);
+                        } else if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'atlante') {
+                            spawnGuaranteedBossHitFx(impactTarget, 12);
+                            explo.scale.set(6, 6, 6);
+                        } else if (bossActive && currentBoss && currentBoss.userData && currentBoss.userData.type === 'wraith') {
+                            explo.scale.set(5.2, 5.2, 5.2);
+                        } else {
+                            explo.scale.set(1.2, 1.2, 1.2);
+                        }
+                        scene.add(explo);
+                        setTimeout(() => scene.remove(explo), 400);
                     }
-                    scene.add(explo);
-                    setTimeout(() => scene.remove(explo), 400);
                     if (bossActive) {
                         // Dégâts strictement appliqués à la cible verrouillée (pas de fallback sur un autre croiseur).
                         damageBoss(6, impactTarget);
@@ -1835,24 +2402,20 @@
                         impactTarget.userData.velocity = null;
                         impactTarget.userData.hitCooldown = 0;
                         impactTarget.userData.friendHp = 3;
+                        if (impactTarget.userData.inferredVelocity) impactTarget.userData.inferredVelocity.set(0, 0, 0);
+                        if (impactTarget.userData.prevPos) impactTarget.userData.prevPos.copy(impactTarget.position);
 
                         if ((d.userData.pierceRemaining || 1) > 1) {
                             d.userData.pierceRemaining -= 1;
-                            const nextAsteroid = getBestAsteroidForFriend(d);
-                            if (nextAsteroid) {
-                                d.userData.target = nextAsteroid;
-                                d.userData.locked = true;
-                                const straight = new THREE.Vector3().subVectors(nextAsteroid.position, d.position).normalize();
-                                d.userData.velocity = straight.multiplyScalar(d.userData.lockSpeed);
-                                continue;
-                            }
                         }
                     }
                     releasePlayerDroneVisual(d); drones.splice(i, 1);
                     continue;
                 }
 
-                if (droneAge > d.userData.ttl || d.position.z < ship.position.z - 6500 || d.position.distanceTo(ship.position) > 7600) {
+                const maxRange = d.userData.maxRange || 0;
+                const exceededRange = maxRange > 0 && d.userData.launchOrigin && d.position.distanceTo(d.userData.launchOrigin) > maxRange;
+                if (exceededRange || droneAge > d.userData.ttl || d.position.z < ship.position.z - 6500 || d.position.distanceTo(ship.position) > 7600) {
                     releasePlayerDroneVisual(d);
                     drones.splice(i, 1);
                 }
@@ -1862,18 +2425,22 @@
             // 7. ASTÉROÏDES (Gestion & Collisions Rayon 80)
             // ==========================================
             asteroids.forEach(a => {
-                if (currentPhase === 'boss_fight' || currentPhase === 'hyperspace') { 
-                    a.visible = false; 
-                    return; 
+                if (currentPhase === 'boss_fight' || currentPhase === 'hyperspace') {
+                    a.visible = false;
+                    return;
                 }
                 a.visible = true;
 
                 // Appliquer la vélocité de repousse si l'astéroïde a été touché
                 if (a.userData.velocity) {
-                    a.position.add(a.userData.velocity.clone().multiplyScalar(factor));
+                    a.position.addScaledVector(a.userData.velocity, factor);
                     a.userData.velocity.multiplyScalar(0.92);
                     if (a.userData.velocity.lengthSq() < 1) a.userData.velocity = null;
                 }
+                if (!a.userData.prevPos) a.userData.prevPos = a.position.clone();
+                if (!a.userData.inferredVelocity) a.userData.inferredVelocity = new THREE.Vector3();
+                a.userData.inferredVelocity.subVectors(a.position, a.userData.prevPos).multiplyScalar(1 / Math.max(delta, 0.001));
+                a.userData.prevPos.copy(a.position);
 
                 // Recyclage des astéroïdes
                 if (a.position.z > ship.position.z + 300) {
@@ -1882,6 +2449,8 @@
                     a.userData.velocity = null;
                     a.userData.hitCooldown = 0;
                     a.userData.friendHp = 3;
+                    a.userData.inferredVelocity.set(0, 0, 0);
+                    a.userData.prevPos.copy(a.position);
                 }
 
                 // --- DÉTECTION DE COLLISION (Rayon 80) ---
@@ -1907,31 +2476,13 @@
             setTimeout(() => {
                 hyperspaceTunnel.visible = false;
                 applySector(pickNextSector());
-                const wraithCountByScore = Math.min(10, 1 + Math.floor(score / 900));
-                const kiraCountByScore = Math.min(5, 1 + Math.floor(score / 1800));
-                const atlanteCountByScore = Math.min(2, 1 + Math.floor(score / 3200));
+                const wraithCountByScore = bossFleetCaps.wraith;
+                const kiraCountByScore = bossFleetCaps.kira;
+                const atlanteCountByScore = bossFleetCaps.atlante;
 
-                // Pondération progressive + anti-répétition (évite trop de Wraith d'affilée).
-                let wraithWeight = 0.45, atlanteWeight = 0.30;
-                if (score >= 2000 && score < 5000) {
-                    wraithWeight = 0.40; atlanteWeight = 0.30;
-                } else if (score >= 5000) {
-                    wraithWeight = 0.35; atlanteWeight = 0.25;
-                }
-                let kiraWeight = Math.max(0.1, 1 - (wraithWeight + atlanteWeight));
-                const weights = { wraith: wraithWeight, atlante: atlanteWeight, kira: kiraWeight };
-                if (lastBossType && weights[lastBossType] !== undefined) {
-                    weights[lastBossType] *= 0.35;
-                }
-                const total = weights.wraith + weights.atlante + weights.kira;
-                const roll = Math.random() * total;
-                let bossType = 'kira';
-                if (roll < weights.wraith) {
-                    bossType = 'wraith';
-                } else if (roll < (weights.wraith + weights.atlante)) {
-                    bossType = 'atlante';
-                }
-                lastBossType = bossType;
+                // Tirage uniformément aléatoire entre les 3 boss.
+                const bossTypes = ['wraith', 'atlante', 'kira'];
+                const bossType = bossTypes[Math.floor(Math.random() * bossTypes.length)];
                 currentBoss = (
                     bossType === 'atlante'
                         ? atlanteBossModel
@@ -1941,7 +2492,7 @@
                     // Atlante : plus grand, recentré à l'écran, avec légère inclinaison
                     applyAtlanteMetalMaterial(currentBoss);
                     currentBoss.scale.set(6.5, 6.5, 6.5);
-                    currentBoss.position.set(0, 8, ship.position.z - 1540);
+                    currentBoss.position.set(0, -12, ship.position.z - 1540);
                     currentBoss.rotation.x = -0.08;
                     currentBoss.rotation.z = 0.07;
                     currentBoss.rotation.y = -0.2;
@@ -2139,7 +2690,7 @@
                         shipRef.userData.maxShield = shipRef.userData.maxShield || 110;
                     });
                 } else {
-                    currentBoss.scale.set(4, 4, 4);
+                currentBoss.scale.set(4, 4, 4);
                     currentBoss.position.set(0, 0, ship.position.z - 1600);
                     const wraithCount = wraithCountByScore;
                     const escorts = [];
@@ -2211,18 +2762,15 @@
             if(!ship || gameOver || currentPhase === 'hyperspace' || currentPhase === 'charging') return false;
             if (drones.length >= 6) return false;
             let target = null;
-            if (bossActive) {
-                if (currentBoss && currentBoss.userData && (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante')) {
-                    target = getNearestFleetShip(ship.position, currentBoss.userData.type) || currentBoss;
-                } else {
-                    target = currentBoss;
-                }
-            } else {
-                target = getBestAsteroidForFriend(ship);
+            if (bossActive && currentBoss && (currentBoss.userData.type === 'wraith' || currentBoss.userData.type === 'kira' || currentBoss.userData.type === 'atlante')) {
+                target = getNearestFleetShip(ship.position, currentBoss.userData.type) || currentBoss;
+            } else if (!bossActive) {
+                target = getBestAsteroidForPlayerDrone(ship.position);
             }
-            if(!target) return false;
+            if (!target) return false;
             const drone = acquirePlayerDroneVisual();
-            drone.position.copy(ship.position);
+            ship.getWorldPosition(tempVecB);
+            drone.position.copy(tempVecB);
             drone.position.x += (droneSide * 10);
             drone.userData = {
                 target: target,
@@ -2234,8 +2782,16 @@
                 velocity: new THREE.Vector3(0, 0, 0),
                 pierceRemaining: 2,
                 isPlayerDroneVisual: true,
+                hasDroneGlow: true,
+                mouseGuide: false,
+                launchDuration: 0.18,
+                launchVelocity: new THREE.Vector3(droneSide * 9, 0, -125),
+                maxRange: bossActive ? 4200 : 5600,
+                turnRate: 0.26,
+                nextRetargetAt: 0,
                 // Phase 1 : montée + vrille
                 spiralCenter: drone.position.clone(),
+                launchOrigin: drone.position.clone(),
                 spiralRadius: 20 + Math.random() * 16,
                 spiralAngle: Math.random() * Math.PI * 2,
                 spiralSpeed: 0.26 + Math.random() * 0.24,
@@ -2259,7 +2815,7 @@
             bossProjectiles.length = 0;
             enemyDrones.forEach(d => scene.remove(d));
             enemyDrones.length = 0;
-            
+
             document.getElementById('boss-hud').classList.replace('opacity-100', 'opacity-0');
 
             const data = currentBoss.userData.data;
@@ -2285,12 +2841,12 @@
             document.getElementById('exp-company').innerText = data.company;
             document.getElementById('exp-desc').innerText = data.desc;
             v.classList.replace('opacity-0', 'opacity-100');
-            
-            setTimeout(() => { 
-                v.classList.replace('opacity-100', 'opacity-0'); 
-                currentPhase = 'cruise'; 
+
+            setTimeout(() => {
+                v.classList.replace('opacity-100', 'opacity-0');
+                currentPhase = 'cruise';
                 resetAsteroidField();
-                experienceIndex++; 
+                experienceIndex++;
             }, 8000);
         }
     })();

@@ -5,6 +5,7 @@ app_name = 'users'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('profil-public/', views.public_profile_view, name='public_profile'),
     path('documents/', views.documents_page, name='documents'),
     path('api/hello/', views.api_hello, name='api_hello'),
     path('profile/', views.profile_view, name='profile'),
