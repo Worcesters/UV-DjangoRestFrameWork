@@ -244,6 +244,8 @@ def document_list(request):
 @login_required
 def document_create(request):
     """Formulaire d'ajout d'un document .md avec titre, description, contenu."""
+    if not request.user.is_staff:
+        return redirect("users:documents")
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
         description = request.POST.get("description", "").strip()

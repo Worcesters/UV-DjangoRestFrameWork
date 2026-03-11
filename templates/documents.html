@@ -6,8 +6,8 @@
 <div class="max-w-6xl mx-auto">
     <section class="mb-12">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Documents Markdown</h1>
-        <p class="text-gray-600">Parcourez les documents ou ajoutez les vôtres.</p>
-        {% if user.is_authenticated %}
+        <p class="text-gray-600">Parcourez les documents. L'ajout est reserve aux administrateurs.</p>
+        {% if user.is_staff %}
         <a href="{% url 'users:document_create' %}"
            class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
