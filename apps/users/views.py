@@ -81,24 +81,25 @@ def public_profile_view(request):
 
     projects = [
         {
-            "name": "Sites événementiels - Loxam & CCE Aix-en-Provence",
-            "description": "Développement de divers sites événementiels, dont des réalisations pour Loxam et pour le 5e mondial CCE à Aix-en-Provence.",
-            "tags": ["Web", "Événementiel", "Front-end"],
+            "name": "Planification - Conception",
+            "description": "Estimation de temps de développement, conception de l'architecture et planification des tâches.",
+            "bg_type": "planification",
+            "bg_snippet": "@startuml\nactor Client\nClient -> API: Demande\nAPI -> DB: Lire/écrire\nAPI --> Client: Réponse\n@enduml",
+            "tags": ["Planification", "Conception (Plantuml, BPMN process)", "Estimation"],
         },
         {
-            "name": "Edvance - Création from scratch",
-            "description": "Conception et développement d'une solution complète depuis zéro, de la structure technique à la mise en production.",
-            "tags": ["From Scratch", "Architecture", "Delivery"],
+            "name": "Développement",
+            "description": "Développement de l'application, implémentation des fonctionnalités et tests.",
+            "bg_type": "development",
+            "bg_snippet": "class GameFacade:\n    def boot(self):\n        return services.start()\n\nif tests.ok:\n    deploy()",
+            "tags": ["Développement", "Implémentation", "Tests"],
         },
         {
-            "name": "Orange - TMA & outils internes",
-            "description": "Maintenance applicative (TMA), développement d'outils internes et amélioration continue des processus métiers.",
-            "tags": ["TMA", "Outils internes", "Industrialisation"],
-        },
-        {
-            "name": "Pilotage & support opérationnel",
-            "description": "Gestion de campagnes emailing, help desk et missions de chef de projet en coordination avec les équipes métiers.",
-            "tags": ["Emailing", "Help Desk", "Chef de projet"],
+            "name": "Documentation",
+            "description": "Création de documents Markdown, plantuml, etc. pour la documentation de l'application.",
+            "bg_type": "documentation",
+            "bg_snippet": "# Runbook\n- architecture\n- incidents\n- onboarding\n\n```bash\npython manage.py check\n```",
+            "tags": ["Documentation", "Markdown", "Plantuml", "BPMN process", "Création"],
         },
     ]
 

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="56" viewBox="0 0 220 56" role="img" aria-label="Logo Loxam stylise">
+  <rect width="220" height="56" rx="12" fill="#0B172A"/>
+  <rect x="8" y="8" width="204" height="40" rx="10" fill="#111827" stroke="#1D4ED8" stroke-width="2"/>
+  <text x="110" y="36" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#F8FAFC" letter-spacing="2">LOXAM</text>
+</svg>

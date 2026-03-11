@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}CodeGenerator{% endblock %}
+
+{% block content %}
+<section class="max-w-6xl mx-auto">
+    <div class="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-8 shadow-sm">
+        <h1 class="text-3xl md:text-4xl font-black text-slate-900">CodeGenerator</h1>
+        <p class="mt-2 text-slate-600">
+            Genere du code a partir d'un diagramme PlantUML selon le langage selectionne.
+        </p>
+    </div>
+
+    <form method="post" class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% csrf_token %}
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ form.language.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">Langage cible</label>
+                    {{ form.language }}
+                </div>
+                <div>
+                    <label for="{{ form.plantuml.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">PlantUML source</label>
+                    {{ form.plantuml }}
+                </div>
+            </div>
+            <button
+                type="submit"
+                class="mt-4 inline-flex items-center px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shadow-[0_10px_24px_rgba(5,150,105,0.25)] hover:bg-emerald-700 transition-colors"
+            >
+                Generer le code
+            </button>
+
+            {% if error_message %}
+            <div class="mt-4 p-3 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-sm font-medium">
+                {{ error_message }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="flex items-center justify-between gap-3 mb-2">
+                <label for="id_generated_code" class="block text-sm font-bold text-slate-700">Code genere</label>
+                <button
+                    id="copyGeneratedCodeBtn"
+                    type="button"
+                    class="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-all duration-200"
+                >
+                    Copier
+                </button>
+            </div>
+            <textarea
+                id="id_generated_code"
+                rows="26"
+                readonly
+                class="w-full rounded-xl border border-slate-300 p-3 font-mono text-sm text-slate-800 bg-slate-50"
+            >{{ generated_code }}</textarea>
+        </div>
+    </form>
+
+    <script>
+        (function () {
+            const copyBtn = document.getElementById("copyGeneratedCodeBtn");
+            const output = document.getElementById("id_generated_code");
+            if (!copyBtn || !output) {
+                return;
+            }
+
+            const defaultLabel = copyBtn.textContent;
+            const resetState = function () {
+                copyBtn.textContent = defaultLabel;
+                copyBtn.classList.remove("bg-emerald-100", "text-emerald-700", "scale-105");
+                copyBtn.classList.add("bg-slate-100", "text-slate-700");
+            };
+
+            copyBtn.addEventListener("click", async function () {
+                try {
+                    await navigator.clipboard.writeText(output.value || "");
+                    copyBtn.textContent = "Copie !";
+                    copyBtn.classList.remove("bg-slate-100", "text-slate-700");
+                    copyBtn.classList.add("bg-emerald-100", "text-emerald-700", "scale-105");
+                    setTimeout(resetState, 900);
+                } catch (error) {
+                    console.warn("Clipboard copy failed:", error);
+                    copyBtn.textContent = "Erreur";
+                    copyBtn.classList.remove("bg-slate-100", "text-slate-700", "scale-105");
+                    copyBtn.classList.add("bg-rose-100", "text-rose-700");
+                    setTimeout(resetState, 900);
+                }
+            });
+        })();
+    </script>
+</section>
+{% endblock %}

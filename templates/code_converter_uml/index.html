@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}CodeConverterUml{% endblock %}
+
+{% block content %}
+<section class="max-w-6xl mx-auto">
+    <div class="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 to-fuchsia-50 p-8 shadow-sm">
+        <h1 class="text-3xl md:text-4xl font-black text-slate-900">CodeConverterUml</h1>
+        <p class="mt-2 text-slate-600">
+            Convertis rapidement ton code en squelette PlantUML (classes + fonctions détectées).
+        </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% csrf_token %}
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ form.language.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">Langage</label>
+                    {{ form.language }}
+                </div>
+                <div class="rounded-2xl border border-indigo-200 bg-gradient-to-br from-white via-indigo-50/50 to-violet-50/35 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="block text-sm font-bold text-slate-700">File / Folder mode recursif</p>
+                        <span class="rounded-full border border-indigo-200 bg-indigo-100 px-2.5 py-1 text-[10px] font-black tracking-[0.08em] uppercase text-indigo-700">
+                            mode recursif
+                        </span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Selectionne les documents a analyser directement depuis la fenetre native de Windows.
+                    </p>
+                    <div class="mt-3 rounded-xl border border-dashed border-indigo-300 bg-white/80 p-3">
+                        {{ form.sources }}
+                    </div>
+                </div>
+                <div class="rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-white via-fuchsia-50/45 to-violet-50/35 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <label for="{{ form.archive.id_for_label }}" class="block text-sm font-bold text-slate-700">ZIP upload</label>
+                        <span class="rounded-full border border-fuchsia-200 bg-fuchsia-100 px-2.5 py-1 text-[10px] font-black tracking-[0.08em] uppercase text-fuchsia-700">
+                            upload recursif
+                        </span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Le contenu du zip est extrait puis analyse en profondeur (dossiers/sous-dossiers/fichiers).
+                    </p>
+                    <div class="mt-3 rounded-xl border border-dashed border-fuchsia-300 bg-white/80 p-3">
+                        {{ form.archive }}
+                    </div>
+                </div>
+            </div>
+            <button
+                type="submit"
+                class="mt-4 inline-flex items-center px-5 py-2.5 rounded-xl bg-violet-600 text-white font-bold shadow-[0_10px_24px_rgba(124,58,237,0.25)] hover:bg-violet-700 transition-colors"
+            >
+                Convertir vers UML
+            </button>
+
+            {% if error_message %}
+            <div class="mt-4 p-3 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-sm font-medium">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            {% if parsed_files %}
+            <div class="mt-4">
+                <p class="text-xs font-black tracking-[0.12em] uppercase text-violet-700">
+                    Fichiers analysés ({{ detected_language }})
+                </p>
+                <ul class="mt-2 text-xs text-slate-600 space-y-1 max-h-40 overflow-auto">
+                    {% for file in parsed_files %}
+                    <li class="font-mono">{{ file }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="flex items-center justify-between gap-3 mb-2">
+                <label for="id_uml_output" class="block text-sm font-bold text-slate-700">PlantUML généré</label>
+                <button
+                    id="copyUmlBtn"
+                    type="button"
+                    class="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-all duration-200"
+                >
+                    Copier
+                </button>
+            </div>
+            <textarea
+                id="id_uml_output"
+                rows="24"
+                readonly
+                class="w-full rounded-xl border border-slate-300 p-3 font-mono text-sm text-slate-800 bg-slate-50"
+            >{{ uml_code }}</textarea>
+
+            {% if preview_url %}
+            <div class="mt-4">
+                <div class="mb-2 flex items-center justify-between gap-3">
+                    <p class="text-xs font-black tracking-[0.12em] uppercase text-slate-600">Preview</p>
+                    <button
+                        id="openPreviewModal"
+                        type="button"
+                        class="text-xs px-3 py-1.5 rounded-lg bg-violet-100 hover:bg-violet-200 text-violet-700 font-semibold transition-colors"
+                    >
+                        Agrandir
+                    </button>
+                </div>
+                <img
+                    id="umlPreviewImage"
+                    src="{{ preview_url }}"
+                    alt="Aperçu UML"
+                    class="w-full rounded-xl border border-slate-200 bg-white cursor-zoom-in"
+                >
+            </div>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if preview_url %}
+    <div id="previewModal" class="fixed inset-0 z-50 hidden">
+        <div id="previewBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-[1px]"></div>
+        <div class="relative z-10 flex min-h-screen items-center justify-center p-4 md:p-8">
+            <div class="w-full max-w-[96vw] max-h-[92vh] rounded-2xl border border-violet-200 bg-slate-950 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-violet-300/30 px-4 py-3">
+                    <p class="text-xs font-black tracking-[0.12em] uppercase text-violet-200">Preview UML agrandi</p>
+                    <button
+                        id="closePreviewModal"
+                        type="button"
+                        class="text-xs px-3 py-1.5 rounded-lg bg-violet-500/20 hover:bg-violet-500/35 text-violet-100 font-semibold transition-colors"
+                    >
+                        Fermer
+                    </button>
+                </div>
+                <div class="max-h-[calc(92vh-56px)] overflow-auto p-3">
+                    <img src="{{ preview_url }}" alt="Aperçu UML agrandi" class="mx-auto h-auto min-w-[1200px] max-w-none rounded-xl border border-violet-200/30 bg-white">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const modal = document.getElementById("previewModal");
+            const openBtn = document.getElementById("openPreviewModal");
+            const closeBtn = document.getElementById("closePreviewModal");
+            const backdrop = document.getElementById("previewBackdrop");
+            const previewImage = document.getElementById("umlPreviewImage");
+
+            if (!modal || !openBtn || !closeBtn || !backdrop || !previewImage) {
+                return;
+            }
+
+            const openModal = function () {
+                modal.classList.remove("hidden");
+                document.body.classList.add("overflow-hidden");
+            };
+
+            const closeModal = function () {
+                modal.classList.add("hidden");
+                document.body.classList.remove("overflow-hidden");
+            };
+
+            openBtn.addEventListener("click", openModal);
+            previewImage.addEventListener("click", openModal);
+            closeBtn.addEventListener("click", closeModal);
+            backdrop.addEventListener("click", closeModal);
+
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+    {% endif %}
+
+    <script>
+        (function () {
+            const copyBtn = document.getElementById("copyUmlBtn");
+            const output = document.getElementById("id_uml_output");
+
+            if (!copyBtn || !output) {
+                return;
+            }
+
+            const defaultLabel = copyBtn.textContent;
+            let copyResetTimer = null;
+
+            const resetCopyState = function () {
+                copyBtn.textContent = defaultLabel;
+                copyBtn.classList.remove("bg-emerald-100", "text-emerald-700", "scale-105");
+                copyBtn.classList.add("bg-slate-100", "text-slate-700");
+            };
+
+            copyBtn.addEventListener("click", async function () {
+                try {
+                    await navigator.clipboard.writeText(output.value);
+                } catch (error) {
+                    console.warn("Clipboard copy failed:", error);
+                    copyBtn.textContent = "Erreur";
+                    copyBtn.classList.remove("bg-slate-100", "text-slate-700", "scale-105");
+                    copyBtn.classList.add("bg-rose-100", "text-rose-700");
+                    setTimeout(resetCopyState, 900);
+                    return;
+                }
+
+                copyBtn.textContent = "Copie !";
+                copyBtn.classList.remove("bg-slate-100", "text-slate-700");
+                copyBtn.classList.add("bg-emerald-100", "text-emerald-700", "scale-105");
+
+                if (copyResetTimer) {
+                    clearTimeout(copyResetTimer);
+                }
+                copyResetTimer = setTimeout(resetCopyState, 900);
+            });
+        })();
+    </script>
+</section>
+{% endblock %}

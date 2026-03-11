@@ -1,0 +1,75 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Code to PlantUML</title>
+    <link rel="stylesheet" href="{% static 'application/styles.css' %}">
+</head>
+<body>
+<main class="container">
+    <section class="panel">
+        <header class="panel-header">
+            <h1>Analyse de code vers PlantUML</h1>
+            <p>Glisse tes fichiers ou un dossier zip, puis lance la generation.</p>
+        </header>
+
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="field">
+                    <label for="{{ form.language.id_for_label }}">Langage</label>
+                    {{ form.language }}
+                </div>
+            </div>
+
+            <div class="drop-zone" id="drop-zone">
+                <input id="{{ form.files.id_for_label }}" name="{{ form.files.html_name }}" type="file" multiple accept=".py,.php,.java">
+                <div class="drop-content">
+                    <strong>Depose les fichiers ici</strong>
+                    <span>ou clique pour selectionner des fichiers .py, .php, .java</span>
+                </div>
+            </div>
+            <div id="file-list" class="hint">Aucun fichier selectionne.</div>
+
+            <div class="field">
+                <label for="{{ form.archive.id_for_label }}">Dossier compresse (.zip)</label>
+                {{ form.archive }}
+            </div>
+
+            {% if form.errors %}
+                <div class="alert error">{{ form.non_field_errors|striptags }}</div>
+            {% endif %}
+            {% if error_message %}
+                <div class="alert error">{{ error_message }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn-primary">Generer PlantUML</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Code PlantUML genere</h2>
+        {% if parsed_files %}
+            <p class="hint">
+                {{ parsed_files|length }} fichier(s) analyse(s) - langage: {{ detected_language }}
+            </p>
+        {% endif %}
+        <textarea readonly class="uml-output" spellcheck="false">{{ uml_code }}</textarea>
+    </section>
+
+    <section class="panel">
+        <h2>Preview</h2>
+        {% if preview_url %}
+            <div class="preview-wrapper">
+                <img src="{{ preview_url }}" alt="Apercu PlantUML genere">
+            </div>
+        {% else %}
+            <p class="hint">Le preview apparaitra ici apres generation.</p>
+        {% endif %}
+    </section>
+</main>
+<script src="{% static 'application/app.js' %}"></script>
+</body>
+</html>
