@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profil Public - CV Interactif{% endblock %}
+
+{% block content %}
+<section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white p-10 md:p-14">
+    <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_#60a5fa,_transparent_45%)]"></div>
+    <div class="relative z-10">
+        <p class="inline-flex px-4 py-1 rounded-full text-xs font-black tracking-[0.16em] uppercase bg-white/10 border border-white/20">
+            Profil public
+        </p>
+        <h1 class="mt-5 text-4xl md:text-6xl font-black leading-tight">
+            CV interactif <span class="text-cyan-300">nouvelle génération</span>
+        </h1>
+        <p class="mt-4 max-w-3xl text-blue-100/90 text-lg">
+            Développement fullstack, UX et expériences web immersives.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% url 'experience:explore' %}" class="px-7 py-3 rounded-2xl bg-cyan-400 text-slate-900 font-extrabold hover:bg-cyan-300 transition-colors">
+                Jouer la démo 3D
+            </a>
+            <a href="{% url 'users:documents' %}" class="px-7 py-3 rounded-2xl border border-white/30 text-white font-bold hover:bg-white/10 transition-colors">
+                Voir les documents
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <article class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+        <h2 class="text-2xl font-black text-slate-900">Timeline</h2>
+        <div class="relative mt-8">
+            <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 rounded-full bg-gradient-to-b from-violet-200 via-fuchsia-200 to-purple-200"></div>
+            {% for item in timeline %}
+            <div class="relative grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-10 py-4 {% if forloop.counter > 4 %}timeline-extra hidden{% endif %}">
+                {% if forloop.counter0|divisibleby:2 %}
+                <div class="relative md:text-right">
+                    <div class="inline-block max-w-full rounded-3xl border border-violet-100 bg-violet-50/80 px-5 py-4 shadow-sm">
+                        <h3 class="text-base md:text-lg font-extrabold text-slate-900">{{ item.title }}</h3>
+                        <p class="text-sm font-semibold text-violet-700">{{ item.company }}</p>
+                        <p class="mt-1 text-sm text-slate-600 leading-relaxed">{{ item.summary }}</p>
+                    </div>
+                </div>
+                <div></div>
+                {% else %}
+                <div></div>
+                <div class="relative">
+                    <div class="inline-block max-w-full rounded-3xl border border-fuchsia-100 bg-fuchsia-50/75 px-5 py-4 shadow-sm">
+                        <h3 class="text-base md:text-lg font-extrabold text-slate-900">{{ item.title }}</h3>
+                        <p class="text-sm font-semibold text-fuchsia-700">{{ item.company }}</p>
+                        <p class="mt-1 text-sm text-slate-600 leading-relaxed">{{ item.summary }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if forloop.counter0|divisibleby:2 %}
+                    <span class="absolute left-0 md:left-[calc(50%+0.9rem)] top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg text-xs font-black tracking-[0.12em] uppercase bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)] z-10">
+                    {{ item.period }}
+                </span>
+                {% else %}
+                <span class="absolute left-0 md:left-[calc(50%-0.9rem)] top-1/2 -translate-y-1/2 md:-translate-x-full px-3 py-1 rounded-lg text-xs font-black tracking-[0.12em] uppercase bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)] z-10">
+                    {{ item.period }}
+                </span>
+                {% endif %}
+
+                <span class="absolute left-[calc(100%-2.3rem)] md:left-1/2 top-1/2 -translate-y-1/2 md:-translate-x-1/2 w-9 h-9 rounded-full border-4 border-white bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-md flex items-center justify-center text-white text-xs font-black z-20">
+                    ✦
+                </span>
+            </div>
+            {% empty %}
+            <p class="text-sm text-slate-500">Timeline en cours de préparation.</p>
+            {% endfor %}
+
+        </div>
+
+        {% if timeline|length > 4 %}
+        <div class="mt-6 flex justify-center">
+            <button
+                id="timeline-toggle-btn"
+                type="button"
+                class="px-5 py-2.5 rounded-xl border border-violet-200 bg-violet-50 text-violet-700 text-sm font-bold hover:bg-violet-100 transition-colors"
+            >
+                Voir tout
+            </button>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+        <h2 class="text-2xl font-black text-slate-900">Stack</h2>
+        <div class="mt-6 space-y-6">
+            {% for section in stack_sections %}
+            <div>
+                <p class="text-xs font-black tracking-[0.12em] uppercase text-slate-500">{{ section.label }}</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                    {% for tech in section.items %}
+                    <span class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ tech }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="mt-8 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+        <h2 class="text-2xl font-black text-slate-900">Projets</h2>
+        <a href="{% url 'experience:explore' %}" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">
+            Lancer la démo 3D →
+        </a>
+    </div>
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+        {% for project in projects %}
+        <article class="relative overflow-hidden rounded-2xl border border-slate-100 bg-slate-50/80 p-5 hover:shadow-md transition-shadow">
+            <div class="absolute inset-0 pointer-events-none">
+                {% if project.bg_type == "planification" %}
+                <div class="absolute inset-0 bg-gradient-to-br from-violet-200/35 via-fuchsia-200/20 to-transparent"></div>
+                <pre class="absolute -right-8 top-4 text-[10px] leading-4 font-mono text-violet-700/35 rotate-[-8deg] whitespace-pre">{{ project.bg_snippet }}</pre>
+                {% elif project.bg_type == "development" %}
+                <div class="absolute inset-0 bg-gradient-to-br from-violet-300/30 via-purple-200/20 to-transparent"></div>
+                <pre class="absolute -right-6 top-3 text-[10px] leading-4 font-mono text-purple-700/35 whitespace-pre">{{ project.bg_snippet }}</pre>
+                {% elif project.bg_type == "documentation" %}
+                <div class="absolute inset-0 bg-gradient-to-br from-violet-100/40 via-purple-100/25 to-transparent"></div>
+                <pre class="absolute -right-8 top-4 text-[10px] leading-4 font-mono text-violet-800/35 rotate-[-6deg] whitespace-pre">{{ project.bg_snippet }}</pre>
+                {% endif %}
+            </div>
+
+            <div class="relative z-10">
+            <h3 class="text-lg font-extrabold text-slate-900">{{ project.name }}</h3>
+            <p class="mt-2 text-sm text-slate-700 leading-relaxed">{{ project.description }}</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+                {% for tag in project.tags %}
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-black tracking-wide uppercase {% if project.bg_type == 'planification' %}bg-violet-100 text-violet-700{% elif project.bg_type == 'development' %}bg-fuchsia-100 text-fuchsia-700{% else %}bg-purple-100 text-purple-700{% endif %}">
+                    {{ tag }}
+                </span>
+                {% endfor %}
+            </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+{% if timeline|length > 4 %}
+<script>
+(() => {
+    const toggleBtn = document.getElementById('timeline-toggle-btn');
+    if (!toggleBtn) return;
+    const extraRows = Array.from(document.querySelectorAll('.timeline-extra'));
+    let expanded = false;
+
+    toggleBtn.addEventListener('click', () => {
+        expanded = !expanded;
+        extraRows.forEach((row) => row.classList.toggle('hidden', !expanded));
+        toggleBtn.innerText = expanded ? 'Réduire' : 'Voir tout';
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

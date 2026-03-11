@@ -22,4 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.users.urls')), # On branche l'app users sur la racine
     path('world/', include('apps.experience.urls')), # On branche le nouveau module world sur /world/
+    path('uml/', include('apps.code_converter_uml.urls')),
+    path('codegenerator/', include('apps.codegenerator.urls')),
 ]

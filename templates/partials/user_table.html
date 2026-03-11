@@ -2,14 +2,14 @@
     <table class="w-full text-sm text-left text-gray-500">
         <thead class="text-xs text-gray-700 uppercase bg-gray-100">
             <tr>
-                <th class="px-6 py-3">Email</th>
+                <th class="px-6 py-3">Pseudo</th>
                 <th class="px-6 py-3">Statut</th>
             </tr>
         </thead>
         <tbody>
-            {% for user in users %}
+            {% for user in users_display %}
             <tr class="bg-white border-b hover:bg-gray-50">
-                <td class="px-6 py-4 font-medium text-gray-900">{{ user.email }}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">{{ user.pseudo }}</td>
                 <td class="px-6 py-4">
                     {% if user.is_staff %}
                         <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Admin</span>

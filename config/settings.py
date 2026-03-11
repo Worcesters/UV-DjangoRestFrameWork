@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "apps.users",
     "apps.experience",
+    "apps.code_converter_uml",
+    "apps.codegenerator",
 ]
 
 MIDDLEWARE = [
