@@ -21,11 +21,17 @@ class AttributeParser(Parser):
             registry (Registry): The registry to add attributes to.
         """
 
-        # Define the pattern to find JAVA attributes
-        attribute_pattern = re.compile(r"""(?P<visibility>public|protected|private)(?!\s+class)\s*"""
-                                       r"""\b(?P<mutability>(static|void|synchronized|native|abstract|transient|volatile|final|\w+)\s+)*"""
-                                       r"""(?P<type>\w+)\s+"""
-                                       r"""(?P<attribute_name>\w+)(?!\s*\()""")
+        # Match uniquement les champs Java (terminés par ';').
+        # Evite de capturer les signatures de méthodes (ex: myMethod(...))
+        # qui causaient des faux attributs tronqués.
+        attribute_pattern = re.compile(
+            r"""^\s*(?P<visibility>public|protected|private)\s+"""
+            r"""(?P<mutability>(?:(?:static|synchronized|native|abstract|transient|volatile|final)\s+)*)"""
+            r"""(?P<type>[a-zA-Z_$][a-zA-Z\d_$]*(?:\s*<[^>;]+>)?(?:\[\])?)\s+"""
+            r"""(?P<attribute_name>[a-zA-Z_$][a-zA-Z\d_$]*)"""
+            r"""(?:\s*=\s*[^;]+)?\s*;\s*$""",
+            re.VERBOSE,
+        )
 
         # Find all matches in the line
         for match in re.finditer(attribute_pattern, line):

@@ -11,6 +11,7 @@ INPUT_CLASS = (
 class PipelineConfigForm(forms.Form):
     DEPLOY_CHOICES = (
         ("git", "Git (GitHub Actions)"),
+        ("gitlab", "GitLab CI"),
         ("jenkins", "Jenkins"),
     )
 

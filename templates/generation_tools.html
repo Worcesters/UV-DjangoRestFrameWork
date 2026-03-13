@@ -51,7 +51,7 @@
         <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 bg-slate-50">
                 <p class="text-sm font-bold text-slate-700">{{ active_tool_name }}</p>
-                <p class="text-xs text-slate-500">Utilisable directement ici</p>
+                {% comment %} <p class="text-xs text-slate-500">Utilisable directement ici</p> {% endcomment %}
             </div>
             <div id="toolFramesContainer" class="h-[78vh] w-full overflow-auto bg-white">
                 {% if active_tool == "uml" %}

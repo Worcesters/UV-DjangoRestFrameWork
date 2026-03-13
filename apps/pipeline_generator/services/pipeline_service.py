@@ -206,6 +206,83 @@ def _generate_git_pipeline(request: PipelineRequest) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _generate_gitlab_pipeline(request: PipelineRequest) -> str:
+    """Génère un fichier .gitlab-ci.yml pour GitLab CI/CD."""
+    lines = [
+        "stages:",
+        "  - build",
+        "  - deploy",
+        "",
+    ]
+    if request.env_variables:
+        lines.append("variables:")
+        for key, value in request.env_variables.items():
+            lines.append(f"  {key}: \"{value.replace(chr(34), chr(92) + chr(34))}\"")
+        lines.append("")
+
+    build_image = "alpine:latest" if request.command_shell in ("bash", "sh") else "mcr.microsoft.com/powershell:latest"
+    lines.extend([
+        "build:",
+        "  stage: build",
+        f"  image: {build_image}",
+        "  rules:",
+        f"    - if: $CI_COMMIT_BRANCH == \"{request.deploy_branch}\"",
+        "  script:",
+        "    - echo \"Project: " + request.project_name.replace('"', '\\"') + "\"",
+    ])
+    if request.repo_url:
+        lines.append(f"    - echo \"Repository: {request.repo_url}\"")
+    if request.pre_deploy_commands:
+        for cmd in request.pre_deploy_commands:
+            lines.append(f"    - {cmd}")
+    if request.use_containers:
+        for container in request.containers:
+            lines.append(f"    - docker build -t {container.docker_image} -f {container.dockerfile_path} .")
+            run_cmd = f"docker run -d --name {container.service_name}"
+            if container.ports:
+                run_cmd += f" -p {container.ports}"
+            if container.environment:
+                for pair in [e.strip() for e in container.environment.split(",") if e.strip()]:
+                    run_cmd += f" -e {pair}"
+            run_cmd += f" {container.docker_image}"
+            lines.append(f"    - {run_cmd}")
+    lines.append("")
+
+    deploy_cmds = request.deploy_commands or ["echo 'Deploy step a personnaliser'"]
+    if request.use_ssh:
+        ssh_script = " ; ".join(deploy_cmds + request.post_deploy_commands)
+        lines.extend([
+            "deploy:",
+            "  stage: deploy",
+            "  image: alpine/bash",
+            f"  rules:",
+            f"    - if: $CI_COMMIT_BRANCH == \"{request.deploy_branch}\"",
+            "  before_script:",
+            "    - apk add --no-cache openssh-client",
+            "    - eval $(ssh-agent -s)",
+            f"    - echo \"${{{request.ssh_key_variable}}}\" | tr -d '\\\\r' | ssh-add -",
+            "  script:",
+            f"    - ssh -o StrictHostKeyChecking=no -p {request.ssh_port} {request.ssh_user}@{request.ssh_host} \"{ssh_script.replace(chr(34), chr(92) + chr(34))}\"",
+        ])
+    else:
+        deploy_image = "alpine:latest" if request.command_shell in ("bash", "sh") else "mcr.microsoft.com/powershell:latest"
+        lines.extend([
+            "deploy:",
+            "  stage: deploy",
+            f"  image: {deploy_image}",
+            "  rules:",
+            f"    - if: $CI_COMMIT_BRANCH == \"{request.deploy_branch}\"",
+            "  script:",
+        ])
+        for cmd in deploy_cmds:
+            lines.append(f"    - {cmd}")
+        if request.post_deploy_commands:
+            for cmd in request.post_deploy_commands:
+                lines.append(f"    - {cmd}")
+
+    return "\n".join(lines) + "\n"
+
+
 def _generate_jenkins_pipeline(request: PipelineRequest) -> str:
     jenkins_exec = "powershell" if request.command_shell == "powershell" else "sh"
 
@@ -303,6 +380,8 @@ def generate_pipeline_config(data: dict[str, Any]) -> str:
 
     if request.deploy_target == "git":
         return _generate_git_pipeline(request)
+    if request.deploy_target == "gitlab":
+        return _generate_gitlab_pipeline(request)
     if request.deploy_target == "jenkins":
         return _generate_jenkins_pipeline(request)
 

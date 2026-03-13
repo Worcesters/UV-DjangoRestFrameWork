@@ -149,7 +149,7 @@ def generation_tools_view(request):
         },
         {
             "id": "codegen",
-            "name": "CodeGenerator",
+            "name": "UML to Code",
             "description": "Genere du code depuis PlantUML.",
             "url": "/codegenerator/",
             "bg_type": "codegen",
@@ -158,7 +158,7 @@ def generation_tools_view(request):
         },
         {
             "id": "pipeline",
-            "name": "PipelineGenerator",
+            "name": "Pipeline YML",
             "description": "Genere une pipeline Git/Jenkins avec options avancees.",
             "url": "/pipeline-generator/",
             "bg_type": "pipeline",
