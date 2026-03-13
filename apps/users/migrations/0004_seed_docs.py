@@ -27,6 +27,18 @@ GUIDE_CONTENT = dedent(
     uv sync
     ```
 
+    ## Etape 1.1 : Quand relancer `uv sync`
+
+    Relance `uv sync` dans ces cas :
+
+    - apres un `git pull` qui modifie `uv.lock`
+    - apres modification manuelle de `pyproject.toml`
+    - apres suppression/recreation du dossier `.venv`
+
+    ```bash
+    uv sync
+    ```
+
     ## Etape 2 : Structure Django
 
     ```bash

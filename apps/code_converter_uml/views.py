@@ -1,9 +1,12 @@
 from django.shortcuts import render
+from django.urls import reverse
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from .forms import UmlUploadForm
 from .services import UmlGenerationError, build_plantuml_preview_url, generate_uml_from_upload
 
 
+@xframe_options_sameorigin
 def index(request):
     context = {
         "form": UmlUploadForm(),
@@ -12,6 +15,7 @@ def index(request):
         "parsed_files": [],
         "detected_language": "",
         "error_message": "",
+        "form_action": reverse("code_converter_uml:index"),
     }
 
     if request.method == "POST":
@@ -38,4 +42,4 @@ def index(request):
             except Exception as exc:  # pragma: no cover
                 context["error_message"] = f"Erreur interne lors de l'analyse: {exc}"
 
-    return render(request, "code_converter_uml/index.html", context)
+    return render(request, "code_converter_uml/page.html", context)

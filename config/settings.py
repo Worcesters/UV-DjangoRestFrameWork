@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.experience",
     "apps.code_converter_uml",
     "apps.codegenerator",
+    "apps.pipeline_generator",
 ]
 
 MIDDLEWARE = [

@@ -29,6 +29,7 @@ class ClassDef:
     name: str
     parent: str | None = None
     is_abstract: bool = False
+    is_interface: bool = False
     interfaces: List[str] = field(default_factory=list)
     attributes: List[AttributeDef] = field(default_factory=list)
     methods: List[MethodDef] = field(default_factory=list)

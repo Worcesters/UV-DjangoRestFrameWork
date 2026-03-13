@@ -24,4 +24,5 @@ urlpatterns = [
     path('world/', include('apps.experience.urls')), # On branche le nouveau module world sur /world/
     path('uml/', include('apps.code_converter_uml.urls')),
     path('codegenerator/', include('apps.codegenerator.urls')),
+    path('pipeline-generator/', include('apps.pipeline_generator.urls')),
 ]

@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.decorators import login_required
@@ -118,6 +119,145 @@ def documents_page(request):
     """Page liste des documents Markdown."""
     documents = MarkdownDoc.objects.all().order_by('-created_at')
     return render(request, "documents.html", {"documents": documents})
+
+
+def generation_tools_view(request):
+    from apps.code_converter_uml.forms import UmlUploadForm
+    from apps.code_converter_uml.services import (
+        UmlGenerationError,
+        build_plantuml_preview_url,
+        generate_uml_from_upload,
+    )
+    from apps.codegenerator.forms import CodeGeneratorForm
+    from apps.codegenerator.services import CodeGenerationError, generate_code_from_plantuml
+    from apps.pipeline_generator.forms import PipelineConfigForm
+    from apps.pipeline_generator.services import (
+        PipelineGenerationError,
+        generate_pipeline_config,
+    )
+    import json
+
+    tools = [
+        {
+            "id": "uml",
+            "name": "Code to UML",
+            "description": "Convertit du code en PlantUML.",
+            "url": "/uml/",
+            "bg_type": "uml",
+            "bg_snippet": "@startuml\nclass Foo {\n  +name: string\n  +run(): void\n}\n@enduml",
+            "tags": ["PlantUML", "Code", "Diagrammes"],
+        },
+        {
+            "id": "codegen",
+            "name": "CodeGenerator",
+            "description": "Genere du code depuis PlantUML.",
+            "url": "/codegenerator/",
+            "bg_type": "codegen",
+            "bg_snippet": "class Foo(ABC):\n    def run(self) -> None:\n        ...",
+            "tags": ["Python", "PHP", "Java", "Génération"],
+        },
+        {
+            "id": "pipeline",
+            "name": "PipelineGenerator",
+            "description": "Genere une pipeline Git/Jenkins avec options avancees.",
+            "url": "/pipeline-generator/",
+            "bg_type": "pipeline",
+            "bg_snippet": "build → test → deploy\n  ↓        ↓       ↓\n clone   lint   release",
+            "tags": ["Git", "Jenkins", "CI/CD"],
+        },
+    ]
+    active_tool = request.GET.get("tool") or request.POST.get("tool") or "uml"
+    active_tool_name = next((t["name"] for t in tools if t["id"] == active_tool), tools[0]["name"])
+    form_action = reverse("users:generation_tools")
+
+    # Contexte par défaut pour chaque outil
+    ctx = {
+        "tools": tools,
+        "active_tool": active_tool,
+        "active_tool_name": active_tool_name,
+        "form_action": form_action,
+        "uml_form": UmlUploadForm(),
+        "uml_code": "",
+        "preview_url": "",
+        "parsed_files": [],
+        "detected_language": "",
+        "uml_error_message": "",
+        "codegen_form": CodeGeneratorForm(),
+        "codegen_generated_code": "",
+        "codegen_error_message": "",
+        "pipeline_form": PipelineConfigForm(),
+        "pipeline_generated_config": "",
+        "pipeline_error_message": "",
+        "pipeline_containers_initial_json": "[]",
+    }
+
+    if request.method == "POST":
+        if active_tool == "uml":
+            form = UmlUploadForm(request.POST, request.FILES)
+            ctx["uml_form"] = form
+            if form.is_valid():
+                try:
+                    uml_code, parsed_files, detected_language = generate_uml_from_upload(
+                        uploaded_sources=request.FILES.getlist("sources"),
+                        uploaded_archive=form.cleaned_data.get("archive"),
+                        selected_language=form.cleaned_data["language"],
+                    )
+                    ctx["uml_code"] = uml_code
+                    ctx["preview_url"] = build_plantuml_preview_url(uml_code)
+                    ctx["parsed_files"] = parsed_files
+                    ctx["detected_language"] = detected_language
+                except UmlGenerationError as exc:
+                    ctx["uml_error_message"] = str(exc)
+                except Exception as exc:
+                    ctx["uml_error_message"] = f"Erreur interne lors de l'analyse: {exc}"
+        elif active_tool == "codegen":
+            form = CodeGeneratorForm(request.POST)
+            ctx["codegen_form"] = form
+            if form.is_valid():
+                try:
+                    ctx["codegen_generated_code"] = generate_code_from_plantuml(
+                        plantuml_text=form.cleaned_data["plantuml"],
+                        language=form.cleaned_data["language"],
+                    )
+                except CodeGenerationError as exc:
+                    ctx["codegen_error_message"] = str(exc)
+                except Exception as exc:
+                    ctx["codegen_error_message"] = f"Erreur interne de generation: {exc}"
+        elif active_tool == "pipeline":
+            form = PipelineConfigForm(request.POST)
+            ctx["pipeline_form"] = form
+            ctx["pipeline_containers_initial_json"] = form.data.get("containers_json", "[]")
+            if form.is_valid():
+                data = {
+                    "project_name": form.cleaned_data["project_name"],
+                    "deploy_target": form.cleaned_data["deploy_target"],
+                    "use_containers": form.cleaned_data["use_containers"],
+                    "command_shell": form.cleaned_data["command_shell"],
+                    "use_ssh": form.cleaned_data["use_ssh"],
+                    "repo_url": form.cleaned_data.get("repo_url", ""),
+                    "deploy_branch": form.cleaned_data.get("deploy_branch", "main"),
+                    "env_variables": form.cleaned_data.get("env_variables", ""),
+                    "ssh_host": form.cleaned_data.get("ssh_host", ""),
+                    "ssh_user": form.cleaned_data.get("ssh_user", ""),
+                    "ssh_port": form.cleaned_data.get("ssh_port", "22"),
+                    "ssh_key_variable": form.cleaned_data.get("ssh_key_variable", "SSH_PRIVATE_KEY"),
+                    "pre_deploy_commands": form.cleaned_data.get("pre_deploy_commands", ""),
+                    "deploy_commands": form.cleaned_data.get("deploy_commands", ""),
+                    "post_deploy_commands": form.cleaned_data.get("post_deploy_commands", ""),
+                    "containers_json": form.cleaned_data.get("containers_json", "[]"),
+                }
+                try:
+                    ctx["pipeline_generated_config"] = generate_pipeline_config(data)
+                except PipelineGenerationError as exc:
+                    ctx["pipeline_error_message"] = str(exc)
+                except Exception as exc:
+                    ctx["pipeline_error_message"] = f"Erreur interne de generation: {exc}"
+            try:
+                json.loads(ctx["pipeline_containers_initial_json"])
+            except json.JSONDecodeError:
+                ctx["pipeline_containers_initial_json"] = "[]"
+
+    return render(request, "generation_tools.html", ctx)
 
 @api_view(['GET'])
 def api_hello(request):
