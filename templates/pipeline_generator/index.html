@@ -5,9 +5,8 @@
         </p>
     </div>
 
-    <form id="pipelineForm" method="post" action="{{ form_action }}" class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <form id="pipelineForm" method="post" class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         {% csrf_token %}
-        <input type="hidden" name="tool" value="pipeline">
 
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="space-y-4">

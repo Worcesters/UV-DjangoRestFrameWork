@@ -6,7 +6,7 @@
 <section class="max-w-7xl mx-auto">
     <div class="relative overflow-hidden rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 via-fuchsia-50 to-cyan-50 p-8 shadow-sm">
         <div class="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-fuchsia-200/40 blur-3xl"></div>
-        <div class="absolute -left-16 -bottom-16 h-56 w-56 rounded-full bg-cyan-200/40 blur-3xl"></div>
+        <div class="absolute -left-16 -bottom-16 h-56 w-56 rounded-full  blur-3xl"></div>
         <h1 class="relative text-3xl md:text-4xl font-black text-slate-900">Outils de génération</h1>
         <p class="relative mt-2 text-slate-600">
             Un espace unique pour convertir du code, générer du code et préparer tes pipelines.
@@ -23,15 +23,25 @@
             >
                 <article class="relative overflow-hidden rounded-2xl border bg-slate-50/80 p-4 min-h-0 hover:shadow-md transition-shadow {% if active_tool == tool.id %}border-violet-400 shadow-sm ring-1 ring-violet-200{% else %}border-slate-100 hover:border-violet-200{% endif %}">
                     <div class="absolute inset-0 pointer-events-none">
-                        {% if tool.bg_type == "uml" %}
-                        <div class="absolute inset-0 bg-gradient-to-br from-violet-200/35 via-fuchsia-200/20 to-transparent"></div>
-                        <pre class="absolute -right-6 top-2 text-[9px] leading-3.5 font-mono text-violet-700/35 rotate-[-8deg] whitespace-pre">{{ tool.bg_snippet }}</pre>
+                        {% if tool.bg_type == "uml" and tool.id != "uml_preview" %}
+                            <div class="absolute inset-0 bg-gradient-to-br from-violet-200/40 via-fuchsia-100/30 to-amber-200/30"></div>
+                            <pre class="absolute -right-0 top-2 text-[9px] leading-3.5 font-mono text-violet-800/30 rotate-[-8deg] whitespace-pre">{{ tool.bg_snippet }}</pre>
+
                         {% elif tool.bg_type == "codegen" %}
-                        <div class="absolute inset-0 bg-gradient-to-br from-emerald-200/35 via-teal-200/20 to-transparent"></div>
-                        <pre class="absolute -right-4 top-2 text-[9px] leading-3.5 font-mono text-emerald-700/40 whitespace-pre">{{ tool.bg_snippet }}</pre>
+                            <div class="absolute inset-0 bg-gradient-to-br from-emerald-200/40 via-teal-100/30 to-rose-200/30"></div>
+                            <pre class="absolute -right-0 top-2 text-[9px] leading-3.5 font-mono text-emerald-800/40 rotate-[-8deg] whitespace-pre">{{ tool.bg_snippet }}</pre>
+
+                        {% elif tool.id == "uml_preview" %}
+                            <div class="absolute inset-0 bg-gradient-to-br from-orange-200/45 via-amber-100/30 to-cyan-200/35"></div>
+                            <pre class="absolute -right-12 top-2 text-[9px] leading-3.5 font-mono text-orange-800/40 rotate-[-6deg] whitespace-pre">{{ tool.bg_snippet }}</pre>
+
                         {% elif tool.bg_type == "pipeline" %}
-                        <div class="absolute inset-0 bg-gradient-to-br from-cyan-200/35 via-sky-200/20 to-transparent"></div>
-                        <pre class="absolute -right-4 top-3 text-[9px] leading-3.5 font-mono text-cyan-700/40 whitespace-pre">{{ tool.bg_snippet }}</pre>
+                            <div class="absolute inset-0 bg-gradient-to-br from-amber-200/45 via-orange-100/30 to-indigo-200/30"></div>
+                            <pre class="absolute -right-0 top-3 text-[9px] leading-3.5 font-mono text-amber-800/40 rotate-[-8deg] whitespace-pre">{{ tool.bg_snippet }}</pre>
+
+                        {% elif tool.bg_type == "bpmn" %}
+                            <div class="absolute inset-0 bg-gradient-to-br from-teal-200/45 via-sky-100/30 to-orange-200/30"></div>
+                            <pre class="absolute -right-0 top-2 text-[9px] leading-3.5 font-mono text-teal-800/40 rotate-[-8deg] whitespace-pre">{{ tool.bg_snippet }}</pre>
                         {% endif %}
                     </div>
                     <div class="relative z-10">
@@ -56,10 +66,14 @@
             <div id="toolFramesContainer" class="h-[78vh] w-full overflow-auto bg-white">
                 {% if active_tool == "uml" %}
                 {% include "code_converter_uml/index.html" with form=uml_form uml_code=uml_code preview_url=preview_url parsed_files=parsed_files detected_language=detected_language error_message=uml_error_message form_action=form_action %}
+                {% elif active_tool == "uml_preview" %}
+                {% include "uml_previewer/index.html" with uml_text=uml_code preview_url=preview_url error_message=uml_error_message form_action=form_action %}
                 {% elif active_tool == "codegen" %}
                 {% include "codegenerator/index.html" with form=codegen_form generated_code=codegen_generated_code error_message=codegen_error_message form_action=form_action %}
                 {% elif active_tool == "pipeline" %}
                 {% include "pipeline_generator/index.html" with form=pipeline_form generated_config=pipeline_generated_config error_message=pipeline_error_message containers_initial_json=pipeline_containers_initial_json form_action=form_action %}
+                {% elif active_tool == "bpmn" %}
+                {% include "code_to_bpmn/index.html" with form=bpmn_form bpmn_xml=bpmn_xml parsed_files=bpmn_parsed_files detected_language=bpmn_detected_language error_message=bpmn_error_message preview_url=bpmn_preview_url form_action=form_action %}
                 {% endif %}
             </div>
         </section>

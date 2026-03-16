@@ -9,6 +9,7 @@ urlpatterns = [
     path('outils-generation/', views.generation_tools_view, name='generation_tools'),
     path('documents/', views.documents_page, name='documents'),
     path('api/hello/', views.api_hello, name='api_hello'),
+    path('api/plantuml-preview-url/', views.api_plantuml_preview_url, name='api_plantuml_preview_url'),
     path('profile/', views.profile_view, name='profile'),
     path('list-users/', views.user_list_partial, name='user_list'),
     path('signup/', views.signup_view, name='signup'),
