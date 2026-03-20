@@ -82,6 +82,15 @@
         return Array.from(s).sort();
     }
 
+    /** Lit l’orientation du lien (PlantUML : -up-, -down-, -left-, -right-). */
+    function getBuilderLinkDirection() {
+        var s = document.getElementById("umlBuilderLinkDirection");
+        if (!s || !s.value) return "";
+        var v = String(s.value).toLowerCase();
+        if (["up", "down", "left", "right"].indexOf(v) === -1) return "";
+        return v;
+    }
+
     /**
      * Remplit un &lt;select&gt;. exclude : nom à omettre, ou tableau de noms (ex. l’autre liste).
      */
@@ -347,6 +356,188 @@
                 parent.appendChild(el);
             }
 
+            /**
+             * Bloc « direction d'affichage » : boussole (valeur stockée dans champ caché).
+             */
+            function appendLinkDirectionSelect(parent) {
+                var box = document.createElement("div");
+                box.className =
+                    "mt-4 rounded-xl border border-violet-200/90 bg-gradient-to-br from-violet-50/90 to-fuchsia-50/40 p-3 shadow-sm";
+
+                var title = document.createElement("p");
+                title.className =
+                    "text-xs font-black uppercase tracking-[0.1em] text-violet-800 mb-1";
+                title.textContent = "Direction d'affichage du lien";
+                box.appendChild(title);
+
+                var sub = document.createElement("p");
+                sub.className = "text-[10px] text-slate-600 mb-3 leading-snug";
+                sub.innerHTML =
+                    "Orientation <strong>précise</strong> du segment entre les deux éléments (PlantUML : <code class=\"text-[9px] bg-white/70 px-0.5 rounded\">-up-</code>, <code class=\"text-[9px] bg-white/70 px-0.5 rounded\">-right-</code>, etc.). Laisse <strong>Auto</strong> pour le placement automatique.";
+                box.appendChild(sub);
+
+                var hiddenDir = document.createElement("input");
+                hiddenDir.type = "hidden";
+                hiddenDir.id = "umlBuilderLinkDirection";
+                hiddenDir.value = "";
+                hiddenDir.setAttribute("aria-hidden", "true");
+                box.appendChild(hiddenDir);
+
+                var compass = document.createElement("div");
+                compass.className = "flex flex-col items-center gap-1.5";
+                var btnBase =
+                    "uml-dir-btn min-w-[5.5rem] px-2 py-2 text-[11px] font-bold rounded-xl border transition-all shadow-sm ";
+                var btnIdle =
+                    "border-slate-200 bg-white text-slate-700 hover:bg-violet-100 hover:border-violet-200";
+                var btnActive =
+                    "ring-2 ring-violet-500 ring-offset-1 border-violet-400 bg-violet-100 text-violet-900";
+
+                function makeDirButton(label, dirValue) {
+                    var b = document.createElement("button");
+                    b.type = "button";
+                    b.setAttribute("data-uml-dir", dirValue);
+                    b.setAttribute("aria-pressed", dirValue === "" ? "true" : "false");
+                    b.className = btnBase + (dirValue === "" ? btnActive : btnIdle);
+                    b.textContent = label;
+                    return b;
+                }
+
+                var rowUp = document.createElement("div");
+                rowUp.appendChild(makeDirButton("↑ Haut", "up"));
+                compass.appendChild(rowUp);
+
+                var rowMid = document.createElement("div");
+                rowMid.className = "flex flex-wrap items-center justify-center gap-1.5";
+                rowMid.appendChild(makeDirButton("← Gauche", "left"));
+                rowMid.appendChild(makeDirButton("◎ Auto", ""));
+                rowMid.appendChild(makeDirButton("Droite →", "right"));
+                compass.appendChild(rowMid);
+
+                var rowDown = document.createElement("div");
+                rowDown.appendChild(makeDirButton("↓ Bas", "down"));
+                compass.appendChild(rowDown);
+
+                box.appendChild(compass);
+
+                var allDirBtns = compass.querySelectorAll(".uml-dir-btn");
+
+                function syncUiFromValue(val) {
+                    hiddenDir.value = val;
+                    allDirBtns.forEach(function (btn) {
+                        var v = btn.getAttribute("data-uml-dir");
+                        if (v === null) v = "";
+                        var on = v === val;
+                        btn.setAttribute("aria-pressed", on ? "true" : "false");
+                        btn.className = btnBase + (on ? btnActive : btnIdle);
+                    });
+                }
+
+                allDirBtns.forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        var v = btn.getAttribute("data-uml-dir");
+                        if (v === null) v = "";
+                        syncUiFromValue(v);
+                    });
+                });
+
+                syncUiFromValue("");
+
+                parent.appendChild(box);
+            }
+
+            /**
+             * Position de la note (note left|right|top|bottom of X) — boussole + champ caché.
+             */
+            function appendNotePositionCompass(parent) {
+                var box = document.createElement("div");
+                box.className =
+                    "mt-4 rounded-xl border border-teal-200/90 bg-gradient-to-br from-teal-50/90 to-cyan-50/40 p-3 shadow-sm";
+
+                var title = document.createElement("p");
+                title.className =
+                    "text-xs font-black uppercase tracking-[0.1em] text-teal-800 mb-1";
+                title.textContent = "Position de la note";
+                box.appendChild(title);
+
+                var sub = document.createElement("p");
+                sub.className = "text-[10px] text-slate-600 mb-3 leading-snug";
+                sub.innerHTML =
+                    "Comme pour les liens : <strong>Auto</strong> laisse PlantUML choisir le placement (<code class=\"text-[9px] bg-white/70 px-0.5 rounded\">note of MaClasse</code>), sinon une position précise (<code class=\"text-[9px] bg-white/70 px-0.5 rounded\">note right of …</code>).";
+                box.appendChild(sub);
+
+                var hiddenSide = document.createElement("input");
+                hiddenSide.type = "hidden";
+                hiddenSide.id = "umlBuilderNoteSide";
+                hiddenSide.value = "";
+                hiddenSide.setAttribute("aria-hidden", "true");
+                box.appendChild(hiddenSide);
+
+                var compass = document.createElement("div");
+                compass.className = "flex flex-col items-center gap-1.5";
+                var btnBase =
+                    "uml-note-side-btn min-w-[5.5rem] px-2 py-2 text-[11px] font-bold rounded-xl border transition-all shadow-sm ";
+                var btnIdle =
+                    "border-slate-200 bg-white text-slate-700 hover:bg-teal-100 hover:border-teal-200";
+                var btnActive =
+                    "ring-2 ring-teal-500 ring-offset-1 border-teal-400 bg-teal-100 text-teal-900";
+
+                function makeSideButton(label, sideValue) {
+                    var b = document.createElement("button");
+                    b.type = "button";
+                    b.setAttribute("data-note-side", sideValue);
+                    b.setAttribute(
+                        "aria-pressed",
+                        sideValue === "" ? "true" : "false"
+                    );
+                    b.className =
+                        btnBase + (sideValue === "" ? btnActive : btnIdle);
+                    b.textContent = label;
+                    return b;
+                }
+
+                var rowUp = document.createElement("div");
+                rowUp.appendChild(makeSideButton("↑ Haut", "top"));
+                compass.appendChild(rowUp);
+
+                var rowMid = document.createElement("div");
+                rowMid.className = "flex flex-wrap items-center justify-center gap-1.5";
+                rowMid.appendChild(makeSideButton("← Gauche", "left"));
+                rowMid.appendChild(makeSideButton("◎ Auto", ""));
+                rowMid.appendChild(makeSideButton("Droite →", "right"));
+                compass.appendChild(rowMid);
+
+                var rowDown = document.createElement("div");
+                rowDown.appendChild(makeSideButton("↓ Bas", "bottom"));
+                compass.appendChild(rowDown);
+
+                box.appendChild(compass);
+
+                var allBtns = compass.querySelectorAll(".uml-note-side-btn");
+
+                function syncNoteSide(val) {
+                    hiddenSide.value = val;
+                    allBtns.forEach(function (btn) {
+                        var v = btn.getAttribute("data-note-side");
+                        if (v === null) v = "";
+                        var on = v === val;
+                        btn.setAttribute("aria-pressed", on ? "true" : "false");
+                        btn.className = btnBase + (on ? btnActive : btnIdle);
+                    });
+                }
+
+                allBtns.forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        var v = btn.getAttribute("data-note-side");
+                        if (v === null) v = "";
+                        syncNoteSide(v);
+                    });
+                });
+
+                syncNoteSide("");
+
+                parent.appendChild(box);
+            }
+
             if (action === "extends") {
                 builderTitle.textContent = "Héritage (extends)";
                 if (classes.length < 2) {
@@ -390,6 +581,7 @@
                     row2.appendChild(selParent);
                     builderBody.appendChild(row2);
                     wireMutuallyExclusiveSelects(selChild, selParent, classes);
+                    appendLinkDirectionSelect(builderBody);
                 }
             } else if (action === "implements") {
                 builderTitle.textContent = "Implémentation (interface)";
@@ -430,6 +622,7 @@
                     r2.appendChild(selC);
                     builderBody.appendChild(r2);
                     wireImplementsSelects(selI, interfaces, selC, classes);
+                    appendLinkDirectionSelect(builderBody);
                 }
             } else if (
                 action === "rel_aggregate" ||
@@ -518,6 +711,7 @@
                     builderBody.appendChild(rt);
 
                     wireMutuallyExclusiveSelects(selFrom, selTo, typeNames);
+                    appendLinkDirectionSelect(builderBody);
 
                     var rl = document.createElement("div");
                     rl.className = "mt-4";
@@ -635,22 +829,7 @@
                     nt.appendChild(selT);
                     builderBody.appendChild(nt);
 
-                    var ns = document.createElement("div");
-                    ns.className = "mt-4";
-                    ns.innerHTML =
-                        '<label class="' + labelClass + '">Position</label>';
-                    var selS = document.createElement("select");
-                    selS.id = "umlBuilderNoteSide";
-                    selS.className = selectClass;
-                    ["left", "right", "top", "bottom"].forEach(function (s) {
-                        var o = document.createElement("option");
-                        o.value = s;
-                        o.textContent = s;
-                        selS.appendChild(o);
-                    });
-                    selS.value = "right";
-                    ns.appendChild(selS);
-                    builderBody.appendChild(ns);
+                    appendNotePositionCompass(builderBody);
 
                     var nt2 = document.createElement("div");
                     nt2.className = "mt-4";
@@ -691,7 +870,12 @@
                     window.alert("Enfant et parent doivent être différents.");
                     return;
                 }
-                updateUml(insertBeforeEnduml(uml, c.value + " --|> " + p.value));
+                var dirE = getBuilderLinkDirection();
+                var lineE =
+                    dirE !== ""
+                        ? c.value + " -" + dirE + "-|> " + p.value
+                        : c.value + " --|> " + p.value;
+                updateUml(insertBeforeEnduml(uml, lineE));
             } else if (builderAction === "implements") {
                 var ii = document.getElementById("umlBuilderImplementsInterface");
                 var cc = document.getElementById("umlBuilderImplementsClass");
@@ -699,7 +883,12 @@
                     window.alert("Choisis une interface et une classe.");
                     return;
                 }
-                updateUml(insertBeforeEnduml(uml, ii.value + " <|.. " + cc.value));
+                var dirI = getBuilderLinkDirection();
+                var lineI =
+                    dirI !== ""
+                        ? ii.value + " <|-" + dirI + ".. " + cc.value
+                        : ii.value + " <|.. " + cc.value;
+                updateUml(insertBeforeEnduml(uml, lineI));
             } else if (
                 builderAction === "rel_aggregate" ||
                 builderAction === "rel_compose" ||
@@ -718,17 +907,26 @@
                     return;
                 }
                 var lbl = lb && lb.value ? lb.value.trim() : "";
-                var arrow =
+                var dirR = getBuilderLinkDirection();
+                var mid =
                     builderAction === "rel_aggregate"
-                        ? " o-- "
+                        ? dirR !== ""
+                          ? " -" + dirR + "-o "
+                          : " o-- "
                         : builderAction === "rel_compose"
-                          ? " *-- "
+                          ? dirR !== ""
+                            ? " -" + dirR + "-*-- "
+                            : " *-- "
                           : builderAction === "rel_depend"
-                            ? " ..> "
-                            : " --> ";
-                var line = rf.value + arrow + rt.value;
-                if (lbl) line += " : " + lbl;
-                updateUml(insertBeforeEnduml(uml, line));
+                            ? dirR !== ""
+                              ? " -" + dirR + "..> "
+                              : " ..> "
+                            : dirR !== ""
+                              ? " -" + dirR + "-> "
+                              : " --> ";
+                var lineR = rf.value + mid + rt.value;
+                if (lbl) lineR += " : " + lbl;
+                updateUml(insertBeforeEnduml(uml, lineR));
             } else if (builderAction === "add_class") {
                 var n = document.getElementById("umlBuilderNameInput");
                 var name = (n && n.value ? n.value : "").trim();
@@ -786,16 +984,26 @@
                     window.alert("Choisis un élément cible.");
                     return;
                 }
-                var side = s && s.value ? s.value : "right";
+                var sideRaw = s && s.value != null ? String(s.value).trim().toLowerCase() : "";
+                var side =
+                    ["left", "right", "top", "bottom"].indexOf(sideRaw) !== -1
+                        ? sideRaw
+                        : "";
                 var txt = (tx && tx.value ? tx.value : "").trim() || "Note";
                 var block =
-                    "note " +
-                    side +
-                    " of " +
-                    t.value +
-                    "\n  " +
-                    txt +
-                    "\nend note";
+                    side === ""
+                        ? "note of " +
+                          t.value +
+                          "\n  " +
+                          txt +
+                          "\nend note"
+                        : "note " +
+                          side +
+                          " of " +
+                          t.value +
+                          "\n  " +
+                          txt +
+                          "\nend note";
                 updateUml(insertBeforeEnduml(uml, block));
             }
 
