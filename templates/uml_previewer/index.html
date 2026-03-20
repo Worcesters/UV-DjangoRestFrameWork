@@ -95,15 +95,15 @@ class Logger
 Service ..> Logger : utilise
 @enduml</pre>
             </button>
-            <button type="button" class="text-left rounded-xl border border-emerald-200/70 bg-emerald-50/60 p-3 uml-help-item transition-all duration-200 ease-out hover:border-emerald-300/80 hover:bg-emerald-50 hover:shadow-md hover:shadow-emerald-200/25 hover:-translate-y-0.5 cursor-pointer active:translate-y-0 active:shadow-sm" data-title="Composition (*--)" data-description="La durée de vie de la partie dépend du tout (composition forte).">
+            <button type="button" class="text-left rounded-xl border border-emerald-200/70 bg-emerald-50/60 p-3 uml-help-item transition-all duration-200 ease-out hover:border-emerald-300/80 hover:bg-emerald-50 hover:shadow-md hover:shadow-emerald-200/25 hover:-translate-y-0.5 cursor-pointer active:translate-y-0 active:shadow-sm" data-title="Composition (*--)" data-description="C'est une relation forte. &#10;L'objet 'Enfant' appartient exclusivement à l'objet 'Parent'. Si le parent meurt, l'enfant meurt avec lui.&#10;Exemple : Un Bâtiment et ses Pièces.">
                 <p class="text-[10px] font-semibold text-emerald-600 mb-1">Composition (*--)</p>
                 <pre>@startuml
-class Order
-class OrderLine
-Order *-- OrderLine
+class Building
+class BuildingRoom
+Building *-- BuildingRoom
 @enduml</pre>
             </button>
-            <button type="button" class="text-left rounded-xl border border-amber-200/70 bg-amber-50/60 p-3 uml-help-item transition-all duration-200 ease-out hover:border-amber-300/80 hover:bg-amber-50 hover:shadow-md hover:shadow-amber-200/25 hover:-translate-y-0.5 cursor-pointer active:translate-y-0 active:shadow-sm" data-title="Agrégation (o--)" data-description="Relation plus faible qu'une composition (agrégation).">
+            <button type="button" class="text-left rounded-xl border border-amber-200/70 bg-amber-50/60 p-3 uml-help-item transition-all duration-200 ease-out hover:border-amber-300/80 hover:bg-amber-50 hover:shadow-md hover:shadow-amber-200/25 hover:-translate-y-0.5 cursor-pointer active:translate-y-0 active:shadow-sm" data-title="Agrégation (o--)" data-description="C'est une relation faible. &#10;L'objet 'Enfant' fait partie du 'Parent', &#10;mais il peut exister ailleurs ou survivre si le parent disparaît. (agrégation).">
                 <p class="text-[10px] font-semibold text-amber-700 mb-1">Agrégation (o--)</p>
                 <pre>@startuml
 class Team
@@ -267,7 +267,7 @@ package "infra" {
                 <div class="max-h-[calc(92vh-56px)] overflow-auto p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                         <div class="rounded-xl border border-violet-300/40 bg-slate-900/60 p-3 max-h-[min(70vh,28rem)] flex flex-col overflow-hidden">
-                            <p id="umlHelpModalDescription" class="text-[11px] text-slate-100 mb-2 flex-shrink-0"></p>
+                            <p id="umlHelpModalDescription" class="text-[11px] text-slate-100 mb-2 flex-shrink-0 whitespace-pre-line"></p>
                             <pre
                                 id="umlHelpModalCode"
                                 class="text-[11px] leading-4 font-mono text-violet-100 whitespace-pre-wrap overflow-y-auto flex-1 min-h-0"
