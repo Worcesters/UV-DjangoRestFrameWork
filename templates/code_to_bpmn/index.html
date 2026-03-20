@@ -1,3 +1,4 @@
+{% load static %}
 <section class="max-w-6xl mx-auto">
     <div class="rounded-3xl border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-50 p-8 shadow-sm">
         <p class="mt-2 text-slate-600">
@@ -123,62 +124,4 @@
     {% endif %}
 </section>
 
-<script>
-(function () {
-    const copyBtn = document.getElementById("copyBpmnBtn");
-    const output = document.getElementById("id_bpmn_output");
-    if (!copyBtn || !output) return;
-    const defaultLabel = copyBtn.textContent;
-    copyBtn.addEventListener("click", async function () {
-        try {
-            await navigator.clipboard.writeText(output.value);
-            copyBtn.textContent = "Copié !";
-            copyBtn.classList.remove("bg-slate-100", "text-slate-700");
-            copyBtn.classList.add("bg-emerald-100", "text-emerald-700");
-            setTimeout(function () {
-                copyBtn.textContent = defaultLabel;
-                copyBtn.classList.remove("bg-emerald-100", "text-emerald-700");
-                copyBtn.classList.add("bg-slate-100", "text-slate-700");
-            }, 900);
-        } catch (e) {
-            copyBtn.textContent = "Erreur";
-            setTimeout(function () {
-                copyBtn.textContent = defaultLabel;
-            }, 900);
-        }
-    });
-})();
-
-(function () {
-    const modal = document.getElementById("bpmnPreviewModal");
-    const openBtn = document.getElementById("openPreviewModal");
-    const closeBtn = document.getElementById("closePreviewModal");
-    const backdrop = document.getElementById("bpmnPreviewBackdrop");
-    const previewImage = document.getElementById("bpmnPreviewImage");
-
-    if (!modal || !openBtn || !closeBtn || !backdrop || !previewImage) {
-        return;
-    }
-
-    const openModal = function () {
-        modal.classList.remove("hidden");
-        document.body.classList.add("overflow-hidden");
-    };
-
-    const closeModal = function () {
-        modal.classList.add("hidden");
-        document.body.classList.remove("overflow-hidden");
-    };
-
-    openBtn.addEventListener("click", openModal);
-    previewImage.addEventListener("click", openModal);
-    closeBtn.addEventListener("click", closeModal);
-    backdrop.addEventListener("click", closeModal);
-
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && !modal.classList.contains("hidden")) {
-            closeModal();
-        }
-    });
-})();
-</script>
+<script src="{% static 'js/code_to_bpmn/code_to_bpmn.js' %}" defer></script>

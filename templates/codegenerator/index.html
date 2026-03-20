@@ -1,3 +1,4 @@
+{% load static %}
 <section class="max-w-6xl mx-auto">
     <div class="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-8 shadow-sm">
         <p class="mt-2 text-slate-600">
@@ -53,36 +54,5 @@
         </div>
     </form>
 
-    <script>
-        (function () {
-            const copyBtn = document.getElementById("copyGeneratedCodeBtn");
-            const output = document.getElementById("id_generated_code");
-            if (!copyBtn || !output) {
-                return;
-            }
-
-            const defaultLabel = copyBtn.textContent;
-            const resetState = function () {
-                copyBtn.textContent = defaultLabel;
-                copyBtn.classList.remove("bg-emerald-100", "text-emerald-700", "scale-105");
-                copyBtn.classList.add("bg-slate-100", "text-slate-700");
-            };
-
-            copyBtn.addEventListener("click", async function () {
-                try {
-                    await navigator.clipboard.writeText(output.value || "");
-                    copyBtn.textContent = "Copie !";
-                    copyBtn.classList.remove("bg-slate-100", "text-slate-700");
-                    copyBtn.classList.add("bg-emerald-100", "text-emerald-700", "scale-105");
-                    setTimeout(resetState, 900);
-                } catch (error) {
-                    console.warn("Clipboard copy failed:", error);
-                    copyBtn.textContent = "Erreur";
-                    copyBtn.classList.remove("bg-slate-100", "text-slate-700", "scale-105");
-                    copyBtn.classList.add("bg-rose-100", "text-rose-700");
-                    setTimeout(resetState, 900);
-                }
-            });
-        })();
-    </script>
+    <script src="{% static 'js/codegenerator/codegenerator.js' %}" defer></script>
 </section>

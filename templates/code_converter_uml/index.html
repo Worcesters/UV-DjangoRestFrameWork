@@ -1,3 +1,4 @@
+{% load static %}
 <section class="max-w-6xl mx-auto">
     <div class="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 to-fuchsia-50 p-8 shadow-sm">
         <p class="mt-2 text-slate-600">
@@ -125,81 +126,7 @@
             </div>
         </div>
     </div>
-
-    <script>
-        (function () {
-            const modal = document.getElementById("previewModal");
-            const openBtn = document.getElementById("openPreviewModal");
-            const closeBtn = document.getElementById("closePreviewModal");
-            const backdrop = document.getElementById("previewBackdrop");
-            const previewImage = document.getElementById("umlPreviewImage");
-
-            if (!modal || !openBtn || !closeBtn || !backdrop || !previewImage) {
-                return;
-            }
-
-            const openModal = function () {
-                modal.classList.remove("hidden");
-                document.body.classList.add("overflow-hidden");
-            };
-
-            const closeModal = function () {
-                modal.classList.add("hidden");
-                document.body.classList.remove("overflow-hidden");
-            };
-
-            openBtn.addEventListener("click", openModal);
-            previewImage.addEventListener("click", openModal);
-            closeBtn.addEventListener("click", closeModal);
-            backdrop.addEventListener("click", closeModal);
-
-            document.addEventListener("keydown", function (event) {
-                if (event.key === "Escape" && !modal.classList.contains("hidden")) {
-                    closeModal();
-                }
-            });
-        })();
-    </script>
     {% endif %}
 
-    <script>
-        (function () {
-            const copyBtn = document.getElementById("copyUmlBtn");
-            const output = document.getElementById("id_uml_output");
-
-            if (!copyBtn || !output) {
-                return;
-            }
-
-            const defaultLabel = copyBtn.textContent;
-            let copyResetTimer = null;
-
-            const resetCopyState = function () {
-                copyBtn.textContent = defaultLabel;
-                copyBtn.classList.remove("bg-emerald-100", "text-emerald-700", "scale-105");
-                copyBtn.classList.add("bg-slate-100", "text-slate-700");
-            };
-
-            copyBtn.addEventListener("click", async function () {
-                try {
-                    await navigator.clipboard.writeText(output.value);
-                } catch (error) {
-                    console.warn("Clipboard copy failed:", error);
-                    copyBtn.textContent = "Erreur";
-                    copyBtn.classList.remove("bg-slate-100", "text-slate-700", "scale-105");
-                    copyBtn.classList.add("bg-rose-100", "text-rose-700");
-                    setTimeout(resetCopyState, 900);
-                    return;
-                }
-
-                copyBtn.textContent = "Copie !";
-                copyBtn.classList.remove("bg-slate-100", "text-slate-700");
-                copyBtn.classList.add("bg-emerald-100", "text-emerald-700", "scale-105");
-
-                if (copyResetTimer) {
-                    clearTimeout(copyResetTimer);
-                }
-                copyResetTimer = setTimeout(resetCopyState, 900);
-            });
-        })();
-    </script>
+    <script src="{% static 'js/code_converter_uml/code_converter_uml.js' %}" defer></script>
+</section>
