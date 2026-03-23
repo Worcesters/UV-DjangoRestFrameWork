@@ -101,7 +101,7 @@
         </div>
     </nav>
 
-    <main id="main-content" class="container mx-auto px-6 py-12 min-h-[80vh]">
+    <main id="main-content" class="container mx-auto px-6 py-12 min-h-[calc(100dvh-10.5rem)]">
         {% block content %}
         {% endblock %}
     </main>
@@ -144,7 +144,7 @@
             event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
         });
 
-        // Navigation boostée : mise à jour du titre. Pas de scroll forcé ici (évite sauts à l’onglet auth).
+        // Navigation boostée : mise à jour du titre. Pas de scroll forcé (voir liens outils : hx-boost="false").
         document.body.addEventListener('htmx:afterSwap', function (evt) {
             if (!evt.detail.target || evt.detail.target.id !== 'main-content') {
                 return;
@@ -156,8 +156,6 @@
                     document.title = m[1].trim();
                 }
             }
-            /* Ne pas appeler scrollTo ici : les liens boostés déclenchaient un saut visible sur certaines pages
-               (Accueil, Outils de génération) alors que Documents / Profil restaient stables. */
         });
 
         // Effet scroll navbar

@@ -3,7 +3,7 @@
 {% block title %}Outils de génération{% endblock %}
 
 {% block content %}
-<section class="max-w-7xl mx-auto">
+<section id="generation-tools-page" class="max-w-7xl mx-auto scroll-mt-24 md:scroll-mt-28">
     <div class="relative overflow-hidden rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 via-fuchsia-50 to-cyan-50 p-8 shadow-sm">
         <div class="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-fuchsia-200/40 blur-3xl"></div>
         <div class="absolute -left-16 -bottom-16 h-56 w-56 rounded-full  blur-3xl"></div>
@@ -13,12 +13,13 @@
         </p>
     </div>
 
-    <div class="mt-6 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5">
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:items-stretch gap-5">
         <aside class="space-y-3" id="tools-nav">
             <p class="text-xs font-black tracking-[0.12em] uppercase text-violet-700 px-1">Sélection outil</p>
             {% for tool in tools %}
             <a
                 href="?tool={{ tool.id }}"
+                hx-boost="false"
                 class="block focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 rounded-2xl"
             >
                 <article class="relative overflow-hidden rounded-2xl border bg-slate-50/80 p-4 min-h-0 hover:shadow-md transition-shadow {% if active_tool == tool.id %}border-violet-400 shadow-sm ring-1 ring-violet-200{% else %}border-slate-100 hover:border-violet-200{% endif %}">
@@ -58,12 +59,12 @@
             {% endfor %}
         </aside>
 
-        <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 bg-slate-50">
+        <section class="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm min-h-[min(70vh,46rem)]">
+            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 bg-slate-50">
                 <p class="text-sm font-bold text-slate-700">{{ active_tool_name }}</p>
                 {% comment %} <p class="text-xs text-slate-500">Utilisable directement ici</p> {% endcomment %}
             </div>
-            <div id="toolFramesContainer" class="h-[78vh] w-full overflow-auto bg-white">
+            <div id="toolFramesContainer" class="flex min-h-[min(64vh,42rem)] w-full flex-1 flex-col bg-white">
                 {% if active_tool == "uml" %}
                 {% include "code_converter_uml/index.html" with form=uml_form uml_code=uml_code preview_url=preview_url parsed_files=parsed_files detected_language=detected_language error_message=uml_error_message form_action=form_action %}
                 {% elif active_tool == "uml_preview" %}

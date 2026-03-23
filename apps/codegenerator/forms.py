@@ -29,7 +29,7 @@ class CodeGeneratorForm(forms.Form):
         label="PlantUML source",
         widget=forms.Textarea(
             attrs={
-                "rows": 20,
+                "rows": 18,
                 "placeholder": (
                     "@startuml\n"
                     "class User {\n"
@@ -40,9 +40,9 @@ class CodeGeneratorForm(forms.Form):
                     "@enduml"
                 ),
                 "class": (
-                    "w-full rounded-xl border border-slate-300 p-3 font-mono text-sm "
-                    "text-slate-800 bg-slate-50 focus:border-violet-400 "
-                    "focus:outline-none focus:ring-2 focus:ring-violet-200"
+                    "w-full min-h-[12rem] max-h-[min(55vh,28rem)] overflow-y-auto rounded-xl "
+                    "border border-slate-300 p-3 font-mono text-sm text-slate-800 bg-slate-50 "
+                    "focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
                 ),
             }
         ),
