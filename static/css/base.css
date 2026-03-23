@@ -1,0 +1,40 @@
+/* Styles globaux (base.html) — complètent Tailwind CDN */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.logo-glow {
+    text-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+}
+.htmx-added {
+    animation: fadeIn 0.4s ease-in-out;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.nav-glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+}
+/* Logo plus petit au scroll pour rester dans la barre compacte */
+.nav-glass.nav-scrolled .nav-logo {
+    height: 3.25rem;
+}
+@media (min-width: 640px) {
+    .nav-glass.nav-scrolled .nav-logo {
+        height: 3.75rem;
+    }
+}
+@media (min-width: 768px) {
+    .nav-glass.nav-scrolled .nav-logo {
+        height: 4.25rem;
+    }
+}

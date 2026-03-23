@@ -1,9 +1,16 @@
-from django.shortcuts import render
+from django.views.generic import ListView
+
 from .models import Experience
 
-def game_world_view(request):
-    experiences = Experience.objects.all()
-    return render(request, "experience/game_world.html", {
-        "experiences": experiences,
-        "active_tab": "game"
-    })
+
+class GameWorldView(ListView):
+    """Scène 3D : liste des expériences pour le HUD / vignettes."""
+
+    model = Experience
+    template_name = "experience/game_world.html"
+    context_object_name = "experiences"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_tab"] = "game"
+        return context

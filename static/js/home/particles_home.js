@@ -1,12 +1,11 @@
 /**
  * Accueil : fond particles.js (nécessite particles.min.js chargé avant ce fichier).
+ * Réinitialisation après navigation HTMX (swap du #main-content).
  */
 (function () {
     "use strict";
-    if (typeof particlesJS === "undefined") {
-        return;
-    }
-    particlesJS("particles-js", {
+
+    var CONFIG = {
         particles: {
             number: { value: 80, density: { enable: true, value_area: 800 } },
             color: { value: "#3b82f6" },
@@ -40,5 +39,34 @@
             modes: { grab: { distance: 140, line_linked: { opacity: 0.5 } } },
         },
         retina_detect: true,
+    };
+
+    function initHomeParticles() {
+        if (typeof particlesJS === "undefined") {
+            return;
+        }
+        var el = document.getElementById("particles-js");
+        if (!el) {
+            return;
+        }
+        if (el.dataset.particlesInited === "1") {
+            return;
+        }
+        el.dataset.particlesInited = "1";
+        particlesJS("particles-js", CONFIG);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initHomeParticles);
+    } else {
+        initHomeParticles();
+    }
+
+    document.body.addEventListener("htmx:afterSwap", function () {
+        var el = document.getElementById("particles-js");
+        if (el) {
+            el.removeAttribute("data-particles-inited");
+        }
+        initHomeParticles();
     });
 })();

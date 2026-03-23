@@ -1,9 +1,9 @@
 from django.urls import path
 
-from . import views
+from .views import CodeToBpmnIndexView
 
 app_name = "code_to_bpmn"
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", CodeToBpmnIndexView.as_view(), name="index"),
 ]

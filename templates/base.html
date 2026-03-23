@@ -8,36 +8,27 @@
     <link rel="icon" type="image/svg+xml" href="{% static 'icons/portfolio-favicon_old.svg' %}">
 
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        /* Pas de scrollIntoView automatique sur les liens hx-boost (évite sauts Accueil / Outils de génération). */
+        if (typeof htmx !== 'undefined') {
+            htmx.config.scrollIntoViewOnBoost = false;
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .logo-glow { text-shadow: 0 0 15px rgba(37, 99, 235, 0.4); }
-        .htmx-added { animation: fadeIn 0.4s ease-in-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .nav-glass {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-        }
-        /* Logo plus petit au scroll pour rester dans la barre compacte */
-        .nav-glass.nav-scrolled .nav-logo {
-            height: 3.25rem;
-        }
-        @media (min-width: 640px) {
-            .nav-glass.nav-scrolled .nav-logo { height: 3.75rem; }
-        }
-        @media (min-width: 768px) {
-            .nav-glass.nav-scrolled .nav-logo { height: 4.25rem; }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="{% static 'js/home/particles_home.js' %}" defer></script>
 </head>
-<body class="bg-[#f8fafc] text-[#1e293b] antialiased">
+<body
+    class="bg-[#f8fafc] text-[#1e293b] antialiased"
+    hx-boost="true"
+    hx-target="#main-content"
+    hx-select="#main-content"
+    hx-swap="innerHTML show:none"
+    hx-push-url="true"
+>
 
     <nav class="nav-glass sticky top-0 z-50 transition-all duration-300 h-24 md:h-28" id="site-nav">
         <div class="container mx-auto px-6 h-full py-2 flex justify-between items-center">
@@ -78,7 +69,7 @@
                         </div>
                         Mon Profil
                     </a>
-                    <a href="{% url 'users:logout' %}" class="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors">Déconnexion</a>
+                    <a href="{% url 'users:logout' %}" hx-boost="false" class="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors">Déconnexion</a>
                 {% else %}
                     <a href="/signup/" class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all">
                         Rejoindre
@@ -94,13 +85,13 @@
         <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200/70 bg-white/95 backdrop-blur-md">
             <div class="container mx-auto px-6 py-4 flex flex-col gap-3">
                 <a href="/" class="text-sm font-semibold hover:text-blue-600 transition-colors">Accueil</a>
-                <a href="{% url 'experience:explore' %}" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">🎮 Expérience 3D</a>
+                <a href="{% url 'experience:explore' %}" hx-boost="false" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">🎮 Expérience 3D</a>
                 <a href="{% url 'users:documents' %}" class="text-sm font-semibold hover:text-blue-600 transition-colors">Documents</a>
                 <a href="{% url 'users:generation_tools' %}" class="text-sm font-semibold hover:text-violet-600 transition-colors">Outils de génération</a>
 
                 {% if user.is_authenticated %}
                     <a href="/profile/" class="text-sm font-semibold hover:text-blue-600 transition-colors">Mon Profil</a>
-                    <a href="{% url 'users:logout' %}" class="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors">Déconnexion</a>
+                    <a href="{% url 'users:logout' %}" hx-boost="false" class="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors">Déconnexion</a>
                 {% else %}
                     <a href="/signup/" class="mt-1 inline-flex w-fit px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 transition-all">
                         Rejoindre
@@ -110,7 +101,7 @@
         </div>
     </nav>
 
-    <main class="container mx-auto px-6 py-12 min-h-[80vh]">
+    <main id="main-content" class="container mx-auto px-6 py-12 min-h-[80vh]">
         {% block content %}
         {% endblock %}
     </main>
@@ -151,6 +142,22 @@
         // CSRF Token auto pour HTMX
         document.body.addEventListener('htmx:configRequest', (event) => {
             event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+
+        // Navigation boostée : mise à jour du titre. Pas de scroll forcé ici (évite sauts à l’onglet auth).
+        document.body.addEventListener('htmx:afterSwap', function (evt) {
+            if (!evt.detail.target || evt.detail.target.id !== 'main-content') {
+                return;
+            }
+            var xhr = evt.detail.xhr;
+            if (xhr && xhr.responseText) {
+                var m = xhr.responseText.match(/<title>([^<]*)<\/title>/i);
+                if (m && m[1]) {
+                    document.title = m[1].trim();
+                }
+            }
+            /* Ne pas appeler scrollTo ici : les liens boostés déclenchaient un saut visible sur certaines pages
+               (Accueil, Outils de génération) alors que Documents / Profil restaient stables. */
         });
 
         // Effet scroll navbar

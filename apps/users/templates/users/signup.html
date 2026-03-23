@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/users/signup.css' %}">
+{% endblock %}
 
 {% block title %}Innovation Hub - Django 2026{% endblock %}
 
@@ -78,14 +83,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    @keyframes scanner {
-        0% { transform: translateY(0); opacity: 0; }
-        50% { opacity: 1; }
-        100% { transform: translateY(500px); opacity: 0; }
-    }
-</style>
 
 <script>
     // Parallax logic

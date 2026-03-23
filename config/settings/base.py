@@ -105,3 +105,6 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Fichiers Markdown affichés sur /documents/ : déposez des .md dans ce dossier (pas de table en base).
+MARKDOWN_DOCS_DIR = Path(os.getenv("MARKDOWN_DOCS_DIR", str(BASE_DIR / "content" / "markdown")))
+
