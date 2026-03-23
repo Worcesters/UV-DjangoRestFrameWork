@@ -3,7 +3,7 @@ body {
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 .logo-glow {
-    text-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+    text-shadow: none;
 }
 .htmx-added {
     animation: fadeIn 0.4s ease-in-out;
@@ -36,5 +36,501 @@ body {
 @media (min-width: 768px) {
     .nav-glass.nav-scrolled .nav-logo {
         height: 4.25rem;
+    }
+}
+
+/* Titres de page : dégradés animés (voir .sublime-page-h1, .sublime-kicker, etc.) */
+@keyframes sublime-tab-gradient {
+    0%,
+    100% {
+        background-position: 0% center;
+    }
+    50% {
+        background-position: 100% center;
+    }
+}
+
+/* Cartes outils génération — titres */
+
+
+/* Label « Sélection outil » + titre panneau actif */
+.gen-sidebar-label-sublime {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    letter-spacing: 0.14em;
+    background: linear-gradient(
+        100deg,
+        #5b21b6 0%,
+        #7c3aed 40%,
+        #db2777 70%,
+        #0891b2 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 12s ease infinite;
+}
+
+.gen-active-tool-title {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    background: linear-gradient(
+        110deg,
+        #4338ca 0%,
+        #7c3aed 30%,
+        #c026d3 55%,
+        #0e7490 100%
+    );
+    background-size: 210% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 13s ease infinite;
+}
+
+/* Titre hero page outils (optionnel, même famille visuelle) */
+.gen-page-hero-title {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    letter-spacing: -0.03em;
+    background: linear-gradient(
+        120deg,
+        #0f172a 0%,
+        #4c1d95 22%,
+        #7c3aed 45%,
+        #c026d3 68%,
+        #0e7490 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 15s ease infinite;
+}
+
+/* ==========================================================================
+   Titres de page — système « sublime » (toutes pages, esprit site + créatif)
+   ========================================================================== */
+
+/* Pastille / sur-titre — coque + texte dégradé (évite conflit background-clip) */
+.sublime-kicker {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid rgba(99, 102, 241, 0.28);
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(238, 242, 255, 0.92) 45%,
+        rgba(250, 245, 255, 0.88) 100%
+    );
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.65) inset;
+}
+
+.sublime-kicker-inner {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: linear-gradient(100deg, #4338ca 0%, #7c3aed 45%, #0e7490 100%);
+    background-size: 180% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 14s ease infinite;
+}
+
+/* H1 pages claires (Documents, etc.) — même ADN que gen-page-hero, nom global */
+.sublime-page-h1 {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    padding-bottom: 0.1em;
+    background: linear-gradient(
+        118deg,
+        #0f172a 0%,
+        #3730a3 28%,
+        #7c3aed 52%,
+        #c026d3 72%,
+        #0e7490 100%
+    );
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 16s ease infinite;
+}
+
+.sublime-page-h1-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+/* Accueil — ligne 1 (sombre) + ligne 2 (accent néon)
+   line-height + padding bas : évite que les descendantes (g, p, y) soient rognées avec background-clip: text */
+.sublime-hero-line {
+    position: relative;
+    display: inline-block;
+    line-height: 1.2;
+    padding-bottom: 0.08em;
+    background: linear-gradient(95deg, #0f172a 0%, #334155 40%, #1e1b4b 100%);
+    background-size: 150% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.sublime-hero-accent {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    line-height: 1.2;
+    padding-bottom: 0.14em;
+    background: linear-gradient(
+        110deg,
+        #2563eb 0%,
+        #7c3aed 35%,
+        #db2777 60%,
+        #06b6d4 85%,
+        #4f46e5 100%
+    );
+    background-size: 240% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 12s ease infinite;
+}
+
+/* H1 sur fond sombre (signup hero, cartes) */
+.sublime-hero-dark-title {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    background: linear-gradient(
+        115deg,
+        #ffffff 0%,
+        #e0e7ff 35%,
+        #a5b4fc 65%,
+        #f0f9ff 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 18s ease infinite;
+}
+
+.sublime-hero-dark-accent {
+    background: linear-gradient(
+        100deg,
+        #38bdf8 0%,
+        #818cf8 40%,
+        #c084fc 70%,
+        #22d3ee 100%
+    );
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 14s ease infinite;
+}
+
+/* Profil public — héros sur gradient bleu */
+.sublime-hero-public-h1 {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    background: linear-gradient(
+        105deg,
+        #ffffff 0%,
+        #e0f2fe 30%,
+        #a5f3fc 55%,
+        #ffffff 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 17s ease infinite;
+}
+
+.sublime-hero-public-accent {
+    background: linear-gradient(
+        100deg,
+        #22d3ee 0%,
+        #67e8f9 50%,
+        #a5f3fc 100%
+    );
+    background-size: 180% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* H2 sections (Timeline, Stack, features…) */
+.sublime-page-h2 {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    letter-spacing: -0.025em;
+    background: linear-gradient(
+        108deg,
+        #0f172a 0%,
+        #4338ca 38%,
+        #7c3aed 62%,
+        #0d9488 100%
+    );
+    background-size: 210% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 15s ease infinite;
+}
+
+.sublime-page-h2::after {
+    content: "";
+    display: block;
+    width: 3.25rem;
+    height: 3px;
+    margin-top: 0.45rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6366f1, #a855f7, #22d3ee);
+}
+
+/* H3 cartes / sous-blocs */
+.sublime-page-h3 {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    background: linear-gradient(
+        120deg,
+        #1e293b 0%,
+        #4f46e5 45%,
+        #0369a1 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: sublime-tab-gradient 18s ease infinite;
+}
+
+/* --------------------------------------------------------------------------
+   Illustration SVG Markdown — partials/markdown_library_hero.html
+   -------------------------------------------------------------------------- */
+.docs-page {
+    position: relative;
+}
+
+.docs-page .docs-section-title {
+    letter-spacing: -0.02em;
+}
+
+.docs-phone-aside .md-hero-anim {
+    padding-top: 0;
+    padding-bottom: 0.5rem;
+}
+
+.md-hero-anim {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    filter: drop-shadow(0 16px 32px rgba(15, 23, 42, 0.1));
+}
+
+.md-hero-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* Halo */
+.mdh-blob {
+    transform-origin: 200px 115px;
+    animation: mdh-blob-breathe 7s ease-in-out infinite;
+}
+
+@keyframes mdh-blob-breathe {
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.62;
+        transform: scale(1.04);
+    }
+}
+
+/* Document entier */
+.mdh-doc {
+    transform-origin: 200px 110px;
+    transform-box: fill-box;
+    animation: mdh-doc-float 8s ease-in-out infinite;
+}
+
+@keyframes mdh-doc-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.mdh-hash-bar {
+    animation: mdh-hash-pulse 3s ease-in-out infinite;
+}
+
+@keyframes mdh-hash-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.75;
+    }
+}
+
+.mdh-line {
+    animation: mdh-line-wave 3.2s ease-in-out infinite;
+}
+
+.mdh-line-1 {
+    animation-delay: 0s;
+}
+.mdh-line-2 {
+    animation-delay: 0.15s;
+}
+.mdh-line-3 {
+    animation-delay: 0.3s;
+}
+
+@keyframes mdh-line-wave {
+    0%,
+    100% {
+        opacity: 0.65;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.mdh-code-box {
+    animation: mdh-code-glow 4s ease-in-out infinite;
+}
+
+@keyframes mdh-code-glow {
+    0%,
+    100% {
+        stroke: #c7d2fe;
+    }
+    50% {
+        stroke: #a5b4fc;
+    }
+}
+
+.mdh-code-line {
+    animation: mdh-code-line-shine 2.4s ease-in-out infinite;
+}
+
+@keyframes mdh-code-line-shine {
+    0%,
+    100% {
+        opacity: 0.45;
+    }
+    50% {
+        opacity: 0.85;
+    }
+}
+
+.mdh-cursor {
+    animation: mdh-cursor-blink 1.05s step-end infinite;
+}
+
+@keyframes mdh-cursor-blink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
+.mdh-float-a {
+    transform-origin: 42px 99px;
+    transform-box: fill-box;
+    animation: mdh-float-y 5s ease-in-out infinite;
+}
+
+.mdh-float-b {
+    transform-origin: 354px 83px;
+    transform-box: fill-box;
+    animation: mdh-float-y 5s ease-in-out infinite 0.6s;
+}
+
+@keyframes mdh-float-y {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mdh-blob,
+    .mdh-doc,
+    .mdh-hash-bar,
+    .mdh-line,
+    .mdh-code-box,
+    .mdh-code-line,
+    .mdh-cursor,
+    .mdh-float-a,
+    .mdh-float-b {
+        animation: none !important;
+    }
+
+    .mdh-blob {
+        opacity: 0.55;
+        transform: none;
+    }
+
+    .mdh-doc {
+        transform: none;
+    }
+
+    .mdh-cursor {
+        opacity: 1;
+    }
+
+    .gen-sidebar-label-sublime,
+    .gen-active-tool-title,
+    .gen-page-hero-title,
+    .sublime-kicker-inner,
+    .sublime-page-h1,
+    .sublime-hero-line,
+    .sublime-hero-accent,
+    .sublime-hero-dark-title,
+    .sublime-hero-dark-accent,
+    .sublime-hero-public-h1,
+    .sublime-hero-public-accent,
+    .sublime-page-h2,
+    .sublime-page-h3 {
+        background-size: 100% 100%;
     }
 }

@@ -1,0 +1,68 @@
+{# Illustration animée — thème Markdown (titres #, paragraphe, code) #}
+<div class="md-hero-anim mx-auto max-w-lg px-2">
+    <span class="sr-only">
+        Bibliothèque de documents Markdown : fichiers dans content/markdown/, un titre par fichier depuis le premier # Titre.
+    </span>
+    <svg
+        class="md-hero-svg w-full h-auto"
+        viewBox="0 0 400 220"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+    >
+        <defs>
+            <linearGradient id="mdh-grad-page" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" class="mdh-stop-a" stop-color="#ede9fe"/>
+                <stop offset="55%" class="mdh-stop-b" stop-color="#e0f2fe"/>
+                <stop offset="100%" class="mdh-stop-c" stop-color="#fce7f3"/>
+            </linearGradient>
+            <linearGradient id="mdh-grad-hash" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#4f46e5"/>
+                <stop offset="40%" stop-color="#7c3aed"/>
+                <stop offset="100%" stop-color="#0e7490"/>
+            </linearGradient>
+            <filter id="mdh-soft" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="8"/>
+            </filter>
+        </defs>
+
+        <!-- Halo décoratif -->
+        <ellipse cx="200" cy="115" rx="160" ry="90" fill="url(#mdh-grad-page)" opacity="0.55" filter="url(#mdh-soft)" class="mdh-blob"/>
+
+        <!-- Feuille / document -->
+        <g class="mdh-doc">
+            <rect x="72" y="36" width="256" height="148" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+            <rect x="72" y="36" width="256" height="148" rx="14" fill="url(#mdh-grad-page)" opacity="0.12"/>
+
+            <!-- Ligne # titre -->
+            <g class="mdh-block-title">
+                <rect x="92" y="58" width="28" height="10" rx="2" fill="url(#mdh-grad-hash)" class="mdh-hash-bar"/>
+                <text x="126" y="67" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#1e293b"># Titre</text>
+            </g>
+
+            <!-- Paragraphe (lignes) -->
+            <rect x="92" y="82" width="180" height="6" rx="2" fill="#cbd5e1" class="mdh-line mdh-line-1"/>
+            <rect x="92" y="94" width="140" height="6" rx="2" fill="#e2e8f0" class="mdh-line mdh-line-2"/>
+            <rect x="92" y="106" width="165" height="6" rx="2" fill="#e2e8f0" class="mdh-line mdh-line-3"/>
+
+            <!-- Bloc code ``` -->
+            <rect x="88" y="124" width="224" height="44" rx="8" fill="#f1f5f9" stroke="#c7d2fe" stroke-width="1" class="mdh-code-box"/>
+            <text x="98" y="142" font-family="ui-monospace, monospace" font-size="9" fill="#64748b">```</text>
+            <rect x="98" y="148" width="120" height="5" rx="1" fill="#a5b4fc" opacity="0.5" class="mdh-code-line"/>
+            <rect x="98" y="158" width="90" height="5" rx="1" fill="#94a3b8" opacity="0.35"/>
+
+            <!-- Curseur clignotant -->
+            <rect x="222" y="146" width="2" height="12" rx="0.5" fill="#7c3aed" class="mdh-cursor"/>
+        </g>
+
+        <!-- Pastilles syntaxe Markdown flottantes -->
+        <g class="mdh-float-a" opacity="0.85">
+            <rect x="24" y="88" width="36" height="22" rx="6" fill="#fff" stroke="#c4b5fd" stroke-width="1"/>
+            <text x="30" y="103" font-family="ui-monospace, monospace" font-size="10" fill="#5b21b6">**</text>
+        </g>
+        <g class="mdh-float-b" opacity="0.85">
+            <rect x="332" y="72" width="44" height="22" rx="6" fill="#fff" stroke="#99f6e4" stroke-width="1"/>
+            <text x="338" y="87" font-family="ui-monospace, monospace" font-size="10" fill="#0f766e">&#96;</text>
+        </g>
+    </svg>
+</div>

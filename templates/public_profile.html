@@ -7,11 +7,11 @@
 <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white p-10 md:p-14">
     <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_#60a5fa,_transparent_45%)]"></div>
     <div class="relative z-10">
-        <p class="inline-flex px-4 py-1 rounded-full text-xs font-black tracking-[0.16em] uppercase bg-white/10 border border-white/20">
-            Profil public
+        <p class="mt-1 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
+            <span class="text-xs font-black uppercase tracking-[0.16em] text-white/95">Profil public</span>
         </p>
-        <h1 class="mt-5 text-4xl md:text-6xl font-black leading-tight">
-            CV interactif <span class="text-cyan-300">nouvelle génération</span>
+        <h1 class="mt-5 text-4xl font-black leading-tight md:text-6xl">
+            <span class="sublime-hero-public-h1">CV interactif </span><span class="sublime-hero-public-accent"> nouvelle génération</span>
         </h1>
         <p class="mt-4 max-w-3xl text-blue-100/90 text-lg">
             Développement fullstack, UX et expériences web immersives.
@@ -29,7 +29,7 @@
 
 <section class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
     <article class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
-        <h2 class="text-2xl font-black text-slate-900">Timeline</h2>
+        <h2 class="text-2xl font-black"><span class="sublime-page-h2">Timeline</span></h2>
         <div class="relative mt-8">
             <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 rounded-full bg-gradient-to-b from-violet-200 via-fuchsia-200 to-purple-200"></div>
             {% for item in timeline %}
@@ -37,7 +37,7 @@
                 {% if forloop.counter0|divisibleby:2 %}
                 <div class="relative md:text-right">
                     <div class="inline-block max-w-full rounded-3xl border border-violet-100 bg-violet-50/80 px-5 py-4 shadow-sm">
-                        <h3 class="text-base md:text-lg font-extrabold text-slate-900">{{ item.title }}</h3>
+                        <h3 class="text-base font-extrabold md:text-lg"><span class="sublime-page-h3">{{ item.title }}</span></h3>
                         <p class="text-sm font-semibold text-violet-700">{{ item.company }}</p>
                         <p class="mt-1 text-sm text-slate-600 leading-relaxed">{{ item.summary }}</p>
                     </div>
@@ -47,7 +47,7 @@
                 <div></div>
                 <div class="relative">
                     <div class="inline-block max-w-full rounded-3xl border border-fuchsia-100 bg-fuchsia-50/75 px-5 py-4 shadow-sm">
-                        <h3 class="text-base md:text-lg font-extrabold text-slate-900">{{ item.title }}</h3>
+                        <h3 class="text-base font-extrabold md:text-lg"><span class="sublime-page-h3">{{ item.title }}</span></h3>
                         <p class="text-sm font-semibold text-fuchsia-700">{{ item.company }}</p>
                         <p class="mt-1 text-sm text-slate-600 leading-relaxed">{{ item.summary }}</p>
                     </div>
@@ -88,7 +88,7 @@
     </article>
 
     <article class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
-        <h2 class="text-2xl font-black text-slate-900">Stack</h2>
+        <h2 class="text-2xl font-black"><span class="sublime-page-h2">Stack</span></h2>
         <div class="mt-6 space-y-6">
             {% for section in stack_sections %}
             <div>
@@ -108,7 +108,7 @@
 
 <section class="mt-8 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
     <div class="flex items-center justify-between gap-4 flex-wrap">
-        <h2 class="text-2xl font-black text-slate-900">Projets</h2>
+        <h2 class="text-2xl font-black"><span class="sublime-page-h2">Projets</span></h2>
         <a href="{% url 'experience:explore' %}" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">
             Lancer la démo 3D →
         </a>
@@ -130,7 +130,7 @@
             </div>
 
             <div class="relative z-10">
-            <h3 class="text-lg font-extrabold text-slate-900">{{ project.name }}</h3>
+            <h3 class="text-lg font-extrabold"><span class="sublime-page-h3">{{ project.name }}</span></h3>
             <p class="mt-2 text-sm text-slate-700 leading-relaxed">{{ project.description }}</p>
             <div class="mt-4 flex flex-wrap gap-2">
                 {% for tag in project.tags %}

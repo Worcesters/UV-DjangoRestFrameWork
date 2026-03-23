@@ -46,8 +46,9 @@
     color: var(--md-heading);
 }
 
-/* Titres */
+/* Titres — dégradés (sans halos / nuages) */
 .preview-markdown h1 {
+    position: relative;
     font-size: clamp(1.65rem, 4vw, 2rem);
     font-weight: 800;
     letter-spacing: -0.035em;
@@ -58,11 +59,32 @@
 
 @supports (-webkit-background-clip: text) {
     .preview-markdown h1 {
-        background: linear-gradient(120deg, #0f172a 0%, #312e81 55%, #4f46e5 100%);
+        background: linear-gradient(
+            118deg,
+            #0f172a 0%,
+            #3730a3 28%,
+            #5b21b6 52%,
+            #4f46e5 72%,
+            #0e7490 100%
+        );
+        background-size: 200% 100%;
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
         color: transparent;
+        animation: sublime-tab-gradient 16s ease infinite;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .preview-markdown h1 {
+        background-size: 100% 100% !important;
+        animation: none !important;
+    }
+
+    .preview-markdown h3 {
+        animation: none !important;
+        background-size: 100% 100% !important;
     }
 }
 
@@ -71,6 +93,8 @@
 }
 
 .preview-markdown h2 {
+    position: relative;
+    z-index: 1;
     font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: -0.028em;
@@ -79,8 +103,21 @@
     padding: 0.35rem 0 0.65rem 1rem;
     border-left: 4px solid #6366f1;
     border-radius: 0 0.35rem 0.35rem 0;
-    background: linear-gradient(90deg, rgba(99, 102, 241, 0.09) 0%, transparent 72%);
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, transparent 72%);
     border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+}
+
+.preview-markdown h2::after {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    bottom: 0.35rem;
+    width: 3.25rem;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6366f1, #a855f7, #22d3ee);
+    opacity: 0.75;
+    pointer-events: none;
 }
 
 .preview-markdown h3 {
@@ -109,6 +146,22 @@
     color: #334155;
     margin: 1.15rem 0 0.35rem;
     letter-spacing: -0.015em;
+}
+
+@supports (-webkit-background-clip: text) {
+    .preview-markdown h3 {
+        background: linear-gradient(
+            120deg,
+            #1e293b 0%,
+            #4f46e5 45%,
+            #0369a1 100%
+        );
+        background-size: 200% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: sublime-tab-gradient 18s ease infinite;
+    }
 }
 
 /* Paragraphes & listes */

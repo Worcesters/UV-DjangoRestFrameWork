@@ -1,18 +1,18 @@
 {% for doc in documents %}
 <a href="{% url 'users:document_detail' slug=doc.slug %}"
-   class="document-card group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-white to-slate-50/80 px-6 py-5 shadow-sm ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/80 hover:shadow-lg hover:shadow-indigo-500/10 hover:ring-indigo-500/10">
-    <span class="absolute inset-y-0 left-0 w-1 rounded-l-2xl bg-gradient-to-b from-indigo-500 via-violet-500 to-cyan-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100" aria-hidden="true"></span>
-    <span class="min-w-0 flex-1 text-lg font-semibold leading-snug tracking-tight text-slate-800 transition-colors duration-300 group-hover:text-indigo-800 md:text-xl">
+   class="docs-doc-card group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md hover:shadow-violet-500/10">
+    <span class="absolute inset-y-0 left-0 w-[3px] rounded-l-2xl bg-gradient-to-b from-violet-500 via-indigo-500 to-cyan-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100" aria-hidden="true"></span>
+    <span class="min-w-0 flex-1 text-base font-semibold leading-snug tracking-tight text-slate-800 transition-colors duration-200 group-hover:text-indigo-900 md:text-lg">
         {{ doc.title }}
     </span>
-    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400 transition-all duration-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-md group-hover:shadow-indigo-500/30" aria-hidden="true">
-        <svg class="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-slate-400 transition-all duration-200 group-hover:border-indigo-200 group-hover:bg-indigo-600 group-hover:text-white" aria-hidden="true">
+        <svg class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
         </svg>
     </span>
 </a>
 {% empty %}
-<div class="col-span-full rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-8 py-16 text-center">
-    <p class="text-sm font-medium text-slate-500">Aucun fichier <code class="rounded bg-white px-1.5 py-0.5 text-xs text-slate-600">.md</code> dans le dossier pour le moment.</p>
+<div class="docs-doc-card rounded-2xl border border-dashed border-slate-200 bg-slate-50/90 px-6 py-14 text-center shadow-none">
+    <p class="text-sm font-medium text-slate-500">Aucun fichier <code class="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-xs text-slate-600">.md</code> dans le dossier pour le moment.</p>
 </div>
 {% endfor %}

@@ -1,5 +1,5 @@
 {% load static %}
-<section class="flex min-h-full w-full max-w-6xl flex-1 flex-col mx-auto">
+<section class="flex min-h-full w-full flex-1 flex-col mx-auto">
     <div id="pipelineGeneratorConfig" class="hidden" aria-hidden="true" data-branches-api-url="{% url 'pipeline_generator:branches_api' %}"></div>
     <script type="application/json" id="pipeline-initial-containers">{{ containers_initial_json|default:"[]"|safe }}</script>
     <div class="min-h-[7.5rem] rounded-3xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-sky-50 p-8 shadow-sm flex flex-col justify-center">

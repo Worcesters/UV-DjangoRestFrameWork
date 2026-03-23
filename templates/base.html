@@ -39,7 +39,7 @@
             </a>
 
             <div class="hidden md:flex items-center space-x-8">
-                <a href="/" class="text-sm font-semibold hover:text-blue-600 transition-colors relative group">
+                <a href="/" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors relative group">
                     Accueil
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
                 </a>
@@ -48,22 +48,22 @@
                     <span>🎮</span> Expérience 3D
                 </a> {% endcomment %}
 
-                <a href="{% url 'users:documents' %}" class="text-sm font-semibold hover:text-blue-600 transition-colors relative group">
+                <a href="{% url 'users:documents' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors relative group">
                     Documents
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
                 </a>
 
-                <a href="{% url 'users:public_profile' %}" class="text-sm font-semibold hover:text-blue-600 transition-colors relative group">
+                <a href="{% url 'users:public_profile' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors relative group">
                     Profil public
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
                 </a>
 
-                <a href="{% url 'users:generation_tools' %}" class="text-sm font-semibold hover:text-violet-600 transition-colors relative group">
+                <a href="{% url 'users:generation_tools' %}" class="text-sm font-semibold text-slate-700 hover:text-violet-600 transition-colors relative group">
                     Outils de génération
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-violet-600 transition-all group-hover:w-full"></span>
                 </a>
                 {% if user.is_authenticated %}
-                    <a href="/profile/" class="text-sm font-semibold hover:text-blue-600 transition-colors flex items-center gap-2">
+                    <a href="/profile/" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors flex items-center gap-2">
                         <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold">
                             {{ user.email|first|upper }}
                         </div>
@@ -84,13 +84,14 @@
 
         <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200/70 bg-white/95 backdrop-blur-md">
             <div class="container mx-auto px-6 py-4 flex flex-col gap-3">
-                <a href="/" class="text-sm font-semibold hover:text-blue-600 transition-colors">Accueil</a>
+                <a href="/" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Accueil</a>
                 <a href="{% url 'experience:explore' %}" hx-boost="false" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">🎮 Expérience 3D</a>
-                <a href="{% url 'users:documents' %}" class="text-sm font-semibold hover:text-blue-600 transition-colors">Documents</a>
-                <a href="{% url 'users:generation_tools' %}" class="text-sm font-semibold hover:text-violet-600 transition-colors">Outils de génération</a>
+                <a href="{% url 'users:documents' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Documents</a>
+                <a href="{% url 'users:public_profile' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Profil public</a>
+                <a href="{% url 'users:generation_tools' %}" class="text-sm font-semibold text-slate-700 hover:text-violet-600 transition-colors">Outils de génération</a>
 
                 {% if user.is_authenticated %}
-                    <a href="/profile/" class="text-sm font-semibold hover:text-blue-600 transition-colors">Mon Profil</a>
+                    <a href="/profile/" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Mon Profil</a>
                     <a href="{% url 'users:logout' %}" hx-boost="false" class="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors">Déconnexion</a>
                 {% else %}
                     <a href="/signup/" class="mt-1 inline-flex w-fit px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 transition-all">
@@ -101,7 +102,7 @@
         </div>
     </nav>
 
-    <main id="main-content" class="container mx-auto px-6 py-12 min-h-[calc(100dvh-10.5rem)]">
+    <main id="main-content" class="mx-auto w-full max-w-[90rem] px-4 py-12 md:px-6 min-h-[calc(100dvh-10.5rem)]">
         {% block content %}
         {% endblock %}
     </main>
@@ -144,11 +145,14 @@
             event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
         });
 
-        // Navigation boostée : mise à jour du titre. Pas de scroll forcé (voir liens outils : hx-boost="false").
+        // Navigation boostée : mise à jour du titre + retour en haut de page (ex. ouverture d’un document).
         document.body.addEventListener('htmx:afterSwap', function (evt) {
             if (!evt.detail.target || evt.detail.target.id !== 'main-content') {
                 return;
             }
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
             var xhr = evt.detail.xhr;
             if (xhr && xhr.responseText) {
                 var m = xhr.responseText.match(/<title>([^<]*)<\/title>/i);
@@ -189,5 +193,6 @@
             });
         }
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
