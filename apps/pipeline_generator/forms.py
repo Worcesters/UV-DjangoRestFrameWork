@@ -97,7 +97,7 @@ class PipelineConfigForm(forms.Form):
 
     deploy_branch = forms.CharField(
         required=False,
-        initial="main",
+        initial="",
         label="Branche cible",
         widget=forms.TextInput(
             attrs={

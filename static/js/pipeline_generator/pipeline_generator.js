@@ -154,8 +154,10 @@
                     branchDatalist.appendChild(option);
                 });
                 if (branches.length > 0) {
-                    deployBranchInput.value = branches[0];
-                    setBranchesStatus(branches.length + " branche(s) chargee(s).", false);
+                    setBranchesStatus(
+                        branches.length + " branche(s) disponibles — choisis la branche cible.",
+                        false
+                    );
                 } else {
                     setBranchesStatus("Aucune branche trouvee.", true);
                 }

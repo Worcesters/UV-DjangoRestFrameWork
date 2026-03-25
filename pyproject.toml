@@ -19,3 +19,7 @@ dependencies = [
 dev = [
     "ruff>=0.15.1",
 ]
+
+# CSS (Tailwind) : après `npm install` à la racine, compiler avec :
+#   uv run python scripts/build_css.py
+# ou : npm run build:css   |   dev : npm run watch:css

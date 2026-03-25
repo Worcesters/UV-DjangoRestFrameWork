@@ -14,8 +14,8 @@
             htmx.config.scrollIntoViewOnBoost = false;
         }
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% block extra_css %}{% endblock %}
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
@@ -126,7 +126,11 @@
 
         document.addEventListener('keydown', (e) => {
             const keys = ['z', 'q', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
-            if (keys.includes(e.key.toLowerCase())) {
+            const k = e.key;
+            if (typeof k !== 'string' || !k) {
+                return;
+            }
+            if (keys.includes(k.toLowerCase())) {
                 if (!isMoving) {
                     engineSound.play().catch(e => console.log("Audio waiting for user interaction"));
                     engineSound.playbackRate = 1.5; // Accélération
