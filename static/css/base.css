@@ -176,6 +176,20 @@ body {
     display: inline-block;
 }
 
+/* Accueil — h1 : flex + spans en block (sinon .sublime-hero-* en inline-block écrase Tailwind .block → une seule ligne) */
+.home-hero-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 0.5rem;
+}
+.home-hero-title .sublime-hero-line,
+.home-hero-title .sublime-hero-accent {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+}
+
 /* Accueil — ligne 1 (sombre) + ligne 2 (accent néon)
    line-height + padding bas : évite que les descendantes (g, p, y) soient rognées avec background-clip: text */
 .sublime-hero-line {
@@ -243,6 +257,20 @@ body {
     background-clip: text;
     color: transparent;
     animation: sublime-tab-gradient 14s ease infinite;
+}
+
+/* Profil public — titre héros : pile fixe (évite 1 ligne → 2 lignes au chargement police / CSS) */
+.public-profile-hero-title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    row-gap: 0.25rem;
+}
+@media (min-width: 640px) {
+    .public-profile-hero-title {
+        row-gap: 0.375rem;
+    }
 }
 
 /* Profil public — héros sur gradient bleu */
