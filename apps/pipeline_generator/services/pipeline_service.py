@@ -255,7 +255,7 @@ def _generate_gitlab_pipeline(request: PipelineRequest) -> str:
             "deploy:",
             "  stage: deploy",
             "  image: alpine/bash",
-            f"  rules:",
+            "  rules:",
             f"    - if: $CI_COMMIT_BRANCH == \"{request.deploy_branch}\"",
             "  before_script:",
             "    - apk add --no-cache openssh-client",
