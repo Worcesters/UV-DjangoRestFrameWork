@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}404 — Page introuvable{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/errors/404.css' %}">
+{% endblock %}
+
+{% block content %}
+<section
+    id="error404-parallax"
+    class="relative -mx-4 md:-mx-6 flex min-h-[min(92dvh,56rem)] flex-col items-center justify-center overflow-hidden rounded-3xl border border-violet-500/20 bg-[#050510] px-4 py-16 text-center md:mx-0 md:px-8 md:py-24"
+    aria-labelledby="error404-heading"
+>
+    <!-- Fond profondeur -->
+    <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div
+            data-depth="0.05"
+            class="absolute -left-[20%] top-0 h-[min(120vw,70rem)] w-[min(120vw,70rem)] rounded-full bg-violet-600/20 blur-[120px] will-change-transform"
+        ></div>
+        <div
+            data-depth="0.12"
+            class="absolute -right-[15%] bottom-[-10%] h-[min(100vw,56rem)] w-[min(100vw,56rem)] rounded-full bg-cyan-500/18 blur-[100px] will-change-transform"
+        ></div>
+        <div
+            data-depth="0.2"
+            class="absolute left-1/2 top-1/2 h-[40vh] w-[40vh] max-w-[32rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-600/12 blur-[90px] will-change-transform"
+        ></div>
+        <div
+            data-depth="0.08"
+            class="absolute inset-0 opacity-[0.2] will-change-transform"
+            style="background-image: radial-gradient(circle at 25% 35%, rgba(255,255,255,0.14) 0, transparent 1.5px), radial-gradient(circle at 75% 65%, rgba(255,255,255,0.1) 0, transparent 1.5px); background-size: 56px 56px;"
+        ></div>
+    </div>
+
+    <!-- Anneau néon arrière -->
+    <div
+        data-depth="0.15"
+        class="pointer-events-none absolute left-1/2 top-[38%] h-[min(70vw,28rem)] w-[min(70vw,28rem)] -translate-x-1/2 rounded-full border border-violet-500/25 will-change-transform"
+        style="box-shadow: 0 0 80px rgba(139, 92, 246, 0.25); transform-style: preserve-3d;"
+        aria-hidden="true"
+    ></div>
+
+    <!-- Scène 3D : rotation souris -->
+    <div class="relative z-10 w-full max-w-5xl px-2" style="transform-style: preserve-3d;">
+        <div id="error404-stage-3d" class="mx-auto flex flex-col items-center" style="transform-style: preserve-3d;">
+            <h1 class="sr-only">404 — Page introuvable</h1>
+            <p class="mb-6 text-[10px] font-black uppercase tracking-[0.45em] text-violet-300/90 md:text-xs">
+                Erreur client
+            </p>
+
+            <div class="error404-digit-wrap relative flex items-end justify-center gap-2 sm:gap-4 md:gap-8" aria-hidden="true">
+                <span class="error404-digit text-[clamp(4.5rem,22vw,11rem)]" data-z="72">4</span>
+                <span class="error404-digit text-[clamp(5rem,24vw,12rem)]" data-z="0">0</span>
+                <span class="error404-digit text-[clamp(4.5rem,22vw,11rem)]" data-z="-56">4</span>
+            </div>
+
+            <div class="error404-glow-ring pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[min(55vw,18rem)] w-[min(90vw,28rem)] -translate-x-1/2 -translate-y-1/2 rounded-[40%] bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-400" aria-hidden="true"></div>
+
+            <h2 id="error404-heading" class="relative z-[1] mt-10 max-w-lg text-lg font-semibold leading-snug text-slate-100 md:text-xl">
+                Cette adresse ne mène nulle part dans l’univers de la plateforme.
+            </h2>
+            <p class="relative z-[1] mt-3 max-w-md text-sm leading-relaxed text-slate-400 md:text-base">
+                La page a peut-être été déplacée ou le lien est incomplet. Bouge la souris ou ton doigt : la scène réagit en 3D.
+            </p>
+
+            <div class="relative z-[1] mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <a
+                    href="{% url 'users:index' %}"
+                    class="inline-flex min-w-[12rem] items-center justify-center rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-600 px-8 py-3.5 text-sm font-bold text-white shadow-[0_20px_50px_rgba(99,102,241,0.45)] transition hover:scale-[1.03] hover:shadow-[0_24px_60px_rgba(99,102,241,0.55)]"
+                >
+                    Retour à l’accueil
+                </a>
+                <a
+                    href="{% url 'users:public_profile' %}"
+                    class="inline-flex min-w-[12rem] items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-8 py-3.5 text-sm font-bold text-slate-200 backdrop-blur-md transition hover:border-violet-400/40 hover:bg-white/10"
+                >
+                    Profil public
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/errors/404_parallax.js' %}" defer></script>
+{% endblock %}

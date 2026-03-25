@@ -1,0 +1,48 @@
+/* Page 404 — scène 3D + parallax (complète Tailwind) */
+#error404-parallax {
+    perspective: min(140vw, 1600px);
+    perspective-origin: 50% 42%;
+}
+
+#error404-stage-3d {
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform 80ms linear;
+}
+
+.error404-digit {
+    display: inline-block;
+    transform-style: preserve-3d;
+    font-weight: 900;
+    line-height: 0.85;
+    letter-spacing: -0.06em;
+    background: linear-gradient(
+        155deg,
+        #ffffff 0%,
+        #c4b5fd 28%,
+        #818cf8 52%,
+        #22d3ee 78%,
+        #e0e7ff 100%
+    );
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 28px 48px rgba(79, 70, 229, 0.45));
+}
+
+.error404-digit-wrap {
+    transform-style: preserve-3d;
+}
+
+.error404-glow-ring {
+    transform: translateZ(-80px) scale(1.15);
+    opacity: 0.35;
+    filter: blur(28px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #error404-stage-3d {
+        transition: none !important;
+    }
+}

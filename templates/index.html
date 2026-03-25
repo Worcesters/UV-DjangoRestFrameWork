@@ -21,9 +21,15 @@
             </p>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                {% if user.is_authenticated %}
+                <a href="{% url 'experience:explore' %}" hx-boost="false" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl shadow-slate-900/20 hover:scale-105 transition-transform">
+                    Explorer l'univers
+                </a>
+                {% else %}
                 <a href="{% url 'users:signup' %}" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl shadow-slate-900/20 hover:scale-105 transition-transform">
                     Commencer l'aventure
                 </a>
+                {% endif %}
                 <a href="#features" class="px-8 py-4 bg-white text-slate-600 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 transition-colors">
                     Explorer les nodes
                 </a>

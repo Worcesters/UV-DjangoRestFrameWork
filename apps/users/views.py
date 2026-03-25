@@ -1,7 +1,7 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LogoutView as DjangoLogoutView
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views import View
@@ -142,13 +142,20 @@ class SignupView(View):
     template_name = "users/signup.html"
     partial_template_name = "partials/user_form.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            if request.headers.get("HX-Request"):
+                response = HttpResponse()
+                response["HX-Redirect"] = "/"
+                return response
+            return redirect("users:index")
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         users = User.objects.all().order_by("-date_joined")
         users_display = services.build_users_display(users)
         form = self.form_class()
         context = {"users_display": users_display, "form": form}
-        if request.headers.get("HX-Request"):
-            return render(request, self.partial_template_name, {**context, "active_tab": "signup"})
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
@@ -169,6 +176,7 @@ class SignupView(View):
                         "success": True,
                         "active_tab": "signup",
                         "form": self.form_class(),
+                        "errors": {},
                     },
                 )
                 response["HX-Trigger"] = "refreshList"
@@ -181,6 +189,7 @@ class SignupView(View):
                 "form": form,
                 "active_tab": "signup",
                 "users_display": users_display,
+                "errors": {},
             },
         )
 
@@ -193,11 +202,19 @@ class LoginView(View):
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             if request.headers.get("HX-Request"):
-                response = render(request, self.partial_template_name, {"active_tab": "login"})
+                response = render(
+                    request,
+                    self.partial_template_name,
+                    {"active_tab": "login", "form": UserForm()},
+                )
                 response["HX-Redirect"] = "/"
                 return response
             return redirect("index")
-        return render(request, self.partial_template_name, {"active_tab": "login"})
+        users = User.objects.all().order_by("-date_joined")
+        users_display = services.build_users_display(users)
+        form = UserForm()
+        context = {"users_display": users_display, "form": form, "active_tab": "login"}
+        return render(request, "users/signup.html", context)
 
     def post(self, request, *args, **kwargs):
         email = request.POST.get("email", "").strip()
@@ -205,23 +222,44 @@ class LoginView(View):
         user = services.authenticate_user(email=email, password=password)
         if user is not None:
             login(request, user)
-            response = render(request, self.partial_template_name, {"login_success": True})
+            response = render(
+                request,
+                self.partial_template_name,
+                {
+                    "login_success": True,
+                    "active_tab": "login",
+                    "errors": {},
+                    "form": UserForm(),
+                },
+            )
             response["HX-Redirect"] = "/"
             return response
         return render(
             request,
             self.partial_template_name,
             {
-                "errors": {"login": "Identifiants invalides"},
+                "errors": {"login": "Identifiants invalides."},
                 "active_tab": "login",
+                "form": UserForm(),
+                "login_email": email,
             },
         )
 
 
 class LogoutRedirectView(DjangoLogoutView):
-    """Déconnexion puis redirection vers la page d’inscription."""
+    """Déconnexion (POST) puis redirection vers l’accueil."""
 
-    next_page = reverse_lazy("users:signup")
+    next_page = reverse_lazy("users:index")
+
+
+def page_not_found(request, exception=None):
+    """Page 404 personnalisée (handler404 en prod, ou route catch-all en DEBUG)."""
+    return render(request, "404.html", status=404)
+
+
+def catch_all_404(request, catchall):
+    """DEBUG uniquement : toute URL non couverte par les routes précédentes → même 404 que en production."""
+    return page_not_found(request, None)
 
 
 class UserListPartialView(ListView):
