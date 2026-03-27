@@ -1,10 +1,21 @@
-# VS Code : supprimer les espaces en fin de ligne (PowerShell)
+# Auto White-space remover
 
 Petit script **Windows PowerShell** qui modifie le fichier **`settings.json`** de Visual Studio Code pour activer ou désactiver la suppression des **espaces orphelins en fin de ligne** (`files.trimTrailingWhitespace`).
 
 ---
 
-## Comportement
+## Table des matières {#toc}
+
+1. [Comportement](#vscode-1)
+2. [Prérequis](#vscode-2)
+3. [Script](#vscode-3)
+4. [Exécution](#vscode-4)
+5. [Équivalent dans settings.json](#vscode-5)
+6. [Notes](#vscode-6)
+
+---
+
+## Comportement {#vscode-1}
 
 1. Lit `settings.json` dans le profil utilisateur Code.
 2. Demande si vous souhaitez **activer** la suppression des espaces en fin de ligne (**Y** / **N**).
@@ -13,17 +24,17 @@ Petit script **Windows PowerShell** qui modifie le fichier **`settings.json`** d
 
 ---
 
-## Prérequis
+## Prérequis {#vscode-2}
 
-- Windows  
-- [Visual Studio Code](https://code.visualstudio.com/) installé  
+- Windows
+- [Visual Studio Code](https://code.visualstudio.com/) installé
 - PowerShell (console ou **Terminal intégré** VS Code)
 
 > **Cursor** : le chemin peut être `Cursor\User\settings.json` sous `%APPDATA%` au lieu de `Code\User\settings.json`. Adaptez `$settingsPath` si besoin.
 
 ---
 
-## Script
+## Script {#vscode-3}
 
 Enregistrez le bloc suivant dans un fichier, par exemple `Set-VsCodeTrimTrailingWhitespace.ps1`, puis exécutez-le dans PowerShell :
 
@@ -80,7 +91,7 @@ if ($restoreDefault -eq 'Y' -or $restoreDefault -eq 'y') {
 
 ---
 
-## Exécution
+## Exécution {#vscode-4}
 
 Dans PowerShell (en tant qu’utilisateur, pas obligatoirement administrateur) :
 
@@ -91,7 +102,7 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned   # une fois si les scripts 
 
 ---
 
-## Équivalent dans settings.json
+## Équivalent dans settings.json {#vscode-5}
 
 Après activation (**Y**), vous devriez voir (ou fusionner avec vos autres clés) :
 
@@ -105,9 +116,9 @@ Quand c’est à **`false`**, VS Code ne supprime pas automatiquement les espace
 
 ---
 
-## Notes
+## Notes {#vscode-6}
 
-- **`ConvertTo-Json`** peut réordonner les clés ; le fichier reste valide pour VS Code.  
-- Si votre `settings.json` contient des **commentaires** (`//`), `ConvertFrom-Json` **échoue** : dans ce cas, éditez la clé à la main ou utilisez un fichier sans commentaires pour ce script.  
-- Pour **Cursor**, remplacez le chemin par par exemple :  
+- **`ConvertTo-Json`** peut réordonner les clés ; le fichier reste valide pour VS Code.
+- Si votre `settings.json` contient des **commentaires** (`//`), `ConvertFrom-Json` **échoue** : dans ce cas, éditez la clé à la main ou utilisez un fichier sans commentaires pour ce script.
+- Pour **Cursor**, remplacez le chemin par par exemple :
   `"$env:APPDATA\Cursor\User\settings.json"`.

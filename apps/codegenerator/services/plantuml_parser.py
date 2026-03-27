@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Tuple
 
 from .models import AttributeDef, ClassDef, MethodDef, ParameterDef
 
@@ -21,10 +21,10 @@ class PlantUmlParser:
 
     _MEMBER_VIS_RE = re.compile(r"^(?P<vis>[+\-#~])\s*(?P<rest>.+)$")
     _METHOD_RE = re.compile(
-        r"^(?P<name>\w+)\((?P<params>[^)]*)\)\s*(?::\s*(?P<ret>[\w\[\]<>.]+))?$"
+        r"^(?P<name>\w+)\((?P<params>[^)]*)\)\s*(?::\s*(?P<ret>[\w\[\]<>.\\]+))?$"
     )
-    _ATTRIBUTE_RE = re.compile(r"^(?P<name>\w+)\s*:\s*(?P<type>[\w\[\]<>.]+)$")
-    _PARAM_RE = re.compile(r"^(?P<name>\w+)\s*:\s*(?P<type>[\w\[\]<>.]+)$")
+    _ATTRIBUTE_RE = re.compile(r"^(?P<name>\w+)\s*:\s*(?P<type>[\w\[\]<>.\\]+)$")
+    _PARAM_RE = re.compile(r"^(?P<name>\w+)\s*:\s*(?P<type>[\w\[\]<>.\\]+)$")
 
     def parse(self, plantuml_text: str) -> List[ClassDef]:
         classes: List[ClassDef] = []
@@ -57,8 +57,72 @@ class PlantUmlParser:
             classes.append(class_def)
 
         self._apply_implements_relations(plantuml_text, classes)
-        self._apply_extends_relations(plantuml_text, classes)
+        edges = self._collect_inheritance_edges(plantuml_text)
+        self._apply_extends_from_edges(classes, edges)
+        self._ensure_stub_classes(classes, edges)
         return classes
+
+    @staticmethod
+    def _normalize_class_name(raw: str) -> str:
+        """PlantUML autorise \\Exception (PHP) : on normalise en Exception pour la génération."""
+        s = raw.strip()
+        while s.startswith("\\"):
+            s = s[1:]
+        return s
+
+    def _collect_inheritance_edges(self, plantuml_text: str) -> List[Tuple[str, str]]:
+        """Retourne des couples (enfant, parent). Deux syntaxes PlantUML :
+        - Parent <|-- Enfant
+        - Enfant --|> Parent (flèche vers la classe mère)
+        """
+        edges: List[Tuple[str, str]] = []
+        # Parent <|-- Child
+        re_arrow_to_parent = re.compile(
+            r"([\w\\$]+)\s*<\|--\s*([\w\\$]+)(?:\s*:\s*\w+)?",
+            re.IGNORECASE,
+        )
+        # Child --|> Parent
+        re_arrow_from_child = re.compile(
+            r"([\w\\$]+)\s*--\|>\s*([\w\\$]+)(?:\s*:\s*\w+)?",
+            re.IGNORECASE,
+        )
+        for m in re_arrow_to_parent.finditer(plantuml_text):
+            parent = self._normalize_class_name(m.group(1))
+            child = self._normalize_class_name(m.group(2))
+            edges.append((child, parent))
+        for m in re_arrow_from_child.finditer(plantuml_text):
+            child = self._normalize_class_name(m.group(1))
+            parent = self._normalize_class_name(m.group(2))
+            edges.append((child, parent))
+        return edges
+
+    def _apply_extends_from_edges(
+        self, classes: List[ClassDef], edges: List[Tuple[str, str]]
+    ) -> None:
+        for child, parent in edges:
+            for c in classes:
+                if c.name == child and not c.is_interface:
+                    c.parent = parent
+                    break
+
+    def _ensure_stub_classes(
+        self, classes: List[ClassDef], edges: List[Tuple[str, str]]
+    ) -> None:
+        """Classe mentionnée seulement dans une relation d'héritage (sans bloc class) : squelette."""
+        known = {c.name for c in classes}
+        for child, parent in edges:
+            if child in known:
+                continue
+            classes.append(
+                ClassDef(
+                    name=child,
+                    parent=parent,
+                    is_abstract=False,
+                    is_interface=False,
+                    interfaces=[],
+                )
+            )
+            known.add(child)
 
     def _apply_implements_relations(self, plantuml_text: str, classes: List[ClassDef]) -> None:
         """Remplit interfaces depuis les relations du type 'Interface <|.. Class : implements'."""
@@ -73,20 +137,6 @@ class PlantUmlParser:
                 if c.name == class_name and not c.is_interface:
                     if interface_name not in c.interfaces:
                         c.interfaces.append(interface_name)
-                    break
-
-    def _apply_extends_relations(self, plantuml_text: str, classes: List[ClassDef]) -> None:
-        """Remplit parent depuis les relations du type 'Parent <|-- Child : extends'."""
-        extends_re = re.compile(
-            r"(\w+)\s*<\|--\s*(\w+)(?:\s*:\s*extends)?",
-            re.IGNORECASE,
-        )
-        for match in extends_re.finditer(plantuml_text):
-            parent_name = match.group(1)
-            child_name = match.group(2)
-            for c in classes:
-                if c.name == child_name and not c.is_interface:
-                    c.parent = parent_name
                     break
 
     def _parse_members(self, body: str, class_def: ClassDef) -> None:

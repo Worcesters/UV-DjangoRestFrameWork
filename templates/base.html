@@ -56,6 +56,11 @@
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
                 </a>
 
+                <a href="{% url 'contact:index' %}" class="text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors relative group">
+                    Contact
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-teal-500 transition-all group-hover:w-full"></span>
+                </a>
+
                 <a href="{% url 'users:public_profile' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors relative group">
                     Profil public
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
@@ -93,6 +98,7 @@
                 <a href="/" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Accueil</a>
                 <a href="{% url 'experience:explore' %}" hx-boost="false" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">🎮 Expérience 3D</a>
                 <a href="{% url 'users:documents' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Documents</a>
+                <a href="{% url 'contact:index' %}" class="text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors">Contact</a>
                 <a href="{% url 'users:public_profile' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Profil public</a>
                 <a href="{% url 'users:generation_tools' %}" class="text-sm font-semibold text-slate-700 hover:text-violet-600 transition-colors">Outils de génération</a>
 

@@ -93,6 +93,7 @@
 }
 
 .preview-markdown h2 {
+    scroll-margin-top: 7rem; /* nav sticky : ancres #section visibles sous la barre */
     position: relative;
     z-index: 1;
     font-size: 1.35rem;
@@ -121,6 +122,7 @@
 }
 
 .preview-markdown h3 {
+    scroll-margin-top: 6.5rem;
     font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: -0.02em;

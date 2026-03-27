@@ -63,11 +63,12 @@ class PythonCodeGenerator(CodeGenerator):
 
         for cls in classes:
             bases: List[str] = []
+            # Ordre voulu : class KoTech(ABC, Ko) — ABC explicite pour les classes abstraites, puis parent.
+            if cls.is_abstract or cls.is_interface:
+                bases.append("ABC")
             if cls.parent:
                 bases.append(cls.parent)
             bases.extend(cls.interfaces)
-            if (cls.is_abstract or cls.is_interface) and "ABC" not in bases:
-                bases.append("ABC")
             base_decl = f"({', '.join(bases)})" if bases else ""
             lines.append(f"class {cls.name}{base_decl}:")
             if not cls.attributes and not cls.methods:
@@ -118,6 +119,8 @@ class PythonCodeGenerator(CodeGenerator):
     def _py_type(self, type_name: str) -> str:
         """Convertit un type PlantUML en type Python (list[X], Any, etc.)."""
         t = type_name.strip()
+        while t.startswith("\\"):
+            t = t[1:]
         # List<Container> -> list[Container] (syntaxe Python 3.9+ / __future__ annotations)
         if t.lower().startswith("list<") and t.endswith(">"):
             inner = t[5:-1].strip()
@@ -138,7 +141,7 @@ class PhpCodeGenerator(CodeGenerator):
     def generate(self, classes: List[ClassDef]) -> str:
         lines: List[str] = ["<?php", ""]
         for cls in classes:
-            extends = f" extends {cls.parent}" if cls.parent else ""
+            extends = f" extends {self._php_extends_name(cls.parent)}" if cls.parent else ""
             implements = f" implements {', '.join(cls.interfaces)}" if cls.interfaces else ""
 
             if cls.is_interface:
@@ -187,7 +190,19 @@ class PhpCodeGenerator(CodeGenerator):
             lines.append("")
         return "\n".join(lines).strip() + "\n"
 
+    def _php_extends_name(self, parent: str) -> str:
+        """Exception (PlantUML / PHP \\Exception) -> \\Exception pour extends."""
+        t = parent.strip()
+        while t.startswith("\\"):
+            t = t[1:]
+        if t == "Exception":
+            return "\\Exception"
+        return t
+
     def _php_type(self, type_name: str) -> str:
+        t = type_name.strip()
+        while t.startswith("\\"):
+            t = t[1:]
         mapping = {
             "string": "string",
             "int": "int",
@@ -195,8 +210,11 @@ class PhpCodeGenerator(CodeGenerator):
             "bool": "bool",
             "boolean": "bool",
             "void": "void",
+            "exception": "\\Exception",
         }
-        return mapping.get(type_name.lower(), "mixed")
+        if t == "Exception":
+            return "\\Exception"
+        return mapping.get(t.lower(), "mixed")
 
     def _php_attr_type_and_default(self, type_name: str) -> tuple[str, str | None]:
         """Retourne (type PHP, valeur par défaut). Pour List<...> / array, initialise à []."""
@@ -236,7 +254,7 @@ class JavaCodeGenerator(CodeGenerator):
                     lines.append(f"    {ret} {method.name}({params});")
                 lines.append("}")
             else:
-                extends = f" extends {cls.parent}" if cls.parent else ""
+                extends = f" extends {self._java_extends_name(cls.parent)}" if cls.parent else ""
                 implements = f" implements {', '.join(cls.interfaces)}" if cls.interfaces else ""
                 class_mod = "abstract " if cls.is_abstract else ""
                 lines = [f"public {class_mod}class {cls.name}{extends}{implements} {{", ""]
@@ -273,9 +291,17 @@ class JavaCodeGenerator(CodeGenerator):
             chunks.append("\n".join(lines).strip())
         return "\n\n".join(chunks).strip() + "\n"
 
+    def _java_extends_name(self, parent: str) -> str:
+        t = parent.strip()
+        while t.startswith("\\"):
+            t = t[1:]
+        return t
+
     def _java_type(self, type_name: str) -> str:
         """Convertit un type PlantUML en type Java (List<X>, Object, etc.)."""
         t = type_name.strip()
+        while t.startswith("\\"):
+            t = t[1:]
         if t.lower().startswith("list<") and t.endswith(">"):
             inner = t[5:-1].strip()
             return f"List<{self._java_type(inner)}>"

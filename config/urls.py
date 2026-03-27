@@ -31,6 +31,7 @@ urlpatterns = [
     path('codegenerator/', include('apps.codegenerator.urls')),
     path('pipeline-generator/', include('apps.pipeline_generator.urls')),
     path('code-to-bpmn/', include('apps.code_to_bpmn.urls')),
+    path('contact/', include('apps.contact.urls')),
 ]
 
 if settings.DEBUG:

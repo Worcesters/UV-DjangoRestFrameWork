@@ -302,7 +302,7 @@ export class BossCombatService extends AbstractService {
             } else {
                 drone = new state.THREE.Mesh(
                     new state.THREE.SphereGeometry(6.5, 10, 10),
-                    new state.THREE.MeshBasicMaterial({ color: 0xffd000, emissive: 0xffcc00, emissiveIntensity: 2.8 })
+                    new state.THREE.MeshBasicMaterial({ color: 0xffe080 })
                 );
             }
             drone.position.copy(spawn);
@@ -347,7 +347,7 @@ export class BossCombatService extends AbstractService {
             } else {
                 drone = new state.THREE.Mesh(
                     new state.THREE.SphereGeometry(5.2, 9, 9),
-                    new state.THREE.MeshBasicMaterial({ color: 0xffd000, emissive: 0xffcc00, emissiveIntensity: 3.2 })
+                    new state.THREE.MeshBasicMaterial({ color: 0xffea90 })
                 );
             }
             drone.position.copy(spawn);

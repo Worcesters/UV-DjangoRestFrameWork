@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact - Plateforme Unifiée 2026{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contact/page.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contact-page">
+    {# Hero #}
+    <section class="contact-hero relative p-8 shadow-sm md:p-10 lg:p-12" aria-labelledby="contact-heading">
+        <div class="contact-hero-glow contact-hero-glow--a" aria-hidden="true"></div>
+        <div class="contact-hero-glow contact-hero-glow--b" aria-hidden="true"></div>
+        <div class="relative">
+            <p class="mb-4 flex flex-wrap items-center gap-3">
+                <span class="sublime-kicker"><span class="sublime-kicker-inner">Contact</span></span>
+                <span class="rounded-full border border-teal-200/80 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+                    Réponse sous 48h
+                </span>
+            </p>
+            <h1 id="contact-heading" class="text-3xl font-black tracking-tight text-slate-900 md:text-4xl lg:text-[2.65rem] leading-[1.12]">
+                <span class="sublime-page-h1-wrap"><span class="sublime-page-h1">Parlons de votre projet</span></span>
+            </h1>
+            <div class="contact-title-underline mt-4" aria-hidden="true"></div>
+            <p class="mt-5 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">
+                Une question technique, une idée de collaboration ou un besoin sur mesure : décrivez votre contexte
+                et nous reviendrons vers vous avec une proposition claire — sans engagement.
+            </p>
+        </div>
+    </section>
+
+    {# Grille principale #}
+    <section class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-10" aria-label="Contenu contact">
+        {# Colonne gauche : repères visuels (pas de formulaire) #}
+        <div class="lg:col-span-5 space-y-5">
+            <article class="contact-side-card rounded-3xl border border-slate-100 bg-white p-7 shadow-sm">
+                <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Pourquoi écrire</h2>
+                <ul class="mt-6 space-y-5 text-sm text-slate-600">
+                    <li class="flex gap-4">
+                        <span class="contact-icon-ring shrink-0" aria-hidden="true">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </span>
+                        <span><strong class="font-semibold text-slate-800">Brief cadré</strong> — objectifs, contraintes et délais pour une réponse actionnable.</span>
+                    </li>
+                    <li class="flex gap-4">
+                        <span class="contact-icon-ring shrink-0 text-teal-600" aria-hidden="true">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </span>
+                        <span><strong class="font-semibold text-slate-800">Données respectées</strong> — pas de revente, usage strictement lié à votre demande.</span>
+                    </li>
+                    <li class="flex gap-4">
+                        <span class="contact-icon-ring shrink-0 text-violet-600" aria-hidden="true">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </span>
+                        <span><strong class="font-semibold text-slate-800">Canal direct</strong> — un interlocuteur technique, pas un centre d’appel.</span>
+                    </li>
+                </ul>
+            </article>
+
+            <div class="contact-trust-strip flex flex-wrap items-center gap-4 px-5 py-4 text-xs text-slate-500">
+                <span class="inline-flex items-center gap-2 font-semibold text-slate-600">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)]" aria-hidden="true"></span>
+                    Disponibilité Europe
+                </span>
+                <span class="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden="true"></span>
+                <span>Français · English</span>
+            </div>
+        </div>
+
+        {# Colonne droite : emplacement formulaire (à remplir par vous) #}
+        <div class="lg:col-span-7 min-w-0">
+            <div class="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8 lg:p-10">
+                <header class="mb-8 border-b border-slate-100 pb-6">
+                    <h2 class="text-xl font-black tracking-tight text-slate-900 md:text-2xl">Écrivez-nous</h2>
+                    <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-500">
+                        Quelques informations suffisent : nous vous répondons avec une proposition claire, sans engagement.
+                    </p>
+                </header>
+
+                {% block contact_form %}
+                <div class="contact-form-placeholder">
+                    <!-- placeholder si le bloc n’est pas surchargé -->
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

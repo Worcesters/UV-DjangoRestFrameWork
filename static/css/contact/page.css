@@ -1,0 +1,191 @@
+/* Page Contact — complète Tailwind (base.html) */
+
+.contact-page {
+    position: relative;
+    padding-bottom: 4rem;
+    padding-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .contact-page {
+        padding-top: 2.5rem;
+    }
+}
+
+/* Fond hero : grille + halos (hors Tailwind pur) */
+.contact-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 252, 0.98) 50%, rgba(241, 245, 249, 0.95) 100%);
+}
+
+.contact-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(59, 130, 246, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.12) 65%, transparent 100%);
+    pointer-events: none;
+}
+
+.contact-hero-glow {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(64px);
+    pointer-events: none;
+    opacity: 0.55;
+}
+
+.contact-hero-glow--a {
+    width: 14rem;
+    height: 14rem;
+    right: -3rem;
+    top: -4rem;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, transparent 70%);
+}
+
+.contact-hero-glow--b {
+    width: 12rem;
+    height: 12rem;
+    left: -2rem;
+    bottom: -3rem;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.35) 0%, transparent 70%);
+}
+
+/* Ligne décorative sous le titre */
+.contact-title-underline {
+    height: 3px;
+    width: 5rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6366f1, #14b8a6, #a855f7);
+    background-size: 200% 100%;
+    animation: contact-line-shift 8s ease infinite;
+}
+
+@keyframes contact-line-shift {
+    0%,
+    100% {
+        background-position: 0% center;
+    }
+    50% {
+        background-position: 100% center;
+    }
+}
+
+/* Cartes latérales : léger lift au survol */
+.contact-side-card {
+    transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s ease;
+}
+
+.contact-side-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 20px 40px -20px rgba(15, 23, 42, 0.12),
+        0 0 0 1px rgba(226, 232, 240, 0.8);
+}
+
+.contact-icon-ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 1rem;
+    background: linear-gradient(145deg, rgba(238, 242, 255, 0.95), rgba(240, 253, 250, 0.85));
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    color: #4f46e5;
+}
+
+/* Zone formulaire : cadre pour votre futur markup */
+.contact-form-shell {
+    position: relative;
+    min-height: min(22rem, 52vh);
+    border-radius: 1.5rem;
+    border: 2px dashed rgba(148, 163, 184, 0.55);
+    background: linear-gradient(160deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.5) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.contact-form-shell::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+        125deg,
+        rgba(99, 102, 241, 0.25),
+        rgba(20, 184, 166, 0.2),
+        rgba(168, 85, 247, 0.2)
+    );
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.45;
+}
+
+.contact-form-placeholder {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.contact-form-placeholder kbd {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.45rem;
+    border-radius: 0.35rem;
+    border: 1px solid rgba(203, 213, 225, 0.9);
+    background: rgba(255, 255, 255, 0.9);
+    color: #64748b;
+}
+
+/* Formulaire : léger relief des sections (complète Tailwind dans form.html) */
+.contact-form label {
+    letter-spacing: 0.06em;
+}
+
+/* Bouton submit : fond explicite (évite un bouton « tout blanc » si classes Tailwind absentes du build) */
+.contact-form-submit,
+.contact-form button[type="submit"] {
+    background-color: #0d9488; /* teal-600 */
+    color: #fff;
+}
+.contact-form-submit:hover,
+.contact-form button[type="submit"]:hover {
+    background-color: #0f766e; /* teal-700 */
+}
+.contact-form-submit:focus-visible,
+.contact-form button[type="submit"]:focus-visible {
+    outline: 2px solid #14b8a8; /* teal-500 */
+    outline-offset: 2px;
+}
+
+/* Bandeau bas : confiance */
+.contact-trust-strip {
+    border-radius: 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(8px);
+}

@@ -258,6 +258,9 @@
         let tutorialSlideIndex = 0;
         const tutorialPreviews = [];
         let bonusToastTimeout = null;
+        let propulsionChargeIntervalId = null;
+        let manualGateCheckIntervalId = null;
+        let gameDisposed = false;
         let _animateLoopStarted = false;
 
         const gameDeps = {
@@ -612,7 +615,7 @@
             document.getElementById('status-text').innerText = 'Main Thruster Charging';
 
             let charge = 0;
-            const interval = setInterval(() => {
+            propulsionChargeIntervalId = setInterval(() => {
                 charge += 1.5; // Vitesse de remplissage de la barre
                 bar.style.width = charge + "%";
 
@@ -660,7 +663,8 @@
                 }
 
                 if(charge >= 100) {
-                    clearInterval(interval);
+                    clearInterval(propulsionChargeIntervalId);
+                    propulsionChargeIntervalId = null;
                     hud.style.opacity = "0";
                     document.getElementById('status-text').innerText = 'Vortex Engaged';
                     shakeIntensity = 18;
@@ -682,9 +686,10 @@
             activeGate.position.set(0, 0, ship.position.z - 3000);
             activeGate.scale.set(70, 70, 70);
             scene.add(activeGate);
-            const check = setInterval(() => {
+            manualGateCheckIntervalId = setInterval(() => {
                 if (ship.position.z < activeGate.position.z + 50) {
-                    clearInterval(check);
+                    clearInterval(manualGateCheckIntervalId);
+                    manualGateCheckIntervalId = null;
                     startHyperspace(activeGate);
                 }
             }, 16);
@@ -802,9 +807,7 @@
         function initFriendBulletAssets() {
             friendBulletGeo = new THREE.SphereGeometry(1.35, 8, 8);
             friendBulletMat = new THREE.MeshBasicMaterial({
-                color: 0xfff59d,
-                emissive: 0xffe066,
-                emissiveIntensity: 2
+                color: 0xffeb9a
             });
         }
 
@@ -855,7 +858,7 @@
             } else {
                 drone = new THREE.Mesh(
                     new THREE.SphereGeometry(2.8, 12, 12),
-                    new THREE.MeshBasicMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 2 })
+                    new THREE.MeshBasicMaterial({ color: 0xffe066 })
                 );
             }
             // Lumiere volontairement douce pour limiter les micro-freezes quand on spam le tir.
@@ -1008,7 +1011,12 @@
         }
 
         const canvasEl = document.getElementById('space-canvas');
-        canvasEl.addEventListener('touchstart', (e) => {
+        const stopTouchControl = () => {
+            touchControlActive = false;
+            isTouchFireHeld = false;
+        };
+        function onCanvasTouchStart(e) {
+            if (gameDisposed) return;
             if (gameOver) return;
             if (!e.touches || !e.touches.length) return;
             const t = e.touches[0];
@@ -1016,21 +1024,17 @@
             touchControlActive = true;
             isTouchFireHeld = true;
             e.preventDefault();
-        }, { passive: false });
-
-        canvasEl.addEventListener('touchmove', (e) => {
+        }
+        function onCanvasTouchMove(e) {
+            if (gameDisposed) return;
             if (!e.touches || !e.touches.length) return;
             const t = e.touches[0];
             updateTouchTargetFromClient(t.clientX, t.clientY);
             touchControlActive = true;
             e.preventDefault();
-        }, { passive: false });
-
-        const stopTouchControl = () => {
-            touchControlActive = false;
-            isTouchFireHeld = false;
-        };
-        canvasEl.addEventListener('touchend', (e) => {
+        }
+        function onCanvasTouchEnd(e) {
+            if (gameDisposed) return;
             if (!e.touches || e.touches.length === 0) {
                 stopTouchControl();
             } else {
@@ -1038,10 +1042,91 @@
                 updateTouchTargetFromClient(t.clientX, t.clientY);
             }
             e.preventDefault();
-        }, { passive: false });
+        }
+        canvasEl.addEventListener('touchstart', onCanvasTouchStart, { passive: false });
+        canvasEl.addEventListener('touchmove', onCanvasTouchMove, { passive: false });
+        canvasEl.addEventListener('touchend', onCanvasTouchEnd, { passive: false });
         canvasEl.addEventListener('touchcancel', stopTouchControl, { passive: true });
 
+        function disposeThreeObject(obj) {
+            if (!obj) return;
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+                const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+                mats.forEach((m) => {
+                    if (m && m.map) m.map.dispose();
+                    if (m && m.dispose) m.dispose();
+                });
+            }
+        }
+
+        function onGameVisibilityChange() {
+            if (document.visibilityState === 'hidden') disposeSpaceGame();
+        }
+
+        function disposeSpaceGame() {
+            if (gameDisposed) return;
+            gameDisposed = true;
+
+            document.removeEventListener('visibilitychange', onGameVisibilityChange);
+            window.removeEventListener('pagehide', disposeSpaceGame);
+
+            if (propulsionChargeIntervalId != null) {
+                clearInterval(propulsionChargeIntervalId);
+                propulsionChargeIntervalId = null;
+            }
+            if (manualGateCheckIntervalId != null) {
+                clearInterval(manualGateCheckIntervalId);
+                manualGateCheckIntervalId = null;
+            }
+            if (bonusToastTimeout) {
+                clearTimeout(bonusToastTimeout);
+                bonusToastTimeout = null;
+            }
+
+            window.removeEventListener('resize', handleResize);
+            window.onkeydown = null;
+            window.onkeyup = null;
+
+            canvasEl.removeEventListener('touchstart', onCanvasTouchStart, { passive: false });
+            canvasEl.removeEventListener('touchmove', onCanvasTouchMove, { passive: false });
+            canvasEl.removeEventListener('touchend', onCanvasTouchEnd, { passive: false });
+            canvasEl.removeEventListener('touchcancel', stopTouchControl, { passive: true });
+
+            try {
+                gameFacade.animate.stop();
+            } catch (_e) {}
+
+            /* Ne pas parcourir les scènes des previews : les clones peuvent partager la géométrie avec les GLB du jeu. */
+            for (let i = 0; i < tutorialPreviews.length; i++) {
+                const p = tutorialPreviews[i];
+                if (p && p.renderer) p.renderer.dispose();
+            }
+            tutorialPreviews.length = 0;
+
+            scene.traverse(disposeThreeObject);
+            renderer.dispose();
+
+            if (renderer.domElement && renderer.domElement.parentNode) {
+                try {
+                    const gl = renderer.getContext();
+                    const lose = gl && gl.getExtension('WEBGL_lose_context');
+                    if (lose) lose.loseContext();
+                } catch (_e) {}
+            }
+
+            window.prevTutorialSlide = null;
+            window.nextTutorialSlide = null;
+            window.closeTutorial = null;
+            window.dialGlyph = null;
+            window.startPropulsionCharge = null;
+        }
+
+        document.addEventListener('visibilitychange', onGameVisibilityChange);
+        window.addEventListener('pagehide', disposeSpaceGame);
+
         function animate() {
+            if (gameDisposed) return;
             if (!ship) return;
             if (tutorialActive) {
                 renderTutorialPreviews();
@@ -1440,7 +1525,7 @@
                             spawnPos.add(dir.clone().multiplyScalar(150));
                             const bolt = new THREE.Mesh(
                                 new THREE.CylinderGeometry(4.2, 4.2, 95, 10),
-                                new THREE.MeshBasicMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 5 })
+                                new THREE.MeshBasicMaterial({ color: 0x66ffff })
                             );
                             bolt.position.copy(spawnPos);
                             bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
@@ -1457,7 +1542,7 @@
                             const dirWing = tempVecA.subVectors(tempVecB, wingSpawn).normalize();
                             const spread = [0.88, 1.12];
                             for (let j = 0; j < spread.length; j++) {
-                                const wingBolt = new THREE.Mesh(new THREE.SphereGeometry(2.7, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 3 }));
+                                const wingBolt = new THREE.Mesh(new THREE.SphereGeometry(2.7, 8, 8), new THREE.MeshBasicMaterial({ color: 0x55ffff }));
                                 wingBolt.position.copy(wingSpawn).add(new THREE.Vector3(0, (j === 0 ? -8 : 8), 0));
                                 wingBolt.userData = { velocity: dirWing.clone().multiplyScalar(24 * spread[j]), speed: 24, damageScale: 10, isBig: false };
                                 scene.add(wingBolt); bossProjectiles.push(wingBolt);

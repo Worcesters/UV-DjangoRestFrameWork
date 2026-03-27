@@ -2,7 +2,15 @@
 
 Ceci est un exemple de fichier Markdown lu **directement depuis le dossier** `content/markdown/`.
 
-## Comment faire ?
+---
+
+## Table des matières {#toc}
+
+1. [Comment faire ?](#bv-1)
+
+---
+
+## Comment faire ? {#bv-1}
 
 1. Ajoutez un fichier `nom-de-votre-page.md` dans ce dossier.
 2. Utilisez une première ligne `# Titre` pour le titre affiché sur le site.

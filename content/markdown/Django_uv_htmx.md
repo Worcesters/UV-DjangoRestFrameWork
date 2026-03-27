@@ -1,11 +1,33 @@
-# 🚀 Full-Stack Django 2026 : le guide de référence
+# 🚀 Full-Stack Django 2026
 
-> **Stack :** Python 3.12+ | Django 6.x | HTMX 2.x | DRF | uv  
+> **Stack :** Python 3.12+ | Django 6.x | HTMX 2.x | DRF | uv
 > **Structure :** projet `config/` + applications dans `apps/` (norme projet « plateforme » 2026).
 
 ---
 
-## 📐 0. Arborescence cible (norme 2026)
+## Table des matières {#toc}
+
+1. [Arborescence cible (norme 2026)](#dj-0)
+2. [Gestion de projet avec `uv`](#dj-1)
+3. [HTMX : les attributs utiles](#dj-2)
+4. [Verbes HTTP](#dj-2-verbes)
+5. [Ciblage et contenu de la réponse](#dj-2-ciblage)
+6. [Comportement et UX](#dj-2-comportement)
+7. [Django REST Framework (DRF)](#dj-3)
+8. [CSRF + template de base (HTMX)](#dj-4)
+9. [Architecture par app (SRP)](#dj-5)
+10. [Fichiers statiques et `{% static %}`](#dj-static)
+11. [Configuration (`config/settings/base.py`)](#dj-static-config)
+12. [Arborescence conseillée](#dj-static-arbo)
+13. [Dans un template](#dj-static-template)
+14. [Bonnes pratiques 2026](#dj-static-bp)
+15. [Script d’initialisation : `init_project.sh`](#dj-init)
+16. [Après le script](#dj-init-apres)
+17. [Résumé](#dj-resume)
+
+---
+
+## 📐 0. Arborescence cible (norme 2026) {#dj-0}
 
 Séparer **le projet Django** (`config/`) et **les applications métier** (`apps/`) : settings découpés, URLs par app, templates globaux à la racine.
 
@@ -40,13 +62,13 @@ projet/
 └── .env.example
 ```
 
-- **`config/`** : point d’entrée Django, **pas** de logique métier lourde ici.  
-- **`apps/<nom>/`** : une brique fonctionnelle (users, catalogue, facturation…).  
+- **`config/`** : point d’entrée Django, **pas** de logique métier lourde ici.
+- **`apps/<nom>/`** : une brique fonctionnelle (users, catalogue, facturation…).
 - **`templates/`** à la racine : `base.html`, pages partagées ; les apps peuvent aussi avoir leur sous-dossier `templates/`.
 
 ---
 
-## 📦 1. Gestion de projet avec `uv`
+## 📦 1. Gestion de projet avec `uv` {#dj-1}
 
 `uv` est l’outil standard pour verrouiller les dépendances et lancer les commandes sans activer manuellement le venv.
 
@@ -60,11 +82,11 @@ projet/
 
 ---
 
-## ⚡ 2. HTMX : les attributs utiles
+## ⚡ 2. HTMX : les attributs utiles {#dj-2}
 
 HTMX enrichit le HTML sans framework JS lourd. Ci-dessous, **un exemple minimal** par attribut (chemins d’URL à adapter à tes vues Django).
 
-### Verbes HTTP
+### Verbes HTTP {#dj-2-verbes}
 
 **`hx-get`** — charge un fragment HTML (liste, détail, formulaire vide).
 
@@ -121,7 +143,7 @@ HTMX enrichit le HTML sans framework JS lourd. Ci-dessous, **un exemple minimal*
 </button>
 ```
 
-### Ciblage et contenu de la réponse
+### Ciblage et contenu de la réponse {#dj-2-ciblage}
 
 **`hx-target`** — où injecter la réponse (souvent `#main-content` ou un conteneur local).
 
@@ -146,7 +168,7 @@ HTMX enrichit le HTML sans framework JS lourd. Ci-dessous, **un exemple minimal*
 
 *(Le lien boosté charge une page entière ; HTMX n’extrait que `#main-content`.)*
 
-### Comportement et UX
+### Comportement et UX {#dj-2-comportement}
 
 **`hx-boost="true"`** — les liens et formulaires du bloc passent en AJAX (souvent sur `<body>` avec `hx-target` / `hx-select`).
 
@@ -186,7 +208,7 @@ HTMX enrichit le HTML sans framework JS lourd. Ci-dessous, **un exemple minimal*
 
 ---
 
-## 🔌 3. Django REST Framework (DRF)
+## 🔌 3. Django REST Framework (DRF) {#dj-3}
 
 Réserver DRF aux **API** (mobile, partenaires, JS autonome). Pour le rendu HTML, **HTMX + vues Django** suffisent en général.
 
@@ -196,7 +218,7 @@ Réserver DRF aux **API** (mobile, partenaires, JS autonome). Pour le rendu HTML
 
 ---
 
-## 🛡️ 4. CSRF + template de base (HTMX)
+## 🛡️ 4. CSRF + template de base (HTMX) {#dj-4}
 
 Django impose le jeton CSRF sur les requêtes mutantes. Avec HTMX, injectez-le dans les en-têtes :
 
@@ -219,7 +241,7 @@ Adaptez `hx-target` / `hx-select` à votre layout (souvent un seul `<main>` mis 
 
 ---
 
-## 📂 5. Architecture par app (SRP)
+## 📂 5. Architecture par app (SRP) {#dj-5}
 
 Dans chaque `apps/<nom>/` :
 
@@ -236,11 +258,11 @@ Dans chaque `apps/<nom>/` :
 
 ---
 
-## 🎨 Fichiers statiques et `{% static %}`
+## 🎨 Fichiers statiques et `{% static %}` {#dj-static}
 
 Django sert les **CSS, JS, images et polices** via le système de fichiers statiques. En dev, ils sont lus depuis tes dossiers sources ; en prod, ils sont **collectés** dans un répertoire unique et servis par le serveur (souvent **WhiteNoise** derrière Gunicorn).
 
-### Configuration (`config/settings/base.py`)
+### Configuration (`config/settings/base.py`) {#dj-static-config}
 
 | Variable | Rôle typique |
 | :--- | :--- |
@@ -249,10 +271,10 @@ Django sert les **CSS, JS, images et polices** via le système de fichiers stati
 | **`STATIC_ROOT`** | Dossier cible du **`collectstatic`** en production (ex. `staticfiles/`). Ne pas versionner ce dossier ; le remplir au déploiement. |
 | **`STORAGES["staticfiles"]`** | Backend utilisé pour les fichiers collectés (ex. **WhiteNoise** avec compression / hash de noms). |
 
-En dev (`runserver`), Django sert automatiquement les fichiers listés dans `STATICFILES_DIRS`.  
+En dev (`runserver`), Django sert automatiquement les fichiers listés dans `STATICFILES_DIRS`.
 En prod : `python manage.py collectstatic` puis le serveur applique `STATIC_URL` + fichiers dans `STATIC_ROOT`.
 
-### Arborescence conseillée
+### Arborescence conseillée {#dj-static-arbo}
 
 Place tes assets **à la racine du projet**, pas dans `config/` :
 
@@ -267,7 +289,7 @@ static/
 
 Les chemins dans les templates sont **relatifs à `static/`**, sans le préfixe `static/` dans la chaîne passée à `{% static %}`.
 
-### Dans un template
+### Dans un template {#dj-static-template}
 
 1. **Charger la librairie de tags** une fois par fichier (souvent en tête du template, ou au début d’un `{% block %}` qui contient des références statiques) :
 
@@ -295,7 +317,7 @@ Exemple réel : feuille de style pour l’aperçu Markdown d’une page document
 - **`'css/users/markdown_preview.css'`** correspond au fichier **`static/css/users/markdown_preview.css`** sur le disque.
 - Tu peux combiner plusieurs `<link>` ou `<script src="{% static 'js/...' %}">` dans le même bloc.
 
-### Bonnes pratiques 2026
+### Bonnes pratiques 2026 {#dj-static-bp}
 
 - **`{% load static %}`** dans chaque template qui utilise `{% static '...' %}` (ou un parent qui étend déjà un template ayant chargé `static` — en pratique, un `load` explicite en haut du fichier évite les surprises).
 - Ne pas coder en dur `/static/css/...` : les chemins peuvent changer (CDN, manifest).
@@ -304,7 +326,7 @@ Exemple réel : feuille de style pour l’aperçu Markdown d’une page document
 
 ---
 
-## 🛠️ Script d’initialisation : `init_project.sh`
+## 🛠️ Script d’initialisation : `init_project.sh` {#dj-init}
 
 Ce script crée **toute la base** : `uv`, projet `config`, paquet `apps`, première app `users`, dossiers `templates/`, `static/`, `content/markdown/`, et un **settings découpé** (`config/settings/base.py` + `dev.py`).
 
@@ -524,15 +546,15 @@ echo "   Lancez : uv run python manage.py runserver"
 echo "   Puis ouvrez http://127.0.0.1:8000/"
 ````
 
-### Après le script
+### Après le script {#dj-init-apres}
 
-1. Créer un superutilisateur : `uv run python manage.py createsuperuser`  
-2. Versionner `.gitignore` (venv, `db.sqlite3`, `__pycache__`, `staticfiles/`, `.env`).  
+1. Créer un superutilisateur : `uv run python manage.py createsuperuser`
+2. Versionner `.gitignore` (venv, `db.sqlite3`, `__pycache__`, `staticfiles/`, `.env`).
 3. Pour la **prod**, ajouter `config/settings/prod.py`, variables `SECRET_KEY`, `ALLOWED_HOSTS`, base PostgreSQL, etc.
 
 ---
 
-## ✅ Résumé
+## ✅ Résumé {#dj-resume}
 
 | Objectif | Où ça vit |
 | :--- | :--- |

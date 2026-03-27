@@ -10,7 +10,8 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/users/markdown_preview.css' %}">
 <div class="max-w-4xl mx-auto px-4 pb-12">
-    <article class="preview-markdown">
+    {# hx-boost="false" : les liens #ancre doivent rester du navigateur (sinon HTMX intercepte et le scroll vers la section ne fonctionne pas). #}
+    <article class="preview-markdown" hx-boost="false">
         {{ html_content|safe }}
     </article>
 </div>

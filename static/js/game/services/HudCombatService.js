@@ -11,15 +11,18 @@ export class HudCombatService extends AbstractService {
         if (state.gameOver || points <= 0) return;
         const nextScore = state.score + points;
         this.deps.setState({ score: nextScore });
-        document.getElementById("score-value").innerText = String(nextScore).padStart(6, "0");
+        const scoreEl = document.getElementById("score-value");
+        if (scoreEl) scoreEl.innerText = String(nextScore).padStart(6, "0");
     }
 
     triggerGameOver() {
         const state = this.deps.getState();
         if (state.gameOver) return;
         this.deps.setState({ gameOver: true, currentPhase: "game_over", bossActive: false });
-        document.getElementById("status-text").innerText = "Shield Down";
-        document.getElementById("boss-hud").classList.replace("opacity-100", "opacity-0");
+        const statusEl = document.getElementById("status-text");
+        if (statusEl) statusEl.innerText = "Shield Down";
+        const bossHud = document.getElementById("boss-hud");
+        if (bossHud) bossHud.classList.replace("opacity-100", "opacity-0");
 
         state.bossProjectiles.forEach((p) => state.scene.remove(p));
         state.bossProjectiles.length = 0;
@@ -39,9 +42,12 @@ export class HudCombatService extends AbstractService {
         }
 
         const over = document.getElementById("game-over-screen");
-        document.getElementById("game-over-score").innerText = String(state.score).padStart(6, "0");
-        over.classList.remove("hidden");
-        over.classList.add("flex");
+        const scoreOver = document.getElementById("game-over-score");
+        if (scoreOver) scoreOver.innerText = String(state.score).padStart(6, "0");
+        if (over) {
+            over.classList.remove("hidden");
+            over.classList.add("flex");
+        }
     }
 
     onShieldHit(intensity = 10, isBigLaser = false) {
@@ -51,8 +57,10 @@ export class HudCombatService extends AbstractService {
         nextShield = Math.max(0, nextShield);
         this.deps.setState({ shieldPower: nextShield, shakeIntensity: intensity });
 
-        document.getElementById("shield-bar").style.width = `${nextShield}%`;
-        document.getElementById("shield-percent").innerText = `${Math.round(nextShield)}%`;
+        const shieldBar = document.getElementById("shield-bar");
+        const shieldPct = document.getElementById("shield-percent");
+        if (shieldBar) shieldBar.style.width = `${nextShield}%`;
+        if (shieldPct) shieldPct.innerText = `${Math.round(nextShield)}%`;
 
         const shieldMesh = state.shieldMesh;
         if (shieldMesh && shieldMesh.material) {
@@ -74,6 +82,7 @@ export class HudCombatService extends AbstractService {
         const shieldWrap = document.getElementById("boss-shield-wrap");
         const fleetWrap = document.getElementById("boss-fleet-bars");
         const hullWrap = document.getElementById("boss-hull-wrap");
+        if (!card || !name || !shieldWrap || !fleetWrap || !hullWrap) return;
         if (type === "atlante") {
             card.classList.remove("border-red-600");
             card.classList.add("border-cyan-500");
@@ -106,23 +115,28 @@ export class HudCombatService extends AbstractService {
             fleetWrap.innerHTML = "";
         }
         const hpPct = (boss.userData.hp / boss.userData.maxHp) * 100;
-        document.getElementById("boss-hp-bar").style.width = `${hpPct}%`;
+        const bossHpBar = document.getElementById("boss-hp-bar");
+        if (bossHpBar) bossHpBar.style.width = `${hpPct}%`;
         const shieldPct = boss.userData.maxShield > 0 ? (boss.userData.shield / boss.userData.maxShield) * 100 : 0;
-        document.getElementById("boss-shield-bar").style.width = `${shieldPct}%`;
+        const bossShieldBar = document.getElementById("boss-shield-bar");
+        if (bossShieldBar) bossShieldBar.style.width = `${shieldPct}%`;
     }
 
     focusHudOnVictim(victim) {
         if (!victim || !victim.userData) return;
         const shieldWrap = document.getElementById("boss-shield-wrap");
+        if (!shieldWrap) return;
         const hpPct = ((victim.userData.hp || 0) / Math.max(1, (victim.userData.maxHp || 1))) * 100;
         const shieldPct = ((victim.userData.shield || 0) / Math.max(1, (victim.userData.maxShield || 1))) * 100;
-        document.getElementById("boss-hp-bar").style.width = `${Math.max(0, hpPct)}%`;
+        const bossHpBar2 = document.getElementById("boss-hp-bar");
+        if (bossHpBar2) bossHpBar2.style.width = `${Math.max(0, hpPct)}%`;
+        const bossShieldBar2 = document.getElementById("boss-shield-bar");
         if ((victim.userData.maxShield || 0) > 0) {
             shieldWrap.classList.remove("hidden");
-            document.getElementById("boss-shield-bar").style.width = `${Math.max(0, shieldPct)}%`;
+            if (bossShieldBar2) bossShieldBar2.style.width = `${Math.max(0, shieldPct)}%`;
         } else {
             shieldWrap.classList.add("hidden");
-            document.getElementById("boss-shield-bar").style.width = "0%";
+            if (bossShieldBar2) bossShieldBar2.style.width = "0%";
         }
     }
 
