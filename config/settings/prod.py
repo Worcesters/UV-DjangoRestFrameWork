@@ -19,6 +19,11 @@ DATABASES = {
     )
 }
 
+# Garantit le SSL si l'URL ne le porte pas déjà (utile derrière un pooler).
+if not DEBUG:
+    _db_options = DATABASES["default"].setdefault("OPTIONS", {})
+    _db_options.setdefault("sslmode", "require")
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", default=True)
