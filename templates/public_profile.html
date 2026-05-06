@@ -34,7 +34,7 @@
         <div class="relative mt-8">
             <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 rounded-full bg-gradient-to-b from-violet-200 via-fuchsia-200 to-purple-200"></div>
             {% for item in timeline %}
-            <div class="relative grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-10 py-4 {% if forloop.counter > 4 %}timeline-extra hidden{% endif %}">
+            <div class="relative grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-10 py-4 {% if forloop.counter > 2 %}timeline-extra hidden{% endif %}">
                 {% if forloop.counter0|divisibleby:2 %}
                 <div class="relative md:text-right">
                     <div class="inline-block max-w-full rounded-3xl border border-violet-100 bg-violet-50/80 px-5 py-4 shadow-sm">
@@ -75,14 +75,19 @@
 
         </div>
 
-        {% if timeline|length > 4 %}
+        {% if timeline|length > 2 %}
         <div class="mt-6 flex justify-center">
             <button
                 id="timeline-toggle-btn"
                 type="button"
-                class="px-5 py-2.5 rounded-xl border border-violet-200 bg-violet-50 text-violet-700 text-sm font-bold hover:bg-violet-100 transition-colors"
+                class="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-violet-200 bg-violet-50 text-violet-700 text-sm font-bold hover:bg-violet-100 transition-colors"
+                aria-expanded="false"
+                aria-controls="timeline-list"
             >
-                Voir tout
+                <span data-timeline-label>Voir tout ({{ timeline|length }})</span>
+                <svg data-timeline-icon class="w-4 h-4 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd" />
+                </svg>
             </button>
         </div>
         {% endif %}
@@ -146,18 +151,28 @@
     </div>
 </section>
 
-{% if timeline|length > 4 %}
+{% if timeline|length > 2 %}
 <script>
 (() => {
     const toggleBtn = document.getElementById('timeline-toggle-btn');
     if (!toggleBtn) return;
     const extraRows = Array.from(document.querySelectorAll('.timeline-extra'));
+    const labelEl = toggleBtn.querySelector('[data-timeline-label]');
+    const iconEl = toggleBtn.querySelector('[data-timeline-icon]');
+    const total = {{ timeline|length }};
+    const visible = total - extraRows.length;
     let expanded = false;
 
     toggleBtn.addEventListener('click', () => {
         expanded = !expanded;
         extraRows.forEach((row) => row.classList.toggle('hidden', !expanded));
-        toggleBtn.innerText = expanded ? 'Réduire' : 'Voir tout';
+        toggleBtn.setAttribute('aria-expanded', String(expanded));
+        if (labelEl) {
+            labelEl.textContent = expanded ? 'Réduire' : `Voir tout (${total})`;
+        }
+        if (iconEl) {
+            iconEl.classList.toggle('rotate-180', expanded);
+        }
     });
 })();
 </script>
