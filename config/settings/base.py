@@ -22,7 +22,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-local-dev-change-me")
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost,.onrender.com")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 
-LOGIN_URL = "/login/"
+LOGIN_URL = "/"
 
 INSTALLED_APPS = [
     "django.contrib.admin",

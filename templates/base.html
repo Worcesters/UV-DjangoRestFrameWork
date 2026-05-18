@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Plateforme Elite{% endblock %}</title>
-    <link rel="icon" type="image/svg+xml" href="{% static 'icons/portfolio-favicon_old.svg' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'icons/portfolio-favicon.svg' %}">
 
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script>
@@ -22,7 +22,6 @@
     {% block extra_css %}{% endblock %}
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="{% static 'js/home/particles_home.js' %}" defer></script>
-    <script src="{% static 'js/auth_tabs.js' %}" defer></script>
 </head>
 <body
     class="bg-[#f8fafc] text-[#1e293b] antialiased"
@@ -37,7 +36,7 @@
         <div class="container mx-auto px-6 h-full py-2 flex justify-between items-center">
 
             <a href="/" class="flex items-center gap-3 md:gap-4 group min-w-0">
-                <img src="{% static 'icons/portfolio-favicon.png' %}" alt="Logo" class="nav-logo h-16 w-auto sm:h-[4.5rem] md:h-[5.5rem] object-contain rounded-xl shrink-0 transition-[height] duration-300" width="220" height="220" decoding="async">
+                <img src="{% static 'icons/brand-logo.svg' %}" alt="Conception 2026" class="nav-logo h-14 w-14 sm:h-16 sm:w-16 md:h-[4.25rem] md:w-[4.25rem] object-contain rounded-2xl shrink-0 transition-[height,width] duration-300" width="80" height="80" decoding="async">
                 <span class="font-extrabold text-xl sm:text-1xl md:text-2xl tracking-tight logo-glow truncate">Conception<span class="text-blue-600">2026</span></span>
             </a>
 
@@ -54,11 +53,6 @@
                 <a href="{% url 'users:documents' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors relative group">
                     Documents
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
-                </a>
-
-                <a href="{% url 'contact:index' %}" class="text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors relative group">
-                    Contact
-                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-teal-500 transition-all group-hover:w-full"></span>
                 </a>
 
                 <a href="{% url 'users:public_profile' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors relative group">
@@ -81,10 +75,6 @@
                         {% csrf_token %}
                         <button type="submit" class="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors bg-transparent border-0 p-0 cursor-pointer font-inherit">Déconnexion</button>
                     </form>
-                {% else %}
-                    <a href="/signup/" class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all">
-                        Rejoindre
-                    </a>
                 {% endif %}
             </div>
 
@@ -98,7 +88,6 @@
                 <a href="/" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Accueil</a>
                 <a href="{% url 'experience:explore' %}" hx-boost="false" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">🎮 Expérience 3D</a>
                 <a href="{% url 'users:documents' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Documents</a>
-                <a href="{% url 'contact:index' %}" class="text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors">Contact</a>
                 <a href="{% url 'users:public_profile' %}" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors">Profil public</a>
                 <a href="{% url 'users:generation_tools' %}" class="text-sm font-semibold text-slate-700 hover:text-violet-600 transition-colors">Outils de génération</a>
 
@@ -108,10 +97,6 @@
                         {% csrf_token %}
                         <button type="submit" class="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors bg-transparent border-0 p-0 cursor-pointer font-inherit">Déconnexion</button>
                     </form>
-                {% else %}
-                    <a href="/signup/" class="mt-1 inline-flex w-fit px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 transition-all">
-                        Rejoindre
-                    </a>
                 {% endif %}
             </div>
         </div>
@@ -123,10 +108,13 @@
     </main>
 
     <footer class="bg-white border-t border-gray-100 py-12">
-        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center opacity-60">
-            <p class="text-sm font-medium">&copy; 2026 Jérémy Didier. Built for Tech Innovation.</p>
-            <div class="flex space-x-6 mt-4 md:mt-0">
-                <span class="text-xs uppercase tracking-widest font-bold text-blue-600">AI & Fullstack Specialist</span>
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-sm font-medium text-slate-600">&copy; 2026 Jérémy Didier. Built for Tech Innovation.</p>
+            <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
+                <a href="mailto:jeremy.didier77@gmail.com" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                    jeremy.didier77@gmail.com
+                </a>
+                <span class="text-xs uppercase tracking-widest font-bold text-slate-400">AI &amp; Fullstack Specialist</span>
             </div>
         </div>
     </footer>

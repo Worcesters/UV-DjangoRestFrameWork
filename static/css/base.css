@@ -27,15 +27,18 @@ body {
 /* Logo plus petit au scroll pour rester dans la barre compacte */
 .nav-glass.nav-scrolled .nav-logo {
     height: 3.25rem;
+    width: 3.25rem;
 }
 @media (min-width: 640px) {
     .nav-glass.nav-scrolled .nav-logo {
         height: 3.75rem;
+        width: 3.75rem;
     }
 }
 @media (min-width: 768px) {
     .nav-glass.nav-scrolled .nav-logo {
         height: 4.25rem;
+        width: 4.25rem;
     }
 }
 

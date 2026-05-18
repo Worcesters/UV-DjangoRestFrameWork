@@ -17,19 +17,13 @@
                 <span class="sublime-hero-accent text-5xl md:text-7xl">nouvelle génération.</span>
             </h1>
             <p class="max-w-2xl mx-auto text-lg text-slate-500 mb-10">
-                Performance, sécurité et modularité. Gérez vos utilisateurs et vos ressources via notre node central haute disponibilité.
+                Performance, sécurité et modularité. Explorez les outils de conception, la documentation et le profil public.
             </p>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                {% if user.is_authenticated %}
-                <a href="{% url 'experience:explore' %}" hx-boost="false" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl shadow-slate-900/20 hover:scale-105 transition-transform">
-                    Explorer l'univers
+                <a href="{% url 'users:generation_tools' %}" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl shadow-slate-900/20 hover:scale-105 transition-transform">
+                    Outils de génération
                 </a>
-                {% else %}
-                <a href="{% url 'users:signup' %}" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl shadow-slate-900/20 hover:scale-105 transition-transform">
-                    Commencer l'aventure
-                </a>
-                {% endif %}
                 <a href="#features" class="px-8 py-4 bg-white text-slate-600 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 transition-colors">
                     Explorer les nodes
                 </a>
@@ -52,7 +46,7 @@
                     <span class="text-xl">🛡️</span>
                 </div>
                 <h3 class="mb-3 text-xl font-bold"><span class="sublime-page-h3">Sécurité Avancée</span></h3>
-                <p class="text-slate-500 text-sm leading-relaxed">Authentification robuste et gestion des permissions centralisée sur le node.</p>
+                <p class="text-slate-500 text-sm leading-relaxed">Architecture modulaire et bonnes pratiques de sécurité sur chaque module.</p>
             </div>
 
             <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
