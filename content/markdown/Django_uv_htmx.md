@@ -72,6 +72,20 @@ projet/
 
 `uv` est l’outil standard pour verrouiller les dépendances et lancer les commandes sans activer manuellement le venv.
 
+**Installation :** voir la [documentation officielle uv](https://docs.astral.sh/uv/getting-started/installation/).
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```powershell
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Vérifier l’installation : `uv --version`. Mise à jour (installateur standalone) : `uv self update`.
+
 | Commande | Action |
 | :--- | :--- |
 | `uv init` | Initialise un projet Python (pyproject + lock). |
