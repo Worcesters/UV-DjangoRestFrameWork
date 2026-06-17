@@ -23,8 +23,29 @@ class PlantUmlParser:
     _METHOD_RE = re.compile(
         r"^(?P<name>\w+)\((?P<params>[^)]*)\)\s*(?::\s*(?P<ret>[\w\[\]<>.\\]+))?$"
     )
-    _ATTRIBUTE_RE = re.compile(r"^(?P<name>\w+)\s*:\s*(?P<type>[\w\[\]<>.\\]+)$")
-    _PARAM_RE = re.compile(r"^(?P<name>\w+)\s*:\s*(?P<type>[\w\[\]<>.\\]+)$")
+    # Type optionnel : l'UML Builder peut produire un attribut sans type (ex. "- password").
+    _ATTRIBUTE_RE = re.compile(r"^(?P<name>\w+)(?:\s*:\s*(?P<type>[\w\[\]<>.\\]+))?$")
+    _PARAM_RE = re.compile(r"^(?P<name>\w+)(?:\s*:\s*(?P<type>[\w\[\]<>.\\]+))?$")
+
+    # Relations : tolèrent les directions PlantUML (-up-, -down-, -left-, -right-)
+    # et l'absence de label. Triangle plein = héritage (extends),
+    # triangle pointillé = réalisation (implements).
+    _GEN_CHILD_PARENT_RE = re.compile(
+        r"([\w\\$]+)\s*-{1,2}(?:up|down|left|right)?-{0,2}\|>\s*([\w\\$]+)",
+        re.IGNORECASE,
+    )
+    _GEN_PARENT_CHILD_RE = re.compile(
+        r"([\w\\$]+)\s*<\|-{0,2}(?:up|down|left|right)?-{1,2}\s*([\w\\$]+)",
+        re.IGNORECASE,
+    )
+    _IMPL_IFACE_CLASS_RE = re.compile(
+        r"([\w\\$]+)\s*<\|[-.]*(?:up|down|left|right)?[-.]*\.\.+\s*([\w\\$]+)",
+        re.IGNORECASE,
+    )
+    _IMPL_CLASS_IFACE_RE = re.compile(
+        r"([\w\\$]+)\s*\.\.+[-.]*(?:up|down|left|right)?[-.]*\|>\s*([\w\\$]+)",
+        re.IGNORECASE,
+    )
 
     def parse(self, plantuml_text: str) -> List[ClassDef]:
         classes: List[ClassDef] = []
@@ -71,26 +92,19 @@ class PlantUmlParser:
         return s
 
     def _collect_inheritance_edges(self, plantuml_text: str) -> List[Tuple[str, str]]:
-        """Retourne des couples (enfant, parent). Deux syntaxes PlantUML :
+        """Retourne des couples (enfant, parent). Syntaxes PlantUML supportées
+        (avec ou sans direction -up-/-down-/-left-/-right-) :
         - Parent <|-- Enfant
-        - Enfant --|> Parent (flèche vers la classe mère)
+        - Enfant --|> Parent
         """
         edges: List[Tuple[str, str]] = []
         # Parent <|-- Child
-        re_arrow_to_parent = re.compile(
-            r"([\w\\$]+)\s*<\|--\s*([\w\\$]+)(?:\s*:\s*\w+)?",
-            re.IGNORECASE,
-        )
-        # Child --|> Parent
-        re_arrow_from_child = re.compile(
-            r"([\w\\$]+)\s*--\|>\s*([\w\\$]+)(?:\s*:\s*\w+)?",
-            re.IGNORECASE,
-        )
-        for m in re_arrow_to_parent.finditer(plantuml_text):
+        for m in self._GEN_PARENT_CHILD_RE.finditer(plantuml_text):
             parent = self._normalize_class_name(m.group(1))
             child = self._normalize_class_name(m.group(2))
             edges.append((child, parent))
-        for m in re_arrow_from_child.finditer(plantuml_text):
+        # Child --|> Parent
+        for m in self._GEN_CHILD_PARENT_RE.finditer(plantuml_text):
             child = self._normalize_class_name(m.group(1))
             parent = self._normalize_class_name(m.group(2))
             edges.append((child, parent))
@@ -125,19 +139,29 @@ class PlantUmlParser:
             known.add(child)
 
     def _apply_implements_relations(self, plantuml_text: str, classes: List[ClassDef]) -> None:
-        """Remplit interfaces depuis les relations du type 'Interface <|.. Class : implements'."""
-        impl_re = re.compile(
-            r"(\w+)\s*<\|\.\.\s*(\w+)\s*:\s*implements",
-            re.IGNORECASE,
-        )
-        for match in impl_re.finditer(plantuml_text):
-            interface_name = match.group(1)
-            class_name = match.group(2)
-            for c in classes:
-                if c.name == class_name and not c.is_interface:
-                    if interface_name not in c.interfaces:
-                        c.interfaces.append(interface_name)
-                    break
+        """Remplit `interfaces` depuis la réalisation PlantUML (triangle pointillé),
+        avec ou sans label et avec ou sans direction :
+        - Interface <|.. Class
+        - Class ..|> Interface
+        """
+        by_name = {c.name: c for c in classes}
+
+        def add_impl(interface_name: str, class_name: str) -> None:
+            target = by_name.get(class_name)
+            if target is not None and not target.is_interface:
+                if interface_name not in target.interfaces:
+                    target.interfaces.append(interface_name)
+
+        # Interface <|.. Class  (gauche = interface)
+        for match in self._IMPL_IFACE_CLASS_RE.finditer(plantuml_text):
+            interface_name = self._normalize_class_name(match.group(1))
+            class_name = self._normalize_class_name(match.group(2))
+            add_impl(interface_name, class_name)
+        # Class ..|> Interface  (droite = interface)
+        for match in self._IMPL_CLASS_IFACE_RE.finditer(plantuml_text):
+            class_name = self._normalize_class_name(match.group(1))
+            interface_name = self._normalize_class_name(match.group(2))
+            add_impl(interface_name, class_name)
 
     def _parse_members(self, body: str, class_def: ClassDef) -> None:
         for raw_line in body.splitlines():
@@ -189,7 +213,7 @@ class PlantUmlParser:
                     parameters.append(
                         ParameterDef(
                             name=parsed.group("name"),
-                            type_name=parsed.group("type"),
+                            type_name=parsed.group("type") or "Any",
                         )
                     )
                 else:
@@ -209,7 +233,7 @@ class PlantUmlParser:
             return None
         return AttributeDef(
             name=match.group("name"),
-            type_name=match.group("type"),
+            type_name=match.group("type") or "Any",
             visibility=visibility,
         )
 
