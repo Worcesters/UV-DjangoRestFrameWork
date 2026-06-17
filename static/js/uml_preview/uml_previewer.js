@@ -37,6 +37,75 @@
         return before + "\n\n" + block + "\n" + text.slice(idx);
     }
 
+    function escapeRegExp(s) {
+        return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    /**
+     * Insère une ligne de membre (attribut / méthode) dans le corps `{ }`
+     * d'une classe / classe abstraite / interface existante.
+     * Si le type est déclaré sans corps (ex. `class User`), le corps est créé.
+     */
+    function insertMemberIntoType(uml, typeName, memberLine) {
+        var text = ensureStartEnd(uml);
+        var declRe = new RegExp(
+            "^([ \\t]*)(abstract[ \\t]+)?(class|interface)[ \\t]+" +
+                escapeRegExp(typeName) +
+                "\\b.*$",
+            "m"
+        );
+        var m = declRe.exec(text);
+        if (!m) {
+            return insertBeforeEnduml(uml, typeName + " : " + memberLine);
+        }
+        var indent = m[1] || "";
+        var memberIndent = indent + "  ";
+        var declEnd = m.index + m[0].length;
+
+        if (m[0].indexOf("{") === -1) {
+            var insertion = " {\n" + memberIndent + memberLine + "\n" + indent + "}";
+            return text.slice(0, declEnd) + insertion + text.slice(declEnd);
+        }
+
+        var firstBrace = text.indexOf("{", m.index);
+        var depth = 0;
+        var closeIdx = -1;
+        for (var i = firstBrace; i < text.length; i++) {
+            var ch = text[i];
+            if (ch === "{") {
+                depth++;
+            } else if (ch === "}") {
+                depth--;
+                if (depth === 0) {
+                    closeIdx = i;
+                    break;
+                }
+            }
+        }
+        if (closeIdx === -1) {
+            return insertBeforeEnduml(uml, typeName + " : " + memberLine);
+        }
+        var before = text.slice(0, closeIdx).replace(/[ \t]*$/, "");
+        if (!before.endsWith("\n")) before += "\n";
+        return before + memberIndent + memberLine + "\n" + indent + text.slice(closeIdx);
+    }
+
+    /** Couples de cardinalités PlantUML pour chaque préréglage de multiplicité. */
+    function multiplicityCards(v) {
+        switch (v) {
+            case "one_to_one":
+                return ["1", "1"];
+            case "one_to_many":
+                return ["1", "*"];
+            case "many_to_one":
+                return ["*", "1"];
+            case "many_to_many":
+                return ["*", "*"];
+            default:
+                return ["", ""];
+        }
+    }
+
     function extractClasses(uml) {
         var names = new Set();
         var re = /^\s*(abstract\s+)?class\s+([A-Za-z_][A-Za-z0-9_]*)\b/gm;
@@ -726,6 +795,31 @@
                     inpLbl.placeholder = "ex. utilise, possède, contient…";
                     rl.appendChild(inpLbl);
                     builderBody.appendChild(rl);
+
+                    var rm = document.createElement("div");
+                    rm.className = "mt-4";
+                    rm.innerHTML =
+                        '<label class="' +
+                        labelClass +
+                        '">Multiplicité (cardinalité)</label>' +
+                        '<p class="text-[10px] text-slate-500 mb-1.5 leading-snug">Cardinalité Source → Cible, posée aux deux extrémités (PlantUML : <code class="text-[9px] bg-slate-100 px-0.5 rounded">A "1" --&gt; "*" B</code>).</p>';
+                    var selMult = document.createElement("select");
+                    selMult.id = "umlBuilderRelMultiplicity";
+                    selMult.className = selectClass;
+                    [
+                        ["", "Auto / aucune"],
+                        ["one_to_one", "1 → 1  (OneToOne)"],
+                        ["one_to_many", "1 → n  (OneToMany)"],
+                        ["many_to_one", "n → 1  (ManyToOne)"],
+                        ["many_to_many", "n → n  (ManyToMany)"],
+                    ].forEach(function (pair) {
+                        var o = document.createElement("option");
+                        o.value = pair[0];
+                        o.textContent = pair[1];
+                        selMult.appendChild(o);
+                    });
+                    rm.appendChild(selMult);
+                    builderBody.appendChild(rm);
                 }
             } else if (
                 action === "add_class" ||
@@ -798,6 +892,135 @@
                 inp.placeholder = "ex. UserRepository";
                 wrap.appendChild(inp);
                 builderBody.appendChild(wrap);
+            } else if (action === "add_attribute" || action === "add_method") {
+                var isMethod = action === "add_method";
+                builderTitle.textContent = isMethod
+                    ? "Ajouter une méthode"
+                    : "Ajouter un attribut";
+                var memberTargets = Array.from(
+                    new Set([].concat(classes, interfaces))
+                );
+                if (memberTargets.length < 1) {
+                    builderBody.innerHTML =
+                        '<p class="text-sm text-slate-600">Ajoute au moins une <strong>classe</strong> ou une <strong>interface</strong> avant d’ajouter ' +
+                        (isMethod ? "une méthode" : "un attribut") +
+                        ".</p>";
+                    builderApply.classList.add("hidden");
+                } else {
+                    builderApply.classList.remove("hidden");
+                    appendBuilderDesc(
+                        builderBody,
+                        isMethod
+                            ? {
+                                  boxClass: "border-pink-200 bg-pink-50/95 text-pink-950",
+                                  title: "Méthode",
+                                  titleClass: "text-pink-900",
+                                  quote: "Un comportement de la classe / interface",
+                                  quoteClass: "text-pink-950",
+                                  detailHtml:
+                                      "Visibilité <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">+</code> public, <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">-</code> privé, <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">#</code> protégé. Exemple : <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">+ login(email: String) : bool</code>.",
+                                  detailClass: "text-pink-900/90",
+                              }
+                            : {
+                                  boxClass: "border-rose-200 bg-rose-50/95 text-rose-950",
+                                  title: "Attribut",
+                                  titleClass: "text-rose-900",
+                                  quote: "Une donnée / un état de la classe",
+                                  quoteClass: "text-rose-950",
+                                  detailHtml:
+                                      "Visibilité <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">+</code> public, <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">-</code> privé, <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">#</code> protégé. Exemple : <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">- password : String</code>.",
+                                  detailClass: "text-rose-900/90",
+                              }
+                    );
+
+                    var mt = document.createElement("div");
+                    mt.innerHTML =
+                        '<label class="' +
+                        labelClass +
+                        '">Classe / interface cible</label>';
+                    var selTarget = document.createElement("select");
+                    selTarget.id = "umlBuilderMemberTarget";
+                    selTarget.className = selectClass;
+                    fillSelect(selTarget, memberTargets, "— Choisir —");
+                    mt.appendChild(selTarget);
+                    builderBody.appendChild(mt);
+
+                    var mv = document.createElement("div");
+                    mv.className = "mt-4";
+                    mv.innerHTML =
+                        '<label class="' + labelClass + '">Visibilité</label>';
+                    var selVis = document.createElement("select");
+                    selVis.id = "umlBuilderMemberVisibility";
+                    selVis.className = selectClass;
+                    [
+                        ["+", "Public ( + )"],
+                        ["-", "Privé ( - )"],
+                        ["#", "Protégé ( # )"],
+                    ].forEach(function (pair) {
+                        var o = document.createElement("option");
+                        o.value = pair[0];
+                        o.textContent = pair[1];
+                        selVis.appendChild(o);
+                    });
+                    mv.appendChild(selVis);
+                    builderBody.appendChild(mv);
+
+                    var mn = document.createElement("div");
+                    mn.className = "mt-4";
+                    mn.innerHTML =
+                        '<label class="' + labelClass + '">Nom</label>';
+                    var inpName = document.createElement("input");
+                    inpName.type = "text";
+                    inpName.id = "umlBuilderMemberName";
+                    inpName.className = inputClass;
+                    inpName.placeholder = isMethod ? "ex. login" : "ex. email";
+                    mn.appendChild(inpName);
+                    builderBody.appendChild(mn);
+
+                    if (isMethod) {
+                        var mp = document.createElement("div");
+                        mp.className = "mt-4";
+                        mp.innerHTML =
+                            '<label class="' +
+                            labelClass +
+                            '">Paramètres (optionnel)</label>';
+                        var inpParams = document.createElement("input");
+                        inpParams.type = "text";
+                        inpParams.id = "umlBuilderMethodParams";
+                        inpParams.className = inputClass;
+                        inpParams.placeholder = "ex. email: String, force: bool";
+                        mp.appendChild(inpParams);
+                        builderBody.appendChild(mp);
+
+                        var mr = document.createElement("div");
+                        mr.className = "mt-4";
+                        mr.innerHTML =
+                            '<label class="' +
+                            labelClass +
+                            '">Type de retour (optionnel)</label>';
+                        var inpRet = document.createElement("input");
+                        inpRet.type = "text";
+                        inpRet.id = "umlBuilderMethodReturn";
+                        inpRet.className = inputClass;
+                        inpRet.placeholder = "ex. bool";
+                        mr.appendChild(inpRet);
+                        builderBody.appendChild(mr);
+                    } else {
+                        var mty = document.createElement("div");
+                        mty.className = "mt-4";
+                        mty.innerHTML =
+                            '<label class="' +
+                            labelClass +
+                            '">Type (optionnel)</label>';
+                        var inpType = document.createElement("input");
+                        inpType.type = "text";
+                        inpType.id = "umlBuilderAttrType";
+                        inpType.className = inputClass;
+                        inpType.placeholder = "ex. String";
+                        mty.appendChild(inpType);
+                        builderBody.appendChild(mty);
+                    }
+                }
             } else if (action === "note") {
                 builderTitle.textContent = "Ajouter une note";
                 var allTargets = Array.from(
@@ -924,7 +1147,16 @@
                             : dirR !== ""
                               ? " -" + dirR + "-> "
                               : " --> ";
-                var lineR = rf.value + mid + rt.value;
+                var multEl = document.getElementById("umlBuilderRelMultiplicity");
+                var cards = multiplicityCards(multEl ? multEl.value : "");
+                var fromCard = cards[0];
+                var toCard = cards[1];
+                var lineR =
+                    rf.value +
+                    (fromCard ? ' "' + fromCard + '"' : "") +
+                    mid +
+                    (toCard ? '"' + toCard + '" ' : "") +
+                    rt.value;
                 if (lbl) lineR += " : " + lbl;
                 updateUml(insertBeforeEnduml(uml, lineR));
             } else if (builderAction === "add_class") {
@@ -976,6 +1208,43 @@
                         "enum " + name4 + " {\n  VALUE\n}\n".trimEnd()
                     )
                 );
+            } else if (
+                builderAction === "add_attribute" ||
+                builderAction === "add_method"
+            ) {
+                var isM = builderAction === "add_method";
+                var tgt = document.getElementById("umlBuilderMemberTarget");
+                var vis = document.getElementById("umlBuilderMemberVisibility");
+                var nm = document.getElementById("umlBuilderMemberName");
+                if (!tgt || !tgt.value) {
+                    window.alert("Choisis une classe ou une interface cible.");
+                    return;
+                }
+                var memberName = (nm && nm.value ? nm.value : "").trim();
+                if (!memberName || !isValidIdentifier(memberName)) {
+                    window.alert("Nom invalide (lettres, chiffres, _ ; pas d’espace).");
+                    return;
+                }
+                var visSym =
+                    vis && ["+", "-", "#"].indexOf(vis.value) !== -1
+                        ? vis.value
+                        : "+";
+                var memberLine;
+                if (isM) {
+                    var prm = document.getElementById("umlBuilderMethodParams");
+                    var ret = document.getElementById("umlBuilderMethodReturn");
+                    var paramsTxt = (prm && prm.value ? prm.value : "").trim();
+                    var retTxt = (ret && ret.value ? ret.value : "").trim();
+                    memberLine =
+                        visSym + " " + memberName + "(" + paramsTxt + ")";
+                    if (retTxt) memberLine += " : " + retTxt;
+                } else {
+                    var typ = document.getElementById("umlBuilderAttrType");
+                    var typeTxt = (typ && typ.value ? typ.value : "").trim();
+                    memberLine = visSym + " " + memberName;
+                    if (typeTxt) memberLine += " : " + typeTxt;
+                }
+                updateUml(insertMemberIntoType(uml, tgt.value, memberLine));
             } else if (builderAction === "note") {
                 var t = document.getElementById("umlBuilderNoteTarget");
                 var s = document.getElementById("umlBuilderNoteSide");
@@ -1059,6 +1328,8 @@
                 action === "add_abstract_class" ||
                 action === "add_interface" ||
                 action === "add_enum" ||
+                action === "add_attribute" ||
+                action === "add_method" ||
                 action === "note"
             ) {
                 openBuilderModal(action, uml);

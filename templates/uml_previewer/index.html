@@ -22,6 +22,8 @@
                 <div draggable="true" data-action="add_abstract_class" class="uml-builder-item select-none cursor-grab rounded-lg border border-indigo-200/90 bg-indigo-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-900 shadow-sm hover:bg-indigo-100/80 transition-colors">Abstract class</div>
                 <div draggable="true" data-action="add_interface" class="uml-builder-item select-none cursor-grab rounded-lg border border-fuchsia-200/90 bg-fuchsia-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-fuchsia-900 shadow-sm hover:bg-fuchsia-100/80 transition-colors">Interface</div>
                 <div draggable="true" data-action="add_enum" class="uml-builder-item select-none cursor-grab rounded-lg border border-lime-200/90 bg-lime-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-lime-900 shadow-sm hover:bg-lime-100/80 transition-colors">Enum</div>
+                <div draggable="true" data-action="add_attribute" class="uml-builder-item select-none cursor-grab rounded-lg border border-rose-200/90 bg-rose-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-rose-900 shadow-sm hover:bg-rose-100/80 transition-colors" title="Ajouter un attribut à une classe / interface">Attribut</div>
+                <div draggable="true" data-action="add_method" class="uml-builder-item select-none cursor-grab rounded-lg border border-pink-200/90 bg-pink-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-pink-900 shadow-sm hover:bg-pink-100/80 transition-colors" title="Ajouter une méthode à une classe / interface">Méthode</div>
                 <div draggable="true" data-action="extends" class="uml-builder-item select-none cursor-grab rounded-lg border border-orange-200/90 bg-orange-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-orange-900 shadow-sm hover:bg-orange-100/80 transition-colors" title="EST UN">Extends</div>
                 <div draggable="true" data-action="implements" class="uml-builder-item select-none cursor-grab rounded-lg border border-cyan-200/90 bg-cyan-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-cyan-900 shadow-sm hover:bg-cyan-100/80 transition-colors">Implements</div>
                 <div draggable="true" data-action="rel_aggregate" class="uml-builder-item select-none cursor-grab rounded-lg border border-amber-200/90 bg-amber-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-amber-900 shadow-sm hover:bg-amber-100/80 transition-colors" title="Je possède (mais tu es libre)">Agrégation</div>
@@ -127,6 +129,17 @@ EmailService ..|&gt; Repository
 class Service
 class Logger
 Service ..> Logger : utilise
+@enduml</pre>
+            </button>
+            <button type="button" class="text-left rounded-xl border border-purple-200/70 bg-purple-50/60 p-3 uml-help-item transition-all duration-200 ease-out hover:border-purple-300/80 hover:bg-purple-50 hover:shadow-md hover:shadow-purple-200/25 hover:-translate-y-0.5 cursor-pointer active:translate-y-0 active:shadow-sm" data-title="Multiplicité / cardinalité" data-description="Indique combien d'instances participent à la relation : OneToOne (1↔1), OneToMany (1↔n), ManyToOne (n↔1), ManyToMany (n↔n).&#10;Les cardinalités se posent entre guillemets à chaque extrémité.">
+                <p class="text-[10px] font-semibold text-purple-600 mb-1">Multiplicité (1 → n …)</p>
+                <pre>@startuml
+class Order
+class OrderLine
+Order "1" --> "*" OrderLine
+class Tag
+class Article
+Article "*" -- "*" Tag
 @enduml</pre>
             </button>
             <button type="button" class="text-left rounded-xl border border-emerald-200/70 bg-emerald-50/60 p-3 uml-help-item transition-all duration-200 ease-out hover:border-emerald-300/80 hover:bg-emerald-50 hover:shadow-md hover:shadow-emerald-200/25 hover:-translate-y-0.5 cursor-pointer active:translate-y-0 active:shadow-sm" data-title="Composition (*--)" data-description="C'est une relation forte. &#10;L'objet 'Enfant' appartient exclusivement à l'objet 'Parent'. Si le parent meurt, l'enfant meurt avec lui.&#10;Exemple : Un Bâtiment et ses Pièces.">
