@@ -53,7 +53,7 @@
     function createContainerRow(container) {
         container = container || {};
         var row = document.createElement("div");
-        row.className = "rounded-xl border border-cyan-200 bg-white p-3";
+        row.className = "rounded-xl border border-teal-200 bg-white p-3";
         row.innerHTML =
             '<div class="grid sm:grid-cols-2 gap-3">' +
             '<input type="text" data-key="service_name" placeholder="Nom du service (ex: api)" value="' +

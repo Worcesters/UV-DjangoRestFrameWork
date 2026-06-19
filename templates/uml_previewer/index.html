@@ -1,11 +1,7 @@
 {% load static %}
 <section class="flex min-h-full w-full flex-1 flex-col mx-auto">
     <div id="umlPreviewerConfig" class="hidden" aria-hidden="true" data-api-url="{% url 'users:api_plantuml_preview_url' %}"></div>
-    <div class="min-h-[7.5rem] rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 to-fuchsia-50 p-8 shadow-sm flex flex-col justify-center">
-        <p class="mt-2 text-slate-600">
-            Colle ou construis le PlantUML et visualise immédiatement le diagramme généré par le serveur PlantUML.
-        </p>
-    </div>
+    {% include "partials/tool_intro.html" with label="UML Builder" icon="uml" text="Colle ou construis le PlantUML et visualise immédiatement le diagramme généré par le serveur PlantUML." %}
 
     <form method="post" action="{{ form_action }}" class="mt-6 space-y-6" data-preview-url="{{ preview_url|default:'' }}">
         {% csrf_token %}

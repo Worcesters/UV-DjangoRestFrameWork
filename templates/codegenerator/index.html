@@ -1,10 +1,6 @@
 {% load static %}
 <section class="flex min-h-full w-full flex-1 flex-col mx-auto">
-    <div class="min-h-[7.5rem] rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-8 shadow-sm flex flex-col justify-center">
-        <p class="mt-2 text-slate-600">
-            Genere du code a partir d'un diagramme PlantUML selon le langage selectionne.
-        </p>
-    </div>
+    {% include "partials/tool_intro.html" with label="UML → Code" icon="code" text="Génère du code à partir d'un diagramme PlantUML selon le langage sélectionné." %}
 
     <form method="post" class="mt-6 grid grid-cols-1 lg:grid-cols-2 lg:items-stretch gap-6">
         {% csrf_token %}

@@ -1,30 +1,71 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Outils de génération{% endblock %}
 
 {% block content %}
-<div id="generation-tools-page" class="gen-tools-page scroll-mt-24 pb-20 pt-6 md:scroll-mt-28 md:pt-10">
-    {# Intro — même style carte que Documents / Profil #}
-    <section class="relative overflow-hidden rounded-3xl border border-slate-100 bg-white p-8 shadow-sm md:p-10">
-        <div class="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-fuchsia-200/35 blur-3xl" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-cyan-200/25 blur-3xl" aria-hidden="true"></div>
-        <div class="relative">
-            <p class="mb-4 flex flex-wrap items-center gap-3">
-                <span class="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">Outils</span>
-                <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">Génération</span>
+<link rel="stylesheet" href="{% static 'css/generation_tools.css' %}">
+<div id="generation-tools-page" class="site-page">
+    {# Hero — visuel isométrique 3D + accent teal/émeraude #}
+    <section class="gen-hero banner-gradient" aria-labelledby="gen-hero-title">
+        <div class="gen-hero__content">
+            <p class="gen-hero__chips">
+                <span class="gen-hero__chip gen-hero__chip--teal">Atelier</span>
+                <span class="gen-hero__chip">Code · UML · Pipelines</span>
+                <span class="gen-hero__chip gen-hero__chip--violet">HTMX live</span>
             </p>
-            <h1 class="text-3xl font-black leading-[1.15] text-slate-900 md:text-4xl">
-                <span class="gen-page-hero-title">Outils de génération</span>
+            <h1 id="gen-hero-title" class="gen-hero__title">
+                Outils de <em>génération</em>
             </h1>
-            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">
-                Un espace unique pour convertir du code, générer du code et préparer tes pipelines.
+            <p class="gen-hero__subtitle">Convertir, générer et prévisualiser, sans rechargement.</p>
+            <p class="gen-hero__desc">
+                Un atelier unique pour transformer du code en UML, générer du code depuis PlantUML,
+                construire des diagrammes et préparer tes pipelines — le tout dans une interface fluide.
             </p>
+            <div class="gen-hero__cta">
+                <a href="{% url 'users:generation_tools' %}?tool=codegen"
+                   hx-get="{% url 'users:generation_tools' %}?tool=codegen"
+                   hx-target="#gen-tool-panel" hx-select="#gen-tool-panel" hx-swap="outerHTML show:none" hx-push-url="true"
+                   class="gen-hero__btn gen-hero__btn--primary">
+                    Commencer
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                </a>
+                <a href="#gen-tools" class="gen-hero__btn gen-hero__btn--ghost">Explorer les outils</a>
+            </div>
+        </div>
+        <div class="gen-hero__visual">
+            <img src="{% static 'img/gen-hero.png' %}" alt="Moteur de génération 3D isométrique" class="gen-hero__img" width="1024" height="683" decoding="async">
+        </div>
+    </section>
+
+    {# Bande capacités — écho des features du visuel #}
+    <section class="gen-capabilities" aria-label="Capacités">
+        <div class="gen-cap">
+            <div class="gen-cap__icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+            <p class="gen-cap__title">Temps réel</p>
+            <p class="gen-cap__desc">Aperçu instantané via HTMX, sans recharger la page.</p>
+        </div>
+        <div class="gen-cap">
+            <div class="gen-cap__icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg></div>
+            <p class="gen-cap__title">Multi-langages</p>
+            <p class="gen-cap__desc">Python, PHP et Java depuis un même diagramme.</p>
+        </div>
+        <div class="gen-cap">
+            <div class="gen-cap__icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a2 2 0 012-2h12a2 2 0 012 2v2H4V5zm0 4h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/></svg></div>
+            <p class="gen-cap__title">Bidirectionnel</p>
+            <p class="gen-cap__desc">Code → UML et UML → Code, aller-retour fidèle.</p>
+        </div>
+        <div class="gen-cap">
+            <div class="gen-cap__icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg></div>
+            <p class="gen-cap__title">Pipelines &amp; BPMN</p>
+            <p class="gen-cap__desc">Prépare tes configs et diagrammes de process.</p>
         </div>
     </section>
 
     {# Grille outils — seul le panneau droit (#gen-tool-panel) est remplacé au changement d’outil #}
     <section
-        class="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:items-start"
+        id="gen-tools"
+        class="gen-tools-grid grid scroll-mt-28 grid-cols-1 gap-8 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:items-start"
         aria-label="Sélection et outil actif"
     >
         <aside class="space-y-3 rounded-3xl border border-slate-100 bg-white p-8 shadow-sm" id="tools-nav">
@@ -38,13 +79,13 @@
                 hx-select="#gen-tool-panel"
                 hx-swap="outerHTML show:none"
                 hx-push-url="true"
-                class="block focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 rounded-2xl"
+                class="block focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 rounded-2xl"
             >
-                <article class="relative overflow-hidden rounded-2xl border bg-slate-50/80 p-4 min-h-0 hover:shadow-md transition-shadow {% if active_tool == tool.id %}border-violet-400 shadow-sm ring-1 ring-violet-200{% else %}border-slate-100 hover:border-violet-200{% endif %}">
+                <article class="relative overflow-hidden rounded-2xl border bg-slate-50/80 p-4 min-h-0 hover:shadow-md transition-shadow {% if active_tool == tool.id %}border-teal-400 shadow-sm ring-1 ring-teal-200{% else %}border-slate-100 hover:border-teal-200{% endif %}">
                     <div class="absolute inset-0 pointer-events-none">
                         {% if tool.bg_type == "uml" and tool.id != "uml_preview" %}
-                            <div class="absolute inset-0 bg-gradient-to-br from-violet-200/40 via-fuchsia-100/30 to-amber-200/30"></div>
-                            <pre class="absolute -right-0 top-2 text-[9px] leading-3.5 font-mono text-violet-800/30 rotate-[-8deg] whitespace-pre">{{ tool.bg_snippet }}</pre>
+                            <div class="absolute inset-0 bg-gradient-to-br from-teal-200/40 via-cyan-100/30 to-emerald-200/30"></div>
+                            <pre class="absolute -right-0 top-2 text-[9px] leading-3.5 font-mono text-teal-800/30 rotate-[-8deg] whitespace-pre">{{ tool.bg_snippet }}</pre>
 
                         {% elif tool.bg_type == "codegen" %}
                             <div class="absolute inset-0 bg-gradient-to-br from-emerald-200/40 via-teal-100/30 to-rose-200/30"></div>
@@ -102,7 +143,7 @@
 <script>
     (function () {
         var baseArticle =
-            "relative overflow-hidden border bg-slate-50/80 p-4 min-h-0 hover:shadow-md transition-shadow ";
+            "relative overflow-hidden rounded-2xl border bg-slate-50/80 p-4 min-h-0 hover:shadow-md transition-shadow ";
 
         function syncGenToolsNav() {
             var active = new URLSearchParams(window.location.search).get("tool");
@@ -112,9 +153,9 @@
                 var article = a.querySelector("article");
                 if (!article) return;
                 if (id === active) {
-                    article.className = baseArticle + "border-violet-400 shadow-sm ring-1 ring-violet-200";
+                    article.className = baseArticle + "border-teal-400 shadow-sm ring-1 ring-teal-200";
                 } else {
-                    article.className = baseArticle + "border-slate-100 hover:border-violet-200";
+                    article.className = baseArticle + "border-slate-100 hover:border-teal-200";
                 }
             });
         }

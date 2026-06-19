@@ -1,0 +1,66 @@
+/* ==========================================================================
+   Outils de génération — styles page-spécifiques
+   Hero partagé : base.css (.gen-hero, .banner-gradient)
+   Espacement : base.css (.site-page)
+   ========================================================================== */
+
+/* ------------------------------------------------------ Bande capacités --- */
+.gen-capabilities {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--brand-line);
+    border-radius: var(--brand-radius);
+    overflow: hidden;
+    background: var(--brand-line);
+}
+
+@media (min-width: 768px) {
+    .gen-capabilities {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.gen-cap {
+    background: var(--brand-surface);
+    padding: 1.35rem 1.45rem;
+}
+
+.gen-cap__icon {
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(13, 148, 136, 0.25);
+    color: var(--brand-teal);
+    background: rgba(20, 184, 166, 0.07);
+    margin-bottom: 0.85rem;
+}
+
+.gen-cap__icon svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.gen-cap__title {
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--brand-ink);
+}
+
+.gen-cap__desc {
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    color: var(--brand-muted);
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------- Grille outils (teal) - */
+.gen-tools-grid {
+    position: relative;
+    z-index: 1;
+}

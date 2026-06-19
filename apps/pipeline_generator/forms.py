@@ -4,7 +4,7 @@ from django import forms
 INPUT_CLASS = (
     "w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 "
     "text-sm font-semibold text-slate-800 shadow-sm "
-    "focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+    "focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
 )
 
 
@@ -43,7 +43,7 @@ class PipelineConfigForm(forms.Form):
         label="Deploiement souhaite",
         widget=forms.RadioSelect(
             attrs={
-                "class": "h-4 w-4 text-cyan-600 border-slate-300 focus:ring-cyan-500",
+                "class": "h-4 w-4 accent-teal-600 text-teal-600 border-slate-300 focus:ring-teal-500",
             }
         ),
     )
@@ -55,7 +55,7 @@ class PipelineConfigForm(forms.Form):
         label="Containers",
         widget=forms.RadioSelect(
             attrs={
-                "class": "h-4 w-4 text-cyan-600 border-slate-300 focus:ring-cyan-500",
+                "class": "h-4 w-4 accent-teal-600 text-teal-600 border-slate-300 focus:ring-teal-500",
             }
         ),
     )
@@ -79,7 +79,7 @@ class PipelineConfigForm(forms.Form):
         label="Execution distante SSH",
         widget=forms.RadioSelect(
             attrs={
-                "class": "h-4 w-4 text-cyan-600 border-slate-300 focus:ring-cyan-500",
+                "class": "h-4 w-4 accent-teal-600 text-teal-600 border-slate-300 focus:ring-teal-500",
             }
         ),
     )
@@ -116,8 +116,8 @@ class PipelineConfigForm(forms.Form):
                 "rows": 7,
                 "class": (
                     "w-full rounded-xl border border-slate-300 p-3 font-mono text-sm "
-                    "text-slate-800 bg-slate-50 focus:border-cyan-400 "
-                    "focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                    "text-slate-800 bg-slate-50 focus:border-teal-400 "
+                    "focus:outline-none focus:ring-2 focus:ring-teal-200"
                 ),
                 "placeholder": "DJANGO_SETTINGS_MODULE=config.settings\nDEBUG=False",
             }
@@ -174,8 +174,8 @@ class PipelineConfigForm(forms.Form):
                 "rows": 4,
                 "class": (
                     "w-full rounded-xl border border-slate-300 p-3 font-mono text-sm "
-                    "text-slate-800 bg-slate-50 focus:border-cyan-400 "
-                    "focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                    "text-slate-800 bg-slate-50 focus:border-teal-400 "
+                    "focus:outline-none focus:ring-2 focus:ring-teal-200"
                 ),
                 "placeholder": "python -m pip install -r requirements.txt",
             }
@@ -189,8 +189,8 @@ class PipelineConfigForm(forms.Form):
                 "rows": 4,
                 "class": (
                     "w-full rounded-xl border border-slate-300 p-3 font-mono text-sm "
-                    "text-slate-800 bg-slate-50 focus:border-cyan-400 "
-                    "focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                    "text-slate-800 bg-slate-50 focus:border-teal-400 "
+                    "focus:outline-none focus:ring-2 focus:ring-teal-200"
                 ),
                 "placeholder": "docker compose up -d --build",
             }
@@ -204,8 +204,8 @@ class PipelineConfigForm(forms.Form):
                 "rows": 4,
                 "class": (
                     "w-full rounded-xl border border-slate-300 p-3 font-mono text-sm "
-                    "text-slate-800 bg-slate-50 focus:border-cyan-400 "
-                    "focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                    "text-slate-800 bg-slate-50 focus:border-teal-400 "
+                    "focus:outline-none focus:ring-2 focus:ring-teal-200"
                 ),
                 "placeholder": "python manage.py migrate",
             }
