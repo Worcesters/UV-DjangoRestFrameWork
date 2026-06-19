@@ -29,7 +29,7 @@
     <article class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
         <h2 class="text-2xl font-black"><span class="sublime-page-h2">Timeline</span></h2>
         <div class="relative mt-8">
-            <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 rounded-full bg-gradient-to-b from-teal-200 via-emerald-200 to-cyan-200"></div>
+            <div class="linear-gradient-emerald-cyan-teal--vertical hidden md:block absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 rounded-full"></div>
             {% for item in timeline %}
             <div class="relative grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-10 py-4 {% if forloop.counter > 2 %}timeline-extra hidden{% endif %}">
                 {% if forloop.counter0|divisibleby:2 %}
