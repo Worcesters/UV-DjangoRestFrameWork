@@ -31,6 +31,8 @@ GENERATION_TOOLS: List[Dict[str, Any]] = [
         "id": "uml",
         "name": "Code to UML",
         "description": "Convertit du code en PlantUML.",
+        "intro": "Convertis rapidement ton code en squelette PlantUML (classes + fonctions détectées).",
+        "icon": "uml",
         "url": "/uml/",
         "bg_type": "uml",
         "bg_snippet": "class MyClass {\n  + method()\n  - attribute",
@@ -39,6 +41,8 @@ GENERATION_TOOLS: List[Dict[str, Any]] = [
         "id": "codegen",
         "name": "UML to Code",
         "description": "Genere du code depuis PlantUML.",
+        "intro": "Génère du code à partir d'un diagramme PlantUML selon le langage sélectionné.",
+        "icon": "code",
         "url": "/codegenerator/",
         "bg_type": "codegen",
         "bg_snippet": "PlantUML\n→ Code",
@@ -47,6 +51,8 @@ GENERATION_TOOLS: List[Dict[str, Any]] = [
         "id": "uml_preview",
         "name": "UML Builder",
         "description": "Visualise & crée un diagramme.",
+        "intro": "Colle ou construis le PlantUML et visualise immédiatement le diagramme généré.",
+        "icon": "uml",
         "url": "/uml/",
         "bg_type": "uml",
         "bg_snippet": "@startuml\nclass User\nUser -> Service: call()\n@enduml",
@@ -55,6 +61,8 @@ GENERATION_TOOLS: List[Dict[str, Any]] = [
         "id": "pipeline",
         "name": "PipelineGenerator",
         "description": "Genere une pipeline Git/Jenkins avec options avancees.",
+        "intro": "Génère une configuration pipeline via un formulaire (Git, GitLab CI ou Jenkins).",
+        "icon": "pipeline",
         "url": "/pipeline-generator/",
         "bg_type": "pipeline",
         "bg_snippet": "git\njenkins",
@@ -63,6 +71,8 @@ GENERATION_TOOLS: List[Dict[str, Any]] = [
         "id": "bpmn",
         "name": "Code to BPMN (alpha)",
         "description": "Genere un diagramme BPMN 2.0 a partir du code.",
+        "intro": "Génère un diagramme BPMN (PlantUML) à partir de ton code (Python, PHP, Java).",
+        "icon": "bpmn",
         "url": "/code-to-bpmn/",
         "bg_type": "bpmn",
         "bg_snippet": "<process>\n  <task/>",
@@ -83,6 +93,18 @@ def active_tool_display_name(active_tool: str) -> str:
     return next((t["name"] for t in GENERATION_TOOLS if t["id"] == active_tool), "Code to UML")
 
 
+def active_tool_meta(active_tool: str) -> Dict[str, str]:
+    """Nom, intro et icône de l'outil actif pour le panneau workspace."""
+    for tool in GENERATION_TOOLS:
+        if tool["id"] == active_tool:
+            return {
+                "name": tool["name"],
+                "intro": tool.get("intro", tool["description"]),
+                "icon": tool.get("icon", "default"),
+            }
+    return {"name": "Code to UML", "intro": "", "icon": "uml"}
+
+
 def form_action_url(active_tool: str) -> str:
     return reverse("users:generation_tools") + "?tool=" + active_tool
 
@@ -94,6 +116,7 @@ def _empty_context(active_tool: str) -> Dict[str, Any]:
         "default_tool_url": "/uml/",
         "active_tool": active_tool,
         "active_tool_name": active_tool_display_name(active_tool),
+        "active_tool_meta": active_tool_meta(active_tool),
         "form_action": form_action_url(active_tool),
         "uml_form": UmlUploadForm(),
         "uml_code": "",

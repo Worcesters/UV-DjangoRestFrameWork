@@ -1,13 +1,19 @@
 {% load static %}
-<section class="flex min-h-full w-full flex-1 flex-col mx-auto">
+<section class="gen-tool-workspace">
     <div id="pipelineGeneratorConfig" class="hidden" aria-hidden="true" data-branches-api-url="{% url 'pipeline_generator:branches_api' %}"></div>
     <script type="application/json" id="pipeline-initial-containers">{{ containers_initial_json|default:"[]"|safe }}</script>
-    {% include "partials/tool_intro.html" with label="Pipeline" icon="pipeline" text="Génère une configuration pipeline via un formulaire (Git, GitLab CI ou Jenkins)." %}
 
-    <form id="pipelineForm" method="post" class="mt-6 grid grid-cols-1 lg:grid-cols-2 lg:items-stretch gap-6">
+    <form id="pipelineForm" method="post" class="gen-split">
         {% csrf_token %}
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="gen-pane gen-pane--input">
+            <div class="gen-pane__toolbar">
+                <div class="gen-pane__toolbar-left">
+                    <span class="gen-pane__indicator" aria-hidden="true"></span>
+                    <span class="gen-pane__label">Configuration</span>
+                </div>
+            </div>
+            <div class="gen-pane__body">
             <div class="space-y-4">
                 <div>
                     <label for="{{ form.project_name.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">Nom du projet</label>
@@ -137,38 +143,42 @@
                     {{ form.post_deploy_commands }}
                 </div>
             </div>
-
-            <button
-                type="submit"
-                class="mt-4 inline-flex items-center px-5 py-2.5 rounded-xl bg-teal-600 text-white font-bold shadow-[0_10px_24px_rgba(13,148,136,0.25)] hover:bg-teal-700 transition-colors"
-            >
-                Generer la config pipeline
+            </div>
+            <div class="gen-pane__footer">
+            <button type="submit" class="gen-btn gen-btn--primary">
+                Générer la config pipeline
             </button>
 
             {% if error_message %}
-            <div class="mt-4 p-3 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-sm font-medium">
-                {{ error_message }}
-            </div>
+            <div class="gen-alert" role="alert">{{ error_message }}</div>
             {% endif %}
+            </div>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="flex items-center justify-between gap-3 mb-2">
-                <label for="id_generated_config" class="block text-sm font-bold text-slate-700">Configuration generee</label>
-                <button
-                    id="copyPipelineBtn"
-                    type="button"
-                    class="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-all duration-200"
-                >
-                    Copier
-                </button>
+        <div class="gen-split__connector" aria-hidden="true">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+        </div>
+
+        <div class="gen-pane gen-pane--output">
+            <div class="gen-pane__toolbar">
+                <div class="gen-pane__toolbar-left">
+                    <span class="gen-pane__indicator" aria-hidden="true"></span>
+                    <label for="id_generated_config" class="gen-pane__title">Configuration générée</label>
+                </div>
+                <button id="copyPipelineBtn" type="button" class="gen-btn gen-btn--ghost">Copier</button>
             </div>
-            <textarea
-                id="id_generated_config"
-                rows="18"
-                readonly
-                class="w-full min-h-[12rem] max-h-[min(55vh,28rem)] overflow-y-auto rounded-xl border border-slate-300 p-3 font-mono text-sm text-slate-800 bg-slate-50"
-            >{{ generated_config }}</textarea>
+            <div class="gen-pane__body">
+                <div class="gen-preview-text">
+                    <textarea
+                        id="id_generated_config"
+                        rows="24"
+                        readonly
+                        class="gen-code-editor gen-code-editor--preview gen-code-editor--preview-tall"
+                    >{{ generated_config }}</textarea>
+                </div>
+            </div>
         </div>
     </form>
 </section>

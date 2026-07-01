@@ -17,8 +17,8 @@ class CodeGeneratorForm(forms.Form):
             attrs={
                 "class": (
                     "w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 "
-                    "text-sm font-semibold text-slate-800 shadow-sm "
-                    "focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                    "text-sm font-semibold text-slate-800 "
+                    "focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200"
                 )
             }
         ),
@@ -40,9 +40,7 @@ class CodeGeneratorForm(forms.Form):
                     "@enduml"
                 ),
                 "class": (
-                    "w-full min-h-[12rem] max-h-[min(55vh,28rem)] overflow-y-auto rounded-xl "
-                    "border border-slate-300 p-3 font-mono text-sm text-slate-800 bg-slate-50 "
-                    "focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                    "gen-code-editor gen-code-editor--input"
                 ),
             }
         ),

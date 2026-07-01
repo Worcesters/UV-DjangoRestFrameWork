@@ -1,0 +1,34 @@
+{# Zone aperçu diagramme unifiée (UML Builder, Code→UML, Code→BPMN) #}
+<div class="gen-preview-diagram{% if not show_head %} gen-preview-diagram--solo{% endif %}{% if class %} {{ class }}{% endif %}"{% if panel_id %} id="{{ panel_id }}"{% endif %}>
+    {% if show_head %}
+    <div class="gen-preview-diagram__head">
+        <span class="gen-preview-diagram__label">{{ label|default:"Aperçu du diagramme" }}</span>
+        {% if expand_btn_id %}
+        <button type="button" id="{{ expand_btn_id }}" class="gen-btn gen-btn--ghost">Agrandir</button>
+        {% endif %}
+    </div>
+    {% endif %}
+    <div class="gen-preview-diagram__status">
+        {% if loading_id %}
+        <p id="{{ loading_id }}" class="gen-preview-diagram__loading hidden" role="status">Mise à jour de l’aperçu…</p>
+        {% endif %}
+        {% if error_id %}
+        <p id="{{ error_id }}" class="gen-preview-diagram__error hidden" role="alert"></p>
+        {% endif %}
+    </div>
+    <div
+        {% if wrap_id %}id="{{ wrap_id }}"{% endif %}
+        class="gen-preview-diagram__canvas{% if not image_url %} hidden{% endif %}"
+    >
+        <img
+            {% if image_id %}id="{{ image_id }}"{% endif %}
+            {% if image_url %}src="{{ image_url }}"{% endif %}
+            alt="{{ alt|default:'Aperçu du diagramme' }}"
+            class="gen-preview-diagram__img"
+        >
+    </div>
+    <p
+        {% if empty_id %}id="{{ empty_id }}"{% endif %}
+        class="gen-preview-diagram__empty{% if image_url %} hidden{% endif %}"
+    >{{ empty_text|default:"L’aperçu du diagramme s’affichera ici." }}</p>
+</div>

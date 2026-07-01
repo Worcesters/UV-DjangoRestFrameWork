@@ -68,8 +68,9 @@
         class="gen-tools-grid grid scroll-mt-28 grid-cols-1 gap-8 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:items-start"
         aria-label="Sélection et outil actif"
     >
-        <aside class="space-y-3 rounded-3xl border border-slate-100 bg-white p-8 shadow-sm" id="tools-nav">
-            <p class="px-1 text-xs font-black uppercase"><span class="gen-sidebar-label-sublime">Sélection outil</span></p>
+        <aside class="gen-nav" id="tools-nav">
+            <p class="gen-nav__label"><span class="gen-sidebar-label-sublime">Sélection outil</span></p>
+            <div class="gen-nav__list">
             {% for tool in tools %}
             <a
                 href="{% url 'users:generation_tools' %}?tool={{ tool.id }}"
@@ -79,9 +80,9 @@
                 hx-select="#gen-tool-panel"
                 hx-swap="outerHTML show:none"
                 hx-push-url="true"
-                class="block focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 rounded-2xl"
+                class="gen-nav__link"
             >
-                <article class="relative overflow-hidden rounded-2xl border bg-slate-50/80 p-4 min-h-0 hover:shadow-md transition-shadow {% if active_tool == tool.id %}border-teal-400 shadow-sm ring-1 ring-teal-200{% else %}border-slate-100 hover:border-teal-200{% endif %}">
+                <article class="gen-nav__card {% if active_tool == tool.id %}gen-nav__card--active{% endif %}">
                     <div class="absolute inset-0 pointer-events-none">
                         {% if tool.bg_type == "uml" and tool.id != "uml_preview" %}
                             <div class="absolute inset-0 bg-gradient-to-br from-teal-200/40 via-cyan-100/30 to-emerald-200/30"></div>
@@ -105,22 +106,39 @@
                         {% endif %}
                     </div>
                     <div class="relative z-10">
-                        <h3 class="text-sm font-extrabold leading-tight"><span>{{ tool.name }}</span></h3>
-                        <p class="mt-1.5 text-xs text-slate-600 leading-snug line-clamp-2">{{ tool.description }}</p>
+                        <h3 class="gen-nav__card-title">{{ tool.name }}</h3>
+                        <p class="gen-nav__card-desc">{{ tool.description }}</p>
                     </div>
                 </article>
             </a>
             {% endfor %}
+            </div>
         </aside>
 
         <div
             id="gen-tool-panel"
-            class="flex min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm min-h-[min(70vh,46rem)]"
+            class="gen-workspace"
+            data-active-tool="{{ active_tool }}"
         >
-            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
-                <p class="text-sm font-bold"><span class="gen-active-tool-title">{{ active_tool_name }}</span></p>
-            </div>
-            <div id="toolFramesContainer" class="flex min-h-[min(64vh,42rem)] w-full flex-1 flex-col bg-white">
+            <header class="gen-workspace__header">
+                <div class="gen-workspace__header-main">
+                    <div class="gen-workspace__icon" aria-hidden="true">
+                        {% include "partials/gen_tool_icon.html" with icon=active_tool_meta.icon %}
+                    </div>
+                    <div class="gen-workspace__titles">
+                        <p class="gen-workspace__kicker">Atelier · outil actif</p>
+                        <h2 class="gen-workspace__title"><span class="gen-active-tool-title">{{ active_tool_meta.name }}</span></h2>
+                        <p class="gen-workspace__intro">{{ active_tool_meta.intro }}</p>
+                    </div>
+                </div>
+                <div class="gen-workspace__aside">
+                    <span class="gen-workspace__badge">
+                        <span class="gen-workspace__badge-dot" aria-hidden="true"></span>
+                        HTMX live
+                    </span>
+                </div>
+            </header>
+            <div id="toolFramesContainer" class="gen-workspace__body">
                 {% if active_tool == "uml" %}
                 {% include "code_converter_uml/index.html" with form=uml_form uml_code=uml_code preview_url=preview_url parsed_files=parsed_files detected_language=detected_language error_message=uml_error_message form_action=form_action %}
                 {% elif active_tool == "uml_preview" %}
@@ -142,21 +160,14 @@
 {% block extra_js %}
 <script>
     (function () {
-        var baseArticle =
-            "relative overflow-hidden rounded-2xl border bg-slate-50/80 p-4 min-h-0 hover:shadow-md transition-shadow ";
-
         function syncGenToolsNav() {
             var active = new URLSearchParams(window.location.search).get("tool");
             if (!active) return;
             document.querySelectorAll("#tools-nav a[data-tool]").forEach(function (a) {
                 var id = a.getAttribute("data-tool");
-                var article = a.querySelector("article");
+                var article = a.querySelector(".gen-nav__card");
                 if (!article) return;
-                if (id === active) {
-                    article.className = baseArticle + "border-teal-400 shadow-sm ring-1 ring-teal-200";
-                } else {
-                    article.className = baseArticle + "border-slate-100 hover:border-teal-200";
-                }
+                article.classList.toggle("gen-nav__card--active", id === active);
             });
         }
 
