@@ -1,0 +1,19 @@
+{# Corps scrollable d’une modale d’aperçu diagramme (pan/zoom) #}
+<div class="gen-preview-modal__body">
+    <div
+        class="gen-preview-diagram__canvas gen-preview-diagram__canvas--modal"
+        data-panzoom
+        data-panzoom-modal
+        {% if canvas_id %}id="{{ canvas_id }}"{% endif %}
+    >
+        <div class="gen-preview-diagram__stage">
+            <img
+                {% if image_id %}id="{{ image_id }}"{% endif %}
+                {% if image_url %}src="{{ image_url }}"{% endif %}
+                alt="{{ alt|default:'Aperçu du diagramme agrandi' }}"
+                class="gen-preview-diagram__img"
+                draggable="false"
+            >
+        </div>
+    </div>
+</div>

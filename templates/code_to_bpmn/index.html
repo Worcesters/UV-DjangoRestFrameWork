@@ -74,7 +74,7 @@
     </form>
 
     {% if preview_url %}
-    <div id="bpmnPreviewModal" class="fixed inset-0 z-50 hidden">
+    <div id="bpmnPreviewModal" class="gen-preview-modal-mark fixed inset-0 z-50 hidden">
         <div id="bpmnPreviewBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-[1px]"></div>
         <div class="relative z-10 flex min-h-screen items-center justify-center p-4 md:p-8">
             <div class="w-full max-w-[96vw] max-h-[92vh] rounded-2xl border border-teal-200 bg-slate-950">
@@ -84,8 +84,8 @@
                         Fermer
                     </button>
                 </div>
-                <div class="max-h-[calc(92vh-56px)] overflow-auto p-3">
-                    <img src="{{ preview_url }}" alt="Aperçu BPMN agrandi" class="mx-auto h-auto min-w-[1200px] max-w-none rounded-xl border border-teal-200/30 bg-white">
+                <div class="max-h-[calc(92vh-56px)] overflow-hidden">
+                    {% include "partials/gen_preview_modal_body.html" with image_url=preview_url alt="Aperçu BPMN agrandi" %}
                 </div>
             </div>
         </div>

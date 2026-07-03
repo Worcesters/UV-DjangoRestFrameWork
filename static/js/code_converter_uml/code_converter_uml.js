@@ -40,32 +40,12 @@
     }
 
     var modal = document.getElementById("previewModal");
-    var openBtn = document.getElementById("openPreviewModal");
-    var closeBtn = document.getElementById("closePreviewModal");
-    var backdrop = document.getElementById("previewBackdrop");
-    var previewImage = document.getElementById("umlPreviewImage");
-
-    if (!modal || !openBtn || !closeBtn || !backdrop || !previewImage) {
-        return;
+    if (modal && window.GenPreviewPanZoom) {
+        GenPreviewPanZoom.wireModal(modal, {
+            openButtonId: "openPreviewModal",
+            closeButtonId: "closePreviewModal",
+            backdropId: "previewBackdrop",
+            sourceImageId: "umlPreviewImage",
+        });
     }
-
-    function openModal() {
-        modal.classList.remove("hidden");
-        document.body.classList.add("overflow-hidden");
-    }
-
-    function closeModal() {
-        modal.classList.add("hidden");
-        document.body.classList.remove("overflow-hidden");
-    }
-
-    openBtn.addEventListener("click", openModal);
-    closeBtn.addEventListener("click", closeModal);
-    backdrop.addEventListener("click", closeModal);
-
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && !modal.classList.contains("hidden")) {
-            closeModal();
-        }
-    });
 })();

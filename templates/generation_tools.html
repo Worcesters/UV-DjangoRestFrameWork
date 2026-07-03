@@ -5,6 +5,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/generation_tools.css' %}">
+<script src="{% static 'js/generation_tools/preview_panzoom.js' %}" defer></script>
 <div id="generation-tools-page" class="site-page">
     {# Hero — visuel isométrique 3D + accent teal/émeraude #}
     <section class="gen-hero banner-gradient" aria-labelledby="gen-hero-title">
@@ -158,13 +159,29 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/generation_tools/preview_panzoom.js' %}" defer></script>
 <script>
     (function () {
         function initGenPreviewPanZoom() {
             if (!window.GenPreviewPanZoom) return;
             var panel = document.getElementById("gen-tool-panel");
             GenPreviewPanZoom.init(panel || document);
+            wirePreviewModals();
+        }
+
+        function wirePreviewModals() {
+            if (!window.GenPreviewPanZoom) return;
+            GenPreviewPanZoom.wireModal(document.getElementById("previewModal"), {
+                openButtonId: "openPreviewModal",
+                closeButtonId: "closePreviewModal",
+                backdropId: "previewBackdrop",
+                sourceImageId: "umlPreviewImage",
+            });
+            GenPreviewPanZoom.wireModal(document.getElementById("bpmnPreviewModal"), {
+                openButtonId: "openPreviewModal",
+                closeButtonId: "closePreviewModal",
+                backdropId: "bpmnPreviewBackdrop",
+                sourceImageId: "bpmnPreviewImage",
+            });
         }
 
         function syncGenToolsNav() {

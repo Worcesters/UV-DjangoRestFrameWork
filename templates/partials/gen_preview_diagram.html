@@ -20,6 +20,7 @@
         {% if wrap_id %}id="{{ wrap_id }}"{% endif %}
         class="gen-preview-diagram__canvas{% if not image_url %} hidden{% endif %}"
         data-panzoom
+        {% if expand_btn_id %}data-open-modal="{{ expand_btn_id }}"{% endif %}
     >
         <div class="gen-preview-diagram__stage">
             <img

@@ -75,7 +75,7 @@
                     <button type="button" id="openUmlPreviewModal" class="gen-btn gen-btn--ghost">Agrandir</button>
                 </div>
                 <div class="gen-pane__body">
-                    {% include "partials/gen_preview_diagram.html" with panel_id="umlPreviewPanel" wrap_id="umlPreviewImageWrap" image_id="umlPreviewImage" image_url=preview_url loading_id="umlPreviewLoading" error_id="umlPreviewFetchError" empty_id="umlPreviewEmpty" show_head=False empty_text="Colle du PlantUML à gauche : l’aperçu se met à jour ici sans recharger la page." %}
+                    {% include "partials/gen_preview_diagram.html" with panel_id="umlPreviewPanel" wrap_id="umlPreviewImageWrap" image_id="umlPreviewImage" image_url=preview_url loading_id="umlPreviewLoading" error_id="umlPreviewFetchError" empty_id="umlPreviewEmpty" expand_btn_id="openUmlPreviewModal" show_head=False empty_text="Colle du PlantUML à gauche : l’aperçu se met à jour ici sans recharger la page." %}
                 </div>
             </div>
         </div>
@@ -275,7 +275,7 @@ package "infra" {
         </div>
     </div>
 
-    <div id="umlPreviewModal" class="fixed inset-0 z-50 hidden">
+    <div id="umlPreviewModal" class="gen-preview-modal-mark fixed inset-0 z-50 hidden">
         <div id="umlPreviewBackdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
         <div class="relative z-10 flex min-h-screen items-center justify-center p-4 md:p-8">
             <!-- Bloc aperçu diagramme utilisateur -->
@@ -290,13 +290,23 @@ package "infra" {
                         Fermer
                     </button>
                 </div>
-                <div class="max-h-[calc(92vh-52px)] overflow-auto p-6 flex items-center justify-center bg-gradient-to-b from-slate-50/80 to-white">
-                    <img
-                        id="umlUserDiagramImage"
-                        src=""
-                        alt="Diagramme UML"
-                        class="max-w-full h-auto rounded-xl border border-slate-200/90 bg-white shadow-md shadow-slate-200/50"
+                <div class="gen-preview-modal__body">
+                    <div
+                        id="umlUserDiagramCanvas"
+                        class="gen-preview-diagram__canvas gen-preview-diagram__canvas--modal"
+                        data-panzoom
+                        data-panzoom-modal
                     >
+                        <div class="gen-preview-diagram__stage">
+                            <img
+                                id="umlUserDiagramImage"
+                                src=""
+                                alt="Diagramme UML"
+                                class="gen-preview-diagram__img"
+                                draggable="false"
+                            >
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- Bloc aide UML (même charte que la page) -->

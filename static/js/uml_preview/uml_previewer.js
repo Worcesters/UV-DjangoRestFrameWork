@@ -309,7 +309,7 @@
                         if (previewImageWrap) {
                             previewImageWrap.classList.remove("hidden");
                             if (window.GenPreviewPanZoom) {
-                                GenPreviewPanZoom.init(previewImageWrap);
+                                GenPreviewPanZoom.init(document.getElementById("umlPreviewPanel") || previewImageWrap);
                             }
                         }
                         if (previewEmpty) previewEmpty.classList.add("hidden");
@@ -353,6 +353,11 @@
             userBlock.classList.remove("hidden");
             mainModal.classList.remove("hidden");
             document.body.classList.add("overflow-hidden");
+            if (window.GenPreviewPanZoom) {
+                var modalCanvas = document.getElementById("umlUserDiagramCanvas");
+                GenPreviewPanZoom.init(userBlock);
+                if (modalCanvas) GenPreviewPanZoom.reset(modalCanvas);
+            }
         }
 
         if (openModalBtn) openModalBtn.addEventListener("click", openUserDiagram);
