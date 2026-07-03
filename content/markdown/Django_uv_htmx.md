@@ -9,6 +9,7 @@
 
 1. [Arborescence cible (norme 2026)](#dj-0)
 2. [Gestion de projet avec `uv`](#dj-1)
+   - [Dépendances depuis un dépôt Git](#dj-1-git)
 3. [HTMX : les attributs utiles](#dj-2)
 4. [Verbes HTTP](#dj-2-verbes)
 5. [Ciblage et contenu de la réponse](#dj-2-ciblage)
@@ -93,6 +94,89 @@ Vérifier l’installation : `uv --version`. Mise à jour (installateur standalo
 | `uv run python manage.py <cmd>` | Exécute Django dans l’environnement géré par uv. |
 | `uv sync` | Réinstalle l’environnement selon `uv.lock`. |
 | `uv run ruff check .` | (Optionnel) Lint rapide si `ruff` est en dev. |
+
+### Dépendances depuis un dépôt Git {#dj-1-git}
+
+Pour ajouter un package **hébergé sur GitHub (ou autre forge)**, `uv` a besoin du préfixe `git+` : sans lui, l’URL est interprétée comme un **nom PyPI**, pas comme une source Git.
+
+| Commande | Résultat |
+| :--- | :--- |
+| `uv add "https://github.com/org/repo.git"` | ❌ Nom PyPI invalide — pas de clone Git |
+| `uv add "git+https://github.com/org/repo.git"` | ✅ Clone le dépôt |
+| `uv add "mon-paquet @ git+https://github.com/org/repo.git"` | ✅ Recommandé — nom explicite dans `pyproject.toml` |
+
+#### Syntaxe `nom @ git+…`
+
+La forme `nom @ url` signifie : *j’ajoute une dépendance appelée `nom`, installée depuis la source qui suit*.
+
+```bash
+# Minimum (le nom vient du [project].name du repo cloné)
+uv add "git+https://github.com/Worcesters/package_llm_inference.git"
+
+# Recommandé — nom clair dans ton pyproject.toml
+uv add "django-inference @ git+https://github.com/Worcesters/package_llm_inference.git"
+```
+
+Sans le `@ nom`, `uv` lit le nom dans le `pyproject.toml` du dépôt distant :
+
+```toml
+[project]
+name = "django-inference"
+```
+
+Le `@ django-inference` sert surtout à **forcer ou clarifier** le nom de la dépendance dans **ton** projet.
+
+#### Branche, tag ou commit
+
+Ajoute `@ref` **après** l’URL `.git` :
+
+```bash
+uv add "django-inference @ git+https://github.com/Worcesters/package_llm_inference.git@main"
+uv add "django-inference @ git+https://github.com/Worcesters/package_llm_inference.git@v1.2.0"
+uv add "django-inference @ git+https://github.com/Worcesters/package_llm_inference.git@a1b2c3d4"
+```
+
+#### Sous-dossier (`#subdirectory=…`)
+
+Si le `pyproject.toml` **n’est pas à la racine** du dépôt (monorepo, package dans un sous-dossier), indique le chemin avec le fragment `#subdirectory=` :
+
+```bash
+uv add "django-inference @ git+https://github.com/Worcesters/package_llm_inference.git#subdirectory=django-inference"
+```
+
+On peut combiner branche/tag **et** sous-dossier :
+
+```bash
+uv add "django-inference @ git+https://github.com/Worcesters/package_llm_inference.git@main#subdirectory=django-inference"
+```
+
+Ordre à retenir : `git+URL` → `@branche_ou_tag` (optionnel) → `#subdirectory=chemin` (optionnel).
+
+#### Ce que `uv` écrit dans `pyproject.toml`
+
+Exemple après `uv add "django-inference @ git+https://…/repo.git@main#subdirectory=django-inference"` :
+
+```toml
+[project]
+dependencies = [
+    "django-inference",
+]
+
+[tool.uv.sources]
+django-inference = { git = "https://github.com/Worcesters/package_llm_inference.git", subdirectory = "django-inference", rev = "main" }
+```
+
+`uv lock` / `uv sync` résolvent ensuite cette source Git comme une dépendance normale.
+
+#### Dépannage
+
+| Erreur / symptôme | Cause probable |
+| :--- | :--- |
+| `could not find pyproject.toml` | Pas de `pyproject.toml` à la racine clonée → utiliser `#subdirectory=…` |
+| Package introuvable sur PyPI | URL sans `git+` |
+| Repo privé | SSH : `git+ssh://git@github.com/org/repo.git` ou token HTTPS selon ta config Git |
+
+> **Rappel :** même avec `git+https://…`, l’installation échoue tant que le dépôt (ou le sous-dossier ciblé) ne contient pas un `pyproject.toml` installable.
 
 ---
 
