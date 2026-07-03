@@ -19,13 +19,17 @@
     <div
         {% if wrap_id %}id="{{ wrap_id }}"{% endif %}
         class="gen-preview-diagram__canvas{% if not image_url %} hidden{% endif %}"
+        data-panzoom
     >
-        <img
-            {% if image_id %}id="{{ image_id }}"{% endif %}
-            {% if image_url %}src="{{ image_url }}"{% endif %}
-            alt="{{ alt|default:'Aperçu du diagramme' }}"
-            class="gen-preview-diagram__img"
-        >
+        <div class="gen-preview-diagram__stage">
+            <img
+                {% if image_id %}id="{{ image_id }}"{% endif %}
+                {% if image_url %}src="{{ image_url }}"{% endif %}
+                alt="{{ alt|default:'Aperçu du diagramme' }}"
+                class="gen-preview-diagram__img"
+                draggable="false"
+            >
+        </div>
     </div>
     <p
         {% if empty_id %}id="{{ empty_id }}"{% endif %}

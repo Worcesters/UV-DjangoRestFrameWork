@@ -72,6 +72,7 @@
                         <span class="gen-pane__indicator" aria-hidden="true"></span>
                         <span class="gen-pane__title">Aperçu du diagramme</span>
                     </div>
+                    <button type="button" id="openUmlPreviewModal" class="gen-btn gen-btn--ghost">Agrandir</button>
                 </div>
                 <div class="gen-pane__body">
                     {% include "partials/gen_preview_diagram.html" with panel_id="umlPreviewPanel" wrap_id="umlPreviewImageWrap" image_id="umlPreviewImage" image_url=preview_url loading_id="umlPreviewLoading" error_id="umlPreviewFetchError" empty_id="umlPreviewEmpty" show_head=False empty_text="Colle du PlantUML à gauche : l’aperçu se met à jour ici sans recharger la page." %}

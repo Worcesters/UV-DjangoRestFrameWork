@@ -525,25 +525,40 @@
 }
 
 .gen-preview-diagram__canvas {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    position: relative;
+    display: block;
     min-height: 11rem;
     max-height: min(52vh, 28rem);
-    overflow: auto;
-    padding: 0.85rem;
+    overflow: hidden;
+    padding: 0;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
     background:
         radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.16) 1px, transparent 0),
         linear-gradient(180deg, #f8fafc 0%, #fff 100%);
     background-size: 16px 16px, auto;
 }
 
+.gen-preview-diagram__canvas.is-panning {
+    cursor: grabbing;
+}
+
+.gen-preview-diagram__stage {
+    display: inline-block;
+    transform-origin: 0 0;
+    will-change: transform;
+    padding: 0.85rem;
+}
+
 .gen-preview-diagram__img {
     display: block;
-    max-width: 100%;
+    max-width: none;
+    width: auto;
     height: auto;
-    cursor: zoom-in;
-    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
     border-radius: 0.5rem;
     border: 1px solid #e2e8f0;
     background: #fff;

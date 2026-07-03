@@ -158,8 +158,15 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/generation_tools/preview_panzoom.js' %}" defer></script>
 <script>
     (function () {
+        function initGenPreviewPanZoom() {
+            if (!window.GenPreviewPanZoom) return;
+            var panel = document.getElementById("gen-tool-panel");
+            GenPreviewPanZoom.init(panel || document);
+        }
+
         function syncGenToolsNav() {
             var active = new URLSearchParams(window.location.search).get("tool");
             if (!active) return;
@@ -179,7 +186,14 @@
                 if (m && m[1]) document.title = m[1].trim();
             }
             syncGenToolsNav();
+            initGenPreviewPanZoom();
         });
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initGenPreviewPanZoom);
+        } else {
+            initGenPreviewPanZoom();
+        }
     })();
 </script>
 {% endblock %}

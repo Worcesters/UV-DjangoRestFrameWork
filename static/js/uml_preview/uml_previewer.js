@@ -306,7 +306,12 @@
                     if (data.preview_url) {
                         form.setAttribute("data-preview-url", data.preview_url);
                         if (previewImage) previewImage.src = data.preview_url;
-                        if (previewImageWrap) previewImageWrap.classList.remove("hidden");
+                        if (previewImageWrap) {
+                            previewImageWrap.classList.remove("hidden");
+                            if (window.GenPreviewPanZoom) {
+                                GenPreviewPanZoom.init(previewImageWrap);
+                            }
+                        }
                         if (previewEmpty) previewEmpty.classList.add("hidden");
                         setPreviewError("");
                     } else {
@@ -330,7 +335,7 @@
         var userBlock = document.getElementById("umlUserDiagramBlock");
         var helpBlock = document.getElementById("umlHelpBlock");
         var userDiagramImg = document.getElementById("umlUserDiagramImage");
-        var openImg = document.getElementById("umlPreviewImage");
+        var openModalBtn = document.getElementById("openUmlPreviewModal");
 
         function closeMainModal() {
             if (!mainModal) return;
@@ -350,7 +355,7 @@
             document.body.classList.add("overflow-hidden");
         }
 
-        if (openImg) openImg.addEventListener("click", openUserDiagram);
+        if (openModalBtn) openModalBtn.addEventListener("click", openUserDiagram);
         document.querySelectorAll(".closeUmlModalBtn").forEach(function (btn) {
             btn.addEventListener("click", closeMainModal);
         });

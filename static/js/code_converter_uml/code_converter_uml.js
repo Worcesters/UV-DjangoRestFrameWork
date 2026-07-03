@@ -60,7 +60,6 @@
     }
 
     openBtn.addEventListener("click", openModal);
-    previewImage.addEventListener("click", openModal);
     closeBtn.addEventListener("click", closeModal);
     backdrop.addEventListener("click", closeModal);
 
