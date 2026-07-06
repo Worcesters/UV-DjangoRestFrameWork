@@ -239,6 +239,8 @@
     function init() {
         var textarea = document.getElementById("id_uml_text");
         if (!textarea) return;
+        if (textarea.dataset.umlPreviewBound === "1") return;
+        textarea.dataset.umlPreviewBound = "1";
 
         var form = textarea.closest("form");
         if (!form) return;
@@ -267,6 +269,53 @@
             }
         }
 
+        function syncPanZoom() {
+            if (!previewImageWrap || !window.GenPreviewPanZoom) return;
+            GenPreviewPanZoom.init(previewImageWrap);
+            GenPreviewPanZoom.reset(previewImageWrap);
+        }
+
+        function applyPreviewUrl(url) {
+            if (!previewImageWrap || !previewImage) return;
+
+            if (!url) {
+                form.setAttribute("data-preview-url", "");
+                previewImageWrap.classList.add("hidden");
+                if (previewEmpty) previewEmpty.classList.remove("hidden");
+                previewImage.removeAttribute("src");
+                return;
+            }
+
+            form.setAttribute("data-preview-url", url);
+            setPreviewError("");
+            if (previewEmpty) previewEmpty.classList.add("hidden");
+            previewImageWrap.classList.add("hidden");
+
+            previewImage.onload = function () {
+                previewImage.onload = null;
+                previewImage.onerror = null;
+                previewImageWrap.classList.remove("hidden");
+                syncPanZoom();
+            };
+
+            previewImage.onerror = function () {
+                previewImage.onload = null;
+                previewImage.onerror = null;
+                setPreviewError("Impossible de charger l'aperçu PlantUML.");
+                previewImageWrap.classList.add("hidden");
+                if (previewEmpty) previewEmpty.classList.remove("hidden");
+                previewImage.removeAttribute("src");
+            };
+
+            if (previewImage.src !== url) {
+                previewImage.src = url;
+            } else if (previewImage.complete && previewImage.naturalWidth) {
+                previewImage.onload();
+            } else {
+                previewImage.src = url;
+            }
+        }
+
         function updateUml(newUml) {
             textarea.value = String(newUml ?? "");
             textarea.dispatchEvent(new Event("input", { bubbles: true }));
@@ -277,10 +326,7 @@
             setPreviewError("");
 
             if (!value) {
-                form.setAttribute("data-preview-url", "");
-                if (previewImageWrap) previewImageWrap.classList.add("hidden");
-                if (previewEmpty) previewEmpty.classList.remove("hidden");
-                if (previewImage) previewImage.removeAttribute("src");
+                applyPreviewUrl("");
                 return;
             }
 
@@ -291,7 +337,7 @@
 
             setPreviewLoading(true);
             var body = new FormData();
-            body.append("uml_text", value);
+            body.append("uml_text", ensureStartEnd(value));
             body.append("csrfmiddlewaretoken", csrfToken);
             fetch(apiUrl, {
                 method: "POST",
@@ -304,23 +350,14 @@
                 .then(function (data) {
                     setPreviewLoading(false);
                     if (data.preview_url) {
-                        form.setAttribute("data-preview-url", data.preview_url);
-                        if (previewImage) previewImage.src = data.preview_url;
-                        if (previewImageWrap) {
-                            previewImageWrap.classList.remove("hidden");
-                            if (window.GenPreviewPanZoom) {
-                                GenPreviewPanZoom.init(document.getElementById("umlPreviewPanel") || previewImageWrap);
-                            }
-                        }
-                        if (previewEmpty) previewEmpty.classList.add("hidden");
-                        setPreviewError("");
+                        applyPreviewUrl(data.preview_url);
                     } else {
-                        setPreviewError(data.error || "Impossible de générer l’aperçu.");
+                        setPreviewError(data.error || "Impossible de générer l'aperçu.");
                     }
                 })
                 .catch(function () {
                     setPreviewLoading(false);
-                    setPreviewError("Erreur réseau lors de l’aperçu.");
+                    setPreviewError("Erreur réseau lors de l'aperçu.");
                 });
         }
 
@@ -328,6 +365,13 @@
             if (debounceTimer) clearTimeout(debounceTimer);
             debounceTimer = setTimeout(refreshPreviewFromApi, 2000);
         });
+
+        var initialUrl = form.getAttribute("data-preview-url") || "";
+        if (initialUrl) {
+            applyPreviewUrl(initialUrl);
+        } else if (textarea.value.trim()) {
+            refreshPreviewFromApi();
+        }
 
         /* ---------- Modale principale (aperçu user + aide) ---------- */
         var mainModal = document.getElementById("umlPreviewModal");
@@ -348,6 +392,7 @@
         function openUserDiagram() {
             if (!mainModal || !userBlock || !helpBlock) return;
             var url = form.getAttribute("data-preview-url") || "";
+            if (!url) return;
             if (userDiagramImg) userDiagramImg.src = url;
             helpBlock.classList.add("hidden");
             userBlock.classList.remove("hidden");
@@ -356,7 +401,15 @@
             if (window.GenPreviewPanZoom) {
                 var modalCanvas = document.getElementById("umlUserDiagramCanvas");
                 GenPreviewPanZoom.init(userBlock);
-                if (modalCanvas) GenPreviewPanZoom.reset(modalCanvas);
+                if (modalCanvas) {
+                    userDiagramImg.onload = function () {
+                        userDiagramImg.onload = null;
+                        GenPreviewPanZoom.reset(modalCanvas);
+                    };
+                    if (userDiagramImg.complete) {
+                        GenPreviewPanZoom.reset(modalCanvas);
+                    }
+                }
             }
         }
 
@@ -1507,9 +1560,23 @@
         });
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init);
-    } else {
-        init();
+    function bootUmlPreviewer() {
+        if (document.getElementById("id_uml_text")) {
+            init();
+        }
     }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bootUmlPreviewer);
+    } else {
+        bootUmlPreviewer();
+    }
+
+    document.body.addEventListener("htmx:afterSwap", function (evt) {
+        var target = evt.detail && evt.detail.target;
+        if (!target) return;
+        if (target.id === "gen-tool-panel" || target.querySelector("#id_uml_text")) {
+            bootUmlPreviewer();
+        }
+    });
 })();

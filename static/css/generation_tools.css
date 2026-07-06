@@ -356,14 +356,43 @@
         height: auto;
     }
 
+    .gen-split > .gen-pane--output {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .gen-split .gen-pane--output .gen-pane__toolbar {
+        flex-shrink: 0;
+    }
+
     /* Corps entrée / sortie : même hauteur max */
     .gen-split .gen-pane__body {
         display: flex;
         flex-direction: column;
-        flex: 1;
+        flex: 1 1 auto;
         min-height: 0;
         max-height: var(--gen-split-body-h);
         overflow: hidden;
+    }
+
+    .gen-split .gen-pane--output .gen-pane__body:has(.gen-preview-diagram--solo) {
+        flex: 1 1 auto;
+        height: 100%;
+        max-height: var(--gen-split-body-h);
+        padding: 0;
+    }
+
+    .gen-split .gen-pane--output .gen-preview-diagram--solo {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        height: 100%;
+        width: 100%;
+        max-height: 100%;
+        border: none;
+        border-radius: 0;
     }
 
     .gen-split .gen-pane--input .gen-code-editor--input {
@@ -406,9 +435,15 @@
 
     .gen-split .gen-preview-diagram--solo .gen-preview-diagram__canvas,
     .gen-split .gen-preview-diagram--solo .gen-preview-diagram__empty {
-        flex: 1;
-        min-height: 0;
-        max-height: none;
+        flex: 1 1 auto;
+        min-height: 0 !important;
+        max-height: none !important;
+        height: 100%;
+        width: 100%;
+    }
+
+    .gen-split .gen-preview-diagram--solo .gen-preview-diagram__canvas {
+        display: block;
     }
 
     .gen-split .gen-pane--input .gen-field__hint {
@@ -457,6 +492,14 @@
 
 .gen-pane--output {
     box-shadow: inset 3px 0 0 rgba(16, 185, 129, 0.75);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.gen-pane--output .gen-pane__body {
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .gen-pane__toolbar {
@@ -552,7 +595,32 @@
     padding: 0;
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
     min-height: 0;
+    height: 100%;
+}
+
+.gen-pane--output .gen-preview-diagram--solo {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+}
+
+.gen-pane--output .gen-preview-diagram--solo .gen-preview-diagram__canvas,
+.gen-pane--output .gen-preview-diagram--solo .gen-preview-diagram__empty {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    height: 100%;
+}
+
+.gen-pane--output .gen-preview-diagram--solo .gen-preview-diagram__status {
+    flex-shrink: 0;
 }
 
 .gen-preview-diagram {
@@ -658,8 +726,14 @@
 }
 
 .gen-preview-diagram--solo .gen-preview-diagram__canvas {
-    min-height: min(46vh, 24rem);
+    min-height: 11rem;
     max-height: min(58vh, 32rem);
+}
+
+.gen-pane--output .gen-preview-diagram--solo .gen-preview-diagram__canvas,
+.gen-split .gen-preview-diagram--solo .gen-preview-diagram__canvas {
+    min-height: 0;
+    max-height: none;
 }
 
 .gen-preview-diagram--solo .gen-preview-diagram__empty {
@@ -667,6 +741,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.gen-pane--output .gen-preview-diagram--solo .gen-preview-diagram__empty,
+.gen-split .gen-preview-diagram--solo .gen-preview-diagram__empty {
+    min-height: 0;
 }
 
 .gen-preview-modal__body {
