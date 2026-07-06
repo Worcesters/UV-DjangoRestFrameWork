@@ -346,6 +346,77 @@
     .gen-split {
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
         gap: 0.75rem;
+        align-items: stretch;
+        --gen-split-body-h: min(55vh, 28rem);
+    }
+
+    .gen-split > .gen-pane {
+        min-height: 0;
+        min-width: 0;
+        height: auto;
+    }
+
+    /* Corps entrée / sortie : même hauteur max */
+    .gen-split .gen-pane__body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        max-height: var(--gen-split-body-h);
+        overflow: hidden;
+    }
+
+    .gen-split .gen-pane--input .gen-code-editor--input {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+        resize: none;
+    }
+
+    .gen-split .gen-pane--output .gen-preview-text {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .gen-split .gen-pane--output .gen-code-editor--preview,
+    .gen-split .gen-pane--output .gen-code-editor--preview-tall {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+        resize: none;
+    }
+
+    .gen-split .gen-pane--output .gen-preview-diagram {
+        flex: 1;
+        min-height: 0;
+        max-height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: none;
+        border-radius: 0;
+        margin: 0;
+    }
+
+    .gen-split .gen-pane--output .gen-preview-text + .gen-preview-diagram {
+        margin-top: 0.65rem;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .gen-split .gen-preview-diagram--solo .gen-preview-diagram__canvas,
+    .gen-split .gen-preview-diagram--solo .gen-preview-diagram__empty {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+    }
+
+    .gen-split .gen-pane--input .gen-field__hint {
+        flex-shrink: 0;
+    }
+
+    .gen-split .gen-pane--output .gen-preview-diagram__status {
+        flex-shrink: 0;
     }
 }
 
@@ -372,6 +443,7 @@
 .gen-pane {
     display: flex;
     min-width: 0;
+    min-height: 0;
     flex-direction: column;
     overflow: hidden;
     border: 1px solid var(--brand-line);
@@ -474,6 +546,13 @@
 
 .gen-pane--output .gen-preview-text + .gen-preview-diagram {
     margin-top: 1rem;
+}
+
+.gen-pane--output .gen-pane__body:has(.gen-preview-diagram--solo) {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .gen-preview-diagram {
