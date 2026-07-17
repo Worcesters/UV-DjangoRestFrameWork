@@ -30,7 +30,13 @@
         var padding = 16;
         var availableW = Math.max(cw - padding * 2, 1);
         var availableH = Math.max(ch - padding * 2, 1);
-        var scale = Math.min(1, availableW / img.naturalWidth, availableH / img.naturalHeight);
+        // Fit « contain » qui remplit toute la place dispo (largeur ou hauteur),
+        // y compris en agrandissant les petits diagrammes (SVG : net à l'upscale).
+        var scale = clamp(
+            Math.min(availableW / img.naturalWidth, availableH / img.naturalHeight),
+            MIN_SCALE,
+            MAX_SCALE
+        );
 
         state.scale = scale;
         state.tx = (cw - img.naturalWidth * scale) / 2;

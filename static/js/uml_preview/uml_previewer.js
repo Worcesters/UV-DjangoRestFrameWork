@@ -16,6 +16,11 @@
         return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name);
     }
 
+    /** Rend un nom utilisable comme extrémité PlantUML (quote si besoin). */
+    function toPlantUmlToken(name) {
+        return isValidIdentifier(name) ? name : '"' + name + '"';
+    }
+
     function ensureStartEnd(uml) {
         var text = String(uml ?? "");
         if (!text.includes("@startuml")) {
@@ -136,6 +141,18 @@
         return Array.from(names);
     }
 
+    /** Packages / namespaces déclarés (nom entre guillemets ou identifiant). */
+    function extractPackages(uml) {
+        var names = new Set();
+        var re = /^\s*(?:package|namespace)\s+(?:"([^"]+)"|([A-Za-z_][A-Za-z0-9_.]*))/gm;
+        var m;
+        while ((m = re.exec(uml)) !== null) {
+            var name = m[1] || m[2];
+            if (name) names.add(name);
+        }
+        return Array.from(names).sort();
+    }
+
     /** Noms utilisables comme extrémités de liens (classes, interfaces, enums). */
     function extractTypeNames(uml) {
         var s = new Set();
@@ -196,14 +213,80 @@
         if (ok) selectEl.value = value;
     }
 
-    /** Deux listes mutuellement exclusives (même pool de noms). */
-    function wireMutuallyExclusiveSelects(selA, selB, allNames) {
+    /**
+     * Peuple un select avec des noms « simples » puis, dans un optgroup,
+     * les packages sélectionnables. `exclude` : nom à omettre (dans les deux groupes).
+     */
+    function fillSelectWithPackages(selectEl, names, packages, placeholder, exclude) {
+        selectEl.innerHTML = "";
+        var opt0 = document.createElement("option");
+        opt0.value = "";
+        opt0.textContent = placeholder;
+        selectEl.appendChild(opt0);
+        names.forEach(function (name) {
+            if (exclude && name === exclude) return;
+            var o = document.createElement("option");
+            o.value = name;
+            o.textContent = name;
+            selectEl.appendChild(o);
+        });
+        if (packages.length) {
+            var group = document.createElement("optgroup");
+            group.label = "Packages";
+            packages.forEach(function (name) {
+                if (exclude && name === exclude) return;
+                var o = document.createElement("option");
+                o.value = name;
+                o.textContent = name;
+                o.setAttribute("data-uml-package", "1");
+                group.appendChild(o);
+            });
+            if (group.childNodes.length) selectEl.appendChild(group);
+        }
+    }
+
+    function isPackageOptionSelected(selectEl) {
+        var opt = selectEl.options[selectEl.selectedIndex];
+        return Boolean(opt && opt.getAttribute("data-uml-package") === "1");
+    }
+
+    /** Valeur du select prête pour PlantUML (quote si c'est un package). */
+    function selectedEndpointToken(selectEl) {
+        return isPackageOptionSelected(selectEl)
+            ? toPlantUmlToken(selectEl.value)
+            : selectEl.value;
+    }
+
+    /**
+     * Enfant (classe) / parent (classe ou package) mutuellement exclusifs :
+     * une classe ne peut pas être son propre parent.
+     */
+    function wireExtendsSelects(selChild, selParent, classes, packages) {
+        function sync() {
+            var childVal = selChild.value;
+            var parentVal = selParent.value;
+            fillSelectWithPackages(selParent, classes, packages, "— Choisir —", childVal || null);
+            setSelectValueIfPresent(selParent, parentVal);
+            var parentIsClass = classes.indexOf(selParent.value) !== -1;
+            fillSelect(selChild, classes, "— Choisir —", parentIsClass ? selParent.value : null);
+            setSelectValueIfPresent(selChild, childVal);
+        }
+        selChild.addEventListener("change", sync);
+        selParent.addEventListener("change", sync);
+        sync();
+    }
+
+    /**
+     * Source / cible d'une relation, mutuellement exclusives, avec packages
+     * sélectionnables dans les deux extrémités.
+     */
+    function wirePackageAwareExclusiveSelects(selA, selB, names, packages) {
         function sync() {
             var a = selA.value;
             var b = selB.value;
-            fillSelect(selB, allNames, "— Choisir —", a);
+            fillSelectWithPackages(selB, names, packages, "— Choisir —", a || null);
             setSelectValueIfPresent(selB, b);
-            fillSelect(selA, allNames, "— Choisir —", selB.value);
+            fillSelectWithPackages(selA, names, packages, "— Choisir —", selB.value || null);
             setSelectValueIfPresent(selA, a);
         }
         selA.addEventListener("change", sync);
@@ -211,14 +294,18 @@
         sync();
     }
 
-    /** Interface vs classe : exclure le nom choisi s’il existe aussi dans l’autre liste. */
-    function wireImplementsSelects(selI, interfaces, selC, classes) {
+    /**
+     * Implements : cible = interface ou package, réalisée par une classe.
+     * Exclusions symétriques si un nom apparaît dans les deux pools.
+     */
+    function wireImplementsSelectsPkg(selI, interfaces, packages, selC, classes) {
         function sync() {
             var iface = selI.value;
             var cls = selC.value;
-            fillSelect(
+            fillSelectWithPackages(
                 selI,
                 interfaces,
+                packages,
                 "— Choisir —",
                 cls && interfaces.indexOf(cls) !== -1 ? cls : null
             );
@@ -444,6 +531,7 @@
             var classes = extractClasses(uml);
             var interfaces = extractInterfaces(uml);
             var enums = extractEnums(uml);
+            var packages = extractPackages(uml);
             builderBody.innerHTML = "";
 
             var labelClass =
@@ -672,9 +760,11 @@
 
             if (action === "extends") {
                 builderTitle.textContent = "Héritage (extends)";
-                if (classes.length < 2) {
+                var canExtend =
+                    classes.length >= 1 && (classes.length >= 2 || packages.length >= 1);
+                if (!canExtend) {
                     builderBody.innerHTML =
-                        '<p class="text-sm text-slate-600">Ajoute au moins <strong>deux classes</strong> (Add class / Abstract class) avant d’utiliser Extends.</p>';
+                        '<p class="text-sm text-slate-600">Ajoute au moins <strong>une classe enfant</strong> et une cible parent (<strong>autre classe</strong> ou <strong>package</strong>) avant d’utiliser Extends.</p>';
                     builderApply.classList.add("hidden");
                 } else {
                     builderApply.classList.remove("hidden");
@@ -685,7 +775,7 @@
                         quote: "EST UN",
                         quoteClass: "text-orange-950",
                         detailHtml:
-                            "La classe <strong>enfant</strong> est une sorte de <strong>parent</strong> (spécialisation / généralisation). Exemple : <code class=\"text-[10px] bg-white/80 px-1 py-0.5 rounded border border-orange-200/80 font-mono\">Enfant --|&gt; Parent</code>.",
+                            "La classe <strong>enfant</strong> est une sorte de <strong>parent</strong> (spécialisation / généralisation). Exemple : <code class=\"text-[10px] bg-white/80 px-1 py-0.5 rounded border border-orange-200/80 font-mono\">Enfant --|&gt; Parent</code>. Le parent peut aussi être un <strong>package</strong>.",
                         detailClass: "text-orange-900/95",
                     });
                     var row1 = document.createElement("div");
@@ -705,21 +795,23 @@
                     row2.innerHTML =
                         '<label class="' +
                         labelClass +
-                        '">Classe parent</label>';
+                        '">Classe ou package parent</label>';
                     var selParent = document.createElement("select");
                     selParent.id = "umlBuilderExtendsParent";
                     selParent.className = selectClass;
-                    fillSelect(selParent, classes, "— Choisir —");
+                    fillSelectWithPackages(selParent, classes, packages, "— Choisir —");
                     row2.appendChild(selParent);
                     builderBody.appendChild(row2);
-                    wireMutuallyExclusiveSelects(selChild, selParent, classes);
+                    wireExtendsSelects(selChild, selParent, classes, packages);
                     appendLinkDirectionSelect(builderBody);
                 }
             } else if (action === "implements") {
                 builderTitle.textContent = "Implémentation (interface)";
-                if (interfaces.length < 1 || classes.length < 1) {
+                var canImplement =
+                    classes.length >= 1 && interfaces.length + packages.length >= 1;
+                if (!canImplement) {
                     builderBody.innerHTML =
-                        '<p class="text-sm text-slate-600">Ajoute au moins <strong>une interface</strong> et <strong>une classe</strong> avant Implements.</p>';
+                        '<p class="text-sm text-slate-600">Ajoute au moins <strong>une classe</strong> et une cible (<strong>interface</strong> ou <strong>package</strong>) avant Implements.</p>';
                     builderApply.classList.add("hidden");
                 } else {
                     builderApply.classList.remove("hidden");
@@ -730,16 +822,16 @@
                         quote: "La classe réalise le contrat de l’interface",
                         quoteClass: "text-cyan-950",
                         detailHtml:
-                            "Choisis d’abord l’<strong>interface</strong> (contrat), puis la <strong>classe</strong> qui l’implémente. Syntaxe : <code class=\"text-[10px] bg-white/80 px-1 py-0.5 rounded border border-cyan-200/80 font-mono\">Interface &lt;|.. Classe</code>.",
+                            "Choisis d’abord l’<strong>interface</strong> (ou un <strong>package</strong>), puis la <strong>classe</strong> qui l’implémente. Syntaxe : <code class=\"text-[10px] bg-white/80 px-1 py-0.5 rounded border border-cyan-200/80 font-mono\">Interface &lt;|.. Classe</code>.",
                         detailClass: "text-cyan-900/95",
                     });
                     var r1 = document.createElement("div");
                     r1.innerHTML =
-                        '<label class="' + labelClass + '">Interface</label>';
+                        '<label class="' + labelClass + '">Interface ou package</label>';
                     var selI = document.createElement("select");
                     selI.id = "umlBuilderImplementsInterface";
                     selI.className = selectClass;
-                    fillSelect(selI, interfaces, "— Choisir —");
+                    fillSelectWithPackages(selI, interfaces, packages, "— Choisir —");
                     r1.appendChild(selI);
                     builderBody.appendChild(r1);
 
@@ -753,7 +845,7 @@
                     fillSelect(selC, classes, "— Choisir —");
                     r2.appendChild(selC);
                     builderBody.appendChild(r2);
-                    wireImplementsSelects(selI, interfaces, selC, classes);
+                    wireImplementsSelectsPkg(selI, interfaces, packages, selC, classes);
                     appendLinkDirectionSelect(builderBody);
                 }
             } else if (
@@ -812,9 +904,9 @@
                 };
                 builderTitle.textContent = relTitles[action] || "Relation";
                 var typeNames = extractTypeNames(uml);
-                if (typeNames.length < 2) {
+                if (typeNames.length + packages.length < 2) {
                     builderBody.innerHTML =
-                        '<p class="text-sm text-slate-600">Ajoute au moins <strong>deux</strong> types (classe, interface ou enum) avant d’ajouter une relation.</p>';
+                        '<p class="text-sm text-slate-600">Ajoute au moins <strong>deux</strong> éléments (classe, interface, enum ou package) avant d’ajouter une relation.</p>';
                     builderApply.classList.add("hidden");
                 } else {
                     builderApply.classList.remove("hidden");
@@ -827,7 +919,7 @@
                     var selFrom = document.createElement("select");
                     selFrom.id = "umlBuilderRelFrom";
                     selFrom.className = selectClass;
-                    fillSelect(selFrom, typeNames, "— Choisir —");
+                    fillSelectWithPackages(selFrom, typeNames, packages, "— Choisir —");
                     rf.appendChild(selFrom);
                     builderBody.appendChild(rf);
 
@@ -838,11 +930,11 @@
                     var selTo = document.createElement("select");
                     selTo.id = "umlBuilderRelTo";
                     selTo.className = selectClass;
-                    fillSelect(selTo, typeNames, "— Choisir —");
+                    fillSelectWithPackages(selTo, typeNames, packages, "— Choisir —");
                     rt.appendChild(selTo);
                     builderBody.appendChild(rt);
 
-                    wireMutuallyExclusiveSelects(selFrom, selTo, typeNames);
+                    wirePackageAwareExclusiveSelects(selFrom, selTo, typeNames, packages);
                     appendLinkDirectionSelect(builderBody);
 
                     var rl = document.createElement("div");
@@ -1156,24 +1248,26 @@
                     window.alert("Enfant et parent doivent être différents.");
                     return;
                 }
+                var parentToken = selectedEndpointToken(p);
                 var dirE = getBuilderLinkDirection();
                 var lineE =
                     dirE !== ""
-                        ? c.value + " -" + dirE + "-|> " + p.value
-                        : c.value + " --|> " + p.value;
+                        ? c.value + " -" + dirE + "-|> " + parentToken
+                        : c.value + " --|> " + parentToken;
                 updateUml(insertBeforeEnduml(uml, lineE));
             } else if (builderAction === "implements") {
                 var ii = document.getElementById("umlBuilderImplementsInterface");
                 var cc = document.getElementById("umlBuilderImplementsClass");
                 if (!ii || !cc || !ii.value || !cc.value) {
-                    window.alert("Choisis une interface et une classe.");
+                    window.alert("Choisis une interface (ou package) et une classe.");
                     return;
                 }
+                var ifaceToken = selectedEndpointToken(ii);
                 var dirI = getBuilderLinkDirection();
                 var lineI =
                     dirI !== ""
-                        ? ii.value + " <|-" + dirI + ".. " + cc.value
-                        : ii.value + " <|.. " + cc.value;
+                        ? ifaceToken + " <|-" + dirI + ".. " + cc.value
+                        : ifaceToken + " <|.. " + cc.value;
                 updateUml(insertBeforeEnduml(uml, lineI));
             } else if (
                 builderAction === "rel_aggregate" ||
@@ -1214,12 +1308,14 @@
                 var cards = multiplicityCards(multEl ? multEl.value : "");
                 var fromCard = cards[0];
                 var toCard = cards[1];
+                var fromToken = selectedEndpointToken(rf);
+                var toToken = selectedEndpointToken(rt);
                 var lineR =
-                    rf.value +
+                    fromToken +
                     (fromCard ? ' "' + fromCard + '"' : "") +
                     mid +
                     (toCard ? '"' + toCard + '" ' : "") +
-                    rt.value;
+                    toToken;
                 if (lbl) lineR += " : " + lbl;
                 updateUml(insertBeforeEnduml(uml, lineR));
             } else if (builderAction === "add_class") {
