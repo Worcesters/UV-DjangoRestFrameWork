@@ -29,6 +29,8 @@
                 <div draggable="true" data-action="rel_depend" class="uml-builder-item select-none cursor-grab rounded-lg border border-sky-200/90 bg-sky-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-sky-900 shadow-sm hover:bg-sky-100/80 transition-colors" title="J'utilise ponctuellement">Dépendance</div>
                 <div draggable="true" data-action="rel_associate" class="uml-builder-item select-none cursor-grab rounded-lg border border-purple-200/90 bg-purple-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-purple-900 shadow-sm hover:bg-purple-100/80 transition-colors" title="Je connais">Association</div>
                 <div draggable="true" data-action="note" class="uml-builder-item select-none cursor-grab rounded-lg border border-teal-200/90 bg-teal-50/90 px-2.5 py-1.5 text-[11px] font-semibold text-teal-900 shadow-sm hover:bg-teal-100/80 transition-colors">Note</div>
+                <div draggable="true" data-action="add_package" class="uml-builder-item uml-tile uml-tile--package" title="Grouper des éléments dans un package / namespace">Package</div>
+                <div draggable="true" data-action="add_database" class="uml-builder-item uml-tile uml-tile--bdd" title="Zone base de données (database { folder { table } })">BDD</div>
                 </div>
             </div>
         </div>
@@ -269,6 +271,30 @@ package "domain" {
 package "infra" {
   class UserRepository
 }
+@enduml</pre>
+            </button>
+            <button type="button" class="text-left rounded-xl border border-amber-200/70 bg-amber-50/60 p-3 uml-help-item transition-all duration-200 ease-out hover:border-amber-300/80 hover:bg-amber-50 hover:shadow-md hover:shadow-amber-200/25 hover:-translate-y-0.5 cursor-pointer active:translate-y-0 active:shadow-sm" data-title="Icônes natives (OpenIconic)" data-description="Ajouter une icône native devant un membre avec la syntaxe &lt;&amp;nom&gt; (ex. &lt;&amp;cog&gt;, &lt;&amp;browser&gt;). Le builder en propose une automatiquement selon le nom.">
+                <p class="text-[10px] font-semibold text-amber-700 mb-1">Icônes natives (&lt;&amp;…&gt;)</p>
+                <pre>@startuml
+class Task {
+  + &lt;&amp;cog&gt; run_job()
+  + &lt;&amp;list&gt; get_all()
+  - &lt;&amp;lock-locked&gt; token : String
+}
+@enduml</pre>
+            </button>
+            <button type="button" class="text-left rounded-xl border border-slate-200/70 bg-slate-100/60 p-3 uml-help-item transition-all duration-200 ease-out hover:border-slate-300/80 hover:bg-slate-100 hover:shadow-md hover:shadow-slate-200/25 hover:-translate-y-0.5 cursor-pointer active:translate-y-0 active:shadow-sm" data-title="Zone base de données (database)" data-description="Mot-clé natif database pour figurer un stockage, avec folder (tables) et classes de données à l'intérieur.">
+                <p class="text-[10px] font-semibold text-slate-600 mb-1">Zone base de données</p>
+                <pre>@startuml
+database "Stockage (PostgreSQL)" as postgres {
+  folder "Tables" {
+    class "Données" {
+      + &lt;&amp;data-transfer-download&gt; Valeurs
+    }
+  }
+}
+class Parser
+Parser -down-> postgres : Persiste
 @enduml</pre>
             </button>
         </div>

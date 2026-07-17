@@ -141,13 +141,18 @@
         return Array.from(names);
     }
 
-    /** Packages / namespaces déclarés (nom entre guillemets ou identifiant). */
+    /**
+     * Conteneurs déclarés (package / namespace / zones : database, folder, etc.).
+     * Renvoie l'alias (`as X`) si présent, sinon le nom (entre guillemets ou identifiant),
+     * afin d'obtenir une extrémité de lien exploitable en PlantUML.
+     */
     function extractPackages(uml) {
         var names = new Set();
-        var re = /^\s*(?:package|namespace)\s+(?:"([^"]+)"|([A-Za-z_][A-Za-z0-9_.]*))/gm;
+        var re =
+            /^\s*(?:package|namespace|database|folder|frame|node|cloud|component|rectangle|artifact|storage|queue|card)\s+(?:"([^"]+)"|([A-Za-z_][A-Za-z0-9_.]*))(?:\s+as\s+([A-Za-z_][A-Za-z0-9_]*))?/gm;
         var m;
         while ((m = re.exec(uml)) !== null) {
-            var name = m[1] || m[2];
+            var name = m[3] || m[1] || m[2];
             if (name) names.add(name);
         }
         return Array.from(names).sort();
@@ -232,7 +237,7 @@
         });
         if (packages.length) {
             var group = document.createElement("optgroup");
-            group.label = "Packages";
+            group.label = "Zones & packages";
             packages.forEach(function (name) {
                 if (exclude && name === exclude) return;
                 var o = document.createElement("option");
@@ -758,6 +763,170 @@
                 parent.appendChild(box);
             }
 
+            /**
+             * Sélecteur d'icône native OpenIconic (grille curée + recherche + suggestion).
+             * Stocke le glyphe choisi dans un input caché `opts.hiddenId`.
+             * Retourne { setSuggestion(glyph) } pour proposer une icône selon la saisie.
+             */
+            function appendIconPicker(parent, opts) {
+                var box = document.createElement("div");
+                box.className = "uml-icon-picker";
+
+                var hidden = document.createElement("input");
+                hidden.type = "hidden";
+                hidden.id = opts.hiddenId;
+                hidden.value = "";
+                box.appendChild(hidden);
+
+                var icons = window.UmlIcons;
+                if (!icons || !Array.isArray(icons.groups)) {
+                    parent.appendChild(box);
+                    return { setSuggestion: function () {} };
+                }
+
+                var head = document.createElement("div");
+                head.className = "uml-icon-picker__head";
+                var current = document.createElement("div");
+                current.className = "uml-icon-picker__current";
+                var preview = document.createElement("span");
+                var nameEl = document.createElement("span");
+                nameEl.className = "uml-icon-picker__name";
+                current.appendChild(preview);
+                current.appendChild(nameEl);
+                var clearBtn = document.createElement("button");
+                clearBtn.type = "button";
+                clearBtn.className = "uml-icon-picker__clear";
+                clearBtn.textContent = "Aucune";
+                head.appendChild(current);
+                head.appendChild(clearBtn);
+                box.appendChild(head);
+
+                var search = document.createElement("input");
+                search.type = "text";
+                search.className = "uml-icon-picker__search";
+                search.placeholder = "Rechercher une icône…";
+                box.appendChild(search);
+
+                var scroll = document.createElement("div");
+                scroll.className = "uml-icon-picker__scroll";
+                box.appendChild(scroll);
+                parent.appendChild(box);
+
+                var userLocked = false;
+
+                function renderPreview(glyph) {
+                    preview.innerHTML = "";
+                    if (glyph) {
+                        preview.className = "uml-icon-picker__preview";
+                        var oi = document.createElement("span");
+                        oi.className = "oi";
+                        oi.setAttribute("data-glyph", glyph);
+                        oi.setAttribute("aria-hidden", "true");
+                        preview.appendChild(oi);
+                        nameEl.textContent = "<&" + glyph + ">";
+                    } else {
+                        preview.className =
+                            "uml-icon-picker__preview uml-icon-picker__preview--empty";
+                        preview.textContent = "∅";
+                        nameEl.textContent = "Aucune icône";
+                    }
+                }
+
+                function markActive(glyph) {
+                    scroll.querySelectorAll(".uml-icon-btn").forEach(function (b) {
+                        b.classList.toggle(
+                            "uml-icon-btn--active",
+                            b.getAttribute("data-glyph") === glyph
+                        );
+                    });
+                }
+
+                function select(glyph, fromUser) {
+                    hidden.value = glyph || "";
+                    if (fromUser) userLocked = true;
+                    renderPreview(glyph);
+                    markActive(glyph);
+                }
+
+                function makeIconButton(glyph) {
+                    var b = document.createElement("button");
+                    b.type = "button";
+                    b.className = "uml-icon-btn";
+                    b.setAttribute("data-glyph", glyph);
+                    b.title = glyph;
+                    var oi = document.createElement("span");
+                    oi.className = "oi";
+                    oi.setAttribute("data-glyph", glyph);
+                    oi.setAttribute("aria-hidden", "true");
+                    b.appendChild(oi);
+                    b.addEventListener("click", function () {
+                        select(hidden.value === glyph ? "" : glyph, true);
+                    });
+                    return b;
+                }
+
+                function renderGrouped() {
+                    scroll.innerHTML = "";
+                    icons.groups.forEach(function (g) {
+                        var lbl = document.createElement("p");
+                        lbl.className = "uml-icon-group__label";
+                        lbl.textContent = g.label;
+                        scroll.appendChild(lbl);
+                        var grid = document.createElement("div");
+                        grid.className = "uml-icon-grid";
+                        g.icons.forEach(function (gl) {
+                            grid.appendChild(makeIconButton(gl));
+                        });
+                        scroll.appendChild(grid);
+                    });
+                    markActive(hidden.value);
+                }
+
+                function renderSearch(q) {
+                    scroll.innerHTML = "";
+                    var matches = icons.all.filter(function (n) {
+                        return n.indexOf(q) !== -1;
+                    });
+                    if (!matches.length) {
+                        var e = document.createElement("p");
+                        e.className = "uml-icon-picker__empty";
+                        e.textContent = "Aucune icône trouvée.";
+                        scroll.appendChild(e);
+                        return;
+                    }
+                    var grid = document.createElement("div");
+                    grid.className = "uml-icon-grid";
+                    matches.forEach(function (gl) {
+                        grid.appendChild(makeIconButton(gl));
+                    });
+                    scroll.appendChild(grid);
+                    markActive(hidden.value);
+                }
+
+                clearBtn.addEventListener("click", function () {
+                    select("", true);
+                });
+                search.addEventListener("input", function () {
+                    var q = search.value.trim().toLowerCase();
+                    if (q) renderSearch(q);
+                    else renderGrouped();
+                });
+
+                renderGrouped();
+                if (opts.suggested && icons.has(opts.suggested)) {
+                    select(opts.suggested, false);
+                } else {
+                    renderPreview("");
+                }
+
+                return {
+                    setSuggestion: function (glyph) {
+                        if (userLocked) return;
+                        select(glyph && icons.has(glyph) ? glyph : "", false);
+                    },
+                };
+            }
+
             if (action === "extends") {
                 builderTitle.textContent = "Héritage (extends)";
                 var canExtend =
@@ -1047,6 +1216,19 @@
                 inp.placeholder = "ex. UserRepository";
                 wrap.appendChild(inp);
                 builderBody.appendChild(wrap);
+
+                var typeIconPicker = appendIconPicker(builderBody, {
+                    hiddenId: "umlBuilderTypeIcon",
+                    suggested: "",
+                });
+                if (window.UmlIcons) {
+                    inp.addEventListener("input", function () {
+                        var v = inp.value.trim();
+                        typeIconPicker.setSuggestion(
+                            v ? window.UmlIcons.suggestForClass(v) : ""
+                        );
+                    });
+                }
             } else if (action === "add_attribute" || action === "add_method") {
                 var isMethod = action === "add_method";
                 builderTitle.textContent = isMethod
@@ -1175,6 +1357,22 @@
                         mty.appendChild(inpType);
                         builderBody.appendChild(mty);
                     }
+
+                    var memberIconPicker = appendIconPicker(builderBody, {
+                        hiddenId: "umlBuilderMemberIcon",
+                        suggested: "",
+                    });
+                    if (window.UmlIcons) {
+                        inpName.addEventListener("input", function () {
+                            var v = inpName.value.trim();
+                            var suggestion = v
+                                ? isMethod
+                                    ? window.UmlIcons.suggestForMethod(v)
+                                    : window.UmlIcons.suggestForAttribute(v)
+                                : "";
+                            memberIconPicker.setSuggestion(suggestion);
+                        });
+                    }
                 }
             } else if (action === "note") {
                 builderTitle.textContent = "Ajouter une note";
@@ -1221,6 +1419,86 @@
                     nt2.appendChild(ta);
                     builderBody.appendChild(nt2);
                 }
+            } else if (action === "add_package") {
+                builderTitle.textContent = "Ajouter un package";
+                builderApply.classList.remove("hidden");
+                appendBuilderDesc(builderBody, {
+                    boxClass: "border-sky-200 bg-sky-50/95 text-sky-950",
+                    title: "Package / namespace",
+                    titleClass: "text-sky-900",
+                    quote: "Regrouper des éléments liés",
+                    quoteClass: "text-sky-950",
+                    detailHtml:
+                        "Crée une zone <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">package \"Nom\" { … }</code>. Ajoute ensuite des classes à l'intérieur, ou relie le package à d'autres éléments.",
+                    detailClass: "text-sky-900/95",
+                });
+                var pkgWrap = document.createElement("div");
+                pkgWrap.innerHTML =
+                    '<label class="' + labelClass + '">Nom du package</label>';
+                var pkgInp = document.createElement("input");
+                pkgInp.type = "text";
+                pkgInp.id = "umlBuilderPackageName";
+                pkgInp.className = inputClass;
+                pkgInp.placeholder = "ex. domain, infra, application…";
+                pkgWrap.appendChild(pkgInp);
+                builderBody.appendChild(pkgWrap);
+            } else if (action === "add_database") {
+                builderTitle.textContent = "Zone base de données";
+                builderApply.classList.remove("hidden");
+                appendBuilderDesc(builderBody, {
+                    boxClass: "border-emerald-200 bg-emerald-50/95 text-emerald-950",
+                    title: "Base de données (database)",
+                    titleClass: "text-emerald-900",
+                    quote: "Un stockage persistant",
+                    quoteClass: "text-emerald-950",
+                    detailHtml:
+                        "Zone native <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">database \"Nom\" as alias</code>. L'alias sert d'extrémité de lien (ex. <code class=\"text-[10px] bg-white/80 px-1 rounded font-mono\">Parser --&gt; postgres</code>).",
+                    detailClass: "text-emerald-900/95",
+                });
+
+                var dbNameWrap = document.createElement("div");
+                dbNameWrap.innerHTML =
+                    '<label class="' + labelClass + '">Nom affiché</label>';
+                var dbName = document.createElement("input");
+                dbName.type = "text";
+                dbName.id = "umlBuilderDbName";
+                dbName.className = inputClass;
+                dbName.value = "Stockage (PostgreSQL)";
+                dbNameWrap.appendChild(dbName);
+                builderBody.appendChild(dbNameWrap);
+
+                var dbAliasWrap = document.createElement("div");
+                dbAliasWrap.className = "mt-4";
+                dbAliasWrap.innerHTML =
+                    '<label class="' + labelClass + '">Alias (référence courte)</label>';
+                var dbAlias = document.createElement("input");
+                dbAlias.type = "text";
+                dbAlias.id = "umlBuilderDbAlias";
+                dbAlias.className = inputClass;
+                dbAlias.value = "postgres";
+                dbAlias.placeholder = "ex. postgres";
+                dbAliasWrap.appendChild(dbAlias);
+                builderBody.appendChild(dbAliasWrap);
+
+                var dbSkelWrap = document.createElement("label");
+                dbSkelWrap.className =
+                    "mt-4 flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer";
+                var dbSkel = document.createElement("input");
+                dbSkel.type = "checkbox";
+                dbSkel.id = "umlBuilderDbSkeleton";
+                dbSkel.checked = true;
+                dbSkel.className = "uml-db-check";
+                dbSkelWrap.appendChild(dbSkel);
+                var dbSkelTxt = document.createElement("span");
+                dbSkelTxt.textContent =
+                    "Générer le squelette (folder « Tables » + table « Données »)";
+                dbSkelWrap.appendChild(dbSkelTxt);
+                builderBody.appendChild(dbSkelWrap);
+
+                appendIconPicker(builderBody, {
+                    hiddenId: "umlBuilderDbIcon",
+                    suggested: "data-transfer-download",
+                });
             }
 
             builderModal.classList.remove("hidden");
@@ -1236,6 +1514,12 @@
         function applyBuilderModal() {
             var uml = textarea.value ?? "";
             if (!builderAction) return;
+
+            /** Stéréotype d'icône native pour une déclaration de type (`<< <&x> >>`). */
+            function typeStereotype() {
+                var el = document.getElementById("umlBuilderTypeIcon");
+                return el && el.value ? " << <&" + el.value + "> >>" : "";
+            }
 
             if (builderAction === "extends") {
                 var c = document.getElementById("umlBuilderExtendsChild");
@@ -1326,7 +1610,7 @@
                     return;
                 }
                 updateUml(
-                    insertBeforeEnduml(uml, "class " + name + " {\n}\n".trimEnd())
+                    insertBeforeEnduml(uml, "class " + name + typeStereotype() + " {\n}")
                 );
             } else if (builderAction === "add_abstract_class") {
                 var n2 = document.getElementById("umlBuilderNameInput");
@@ -1338,7 +1622,7 @@
                 updateUml(
                     insertBeforeEnduml(
                         uml,
-                        "abstract class " + name2 + " {\n}\n".trimEnd()
+                        "abstract class " + name2 + typeStereotype() + " {\n}"
                     )
                 );
             } else if (builderAction === "add_interface") {
@@ -1351,7 +1635,7 @@
                 updateUml(
                     insertBeforeEnduml(
                         uml,
-                        "interface " + name3 + " {\n}\n".trimEnd()
+                        "interface " + name3 + typeStereotype() + " {\n}"
                     )
                 );
             } else if (builderAction === "add_enum") {
@@ -1364,7 +1648,7 @@
                 updateUml(
                     insertBeforeEnduml(
                         uml,
-                        "enum " + name4 + " {\n  VALUE\n}\n".trimEnd()
+                        "enum " + name4 + typeStereotype() + " {\n  VALUE\n}"
                     )
                 );
             } else if (
@@ -1388,6 +1672,8 @@
                     vis && ["+", "-", "#"].indexOf(vis.value) !== -1
                         ? vis.value
                         : "+";
+                var iconElM = document.getElementById("umlBuilderMemberIcon");
+                var iconTokM = iconElM && iconElM.value ? "<&" + iconElM.value + "> " : "";
                 var memberLine;
                 if (isM) {
                     var prm = document.getElementById("umlBuilderMethodParams");
@@ -1395,12 +1681,12 @@
                     var paramsTxt = (prm && prm.value ? prm.value : "").trim();
                     var retTxt = (ret && ret.value ? ret.value : "").trim();
                     memberLine =
-                        visSym + " " + memberName + "(" + paramsTxt + ")";
+                        visSym + " " + iconTokM + memberName + "(" + paramsTxt + ")";
                     if (retTxt) memberLine += " : " + retTxt;
                 } else {
                     var typ = document.getElementById("umlBuilderAttrType");
                     var typeTxt = (typ && typ.value ? typ.value : "").trim();
-                    memberLine = visSym + " " + memberName;
+                    memberLine = visSym + " " + iconTokM + memberName;
                     if (typeTxt) memberLine += " : " + typeTxt;
                 }
                 updateUml(insertMemberIntoType(uml, tgt.value, memberLine));
@@ -1433,6 +1719,45 @@
                           txt +
                           "\nend note";
                 updateUml(insertBeforeEnduml(uml, block));
+            } else if (builderAction === "add_package") {
+                var pkg = document.getElementById("umlBuilderPackageName");
+                var pkgName = (pkg && pkg.value ? pkg.value : "").trim();
+                if (!pkgName) {
+                    window.alert("Renseigne un nom de package.");
+                    return;
+                }
+                updateUml(insertBeforeEnduml(uml, 'package "' + pkgName + '" {\n}'));
+            } else if (builderAction === "add_database") {
+                var dbN = document.getElementById("umlBuilderDbName");
+                var dbA = document.getElementById("umlBuilderDbAlias");
+                var dbS = document.getElementById("umlBuilderDbSkeleton");
+                var dbI = document.getElementById("umlBuilderDbIcon");
+                var dbNameVal =
+                    (dbN && dbN.value ? dbN.value : "").trim() || "Base de données";
+                var dbAliasVal = (dbA && dbA.value ? dbA.value : "").trim();
+                var dbHeader =
+                    'database "' +
+                    dbNameVal +
+                    '"' +
+                    (dbAliasVal && isValidIdentifier(dbAliasVal) ? " as " + dbAliasVal : "");
+                var dbBlock;
+                if (dbS && dbS.checked) {
+                    var dbIconTok = dbI && dbI.value ? "<&" + dbI.value + "> " : "";
+                    dbBlock =
+                        dbHeader +
+                        " {\n" +
+                        '  folder "Tables" {\n' +
+                        '    class "Données" {\n' +
+                        "      + " +
+                        dbIconTok +
+                        "Valeurs\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}";
+                } else {
+                    dbBlock = dbHeader + " {\n}";
+                }
+                updateUml(insertBeforeEnduml(uml, dbBlock));
             }
 
             closeBuilderModal();
@@ -1489,7 +1814,9 @@
                 action === "add_enum" ||
                 action === "add_attribute" ||
                 action === "add_method" ||
-                action === "note"
+                action === "note" ||
+                action === "add_package" ||
+                action === "add_database"
             ) {
                 openBuilderModal(action, uml);
                 return;

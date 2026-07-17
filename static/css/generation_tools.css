@@ -976,3 +976,193 @@
         animation: none;
     }
 }
+
+/* =============================================================================
+   UML Builder — sélecteur d'icônes natives (OpenIconic)
+   ============================================================================= */
+.uml-icon-picker {
+    margin-top: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+    background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+    padding: 0.75rem;
+}
+
+.uml-icon-picker__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.uml-icon-picker__current {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.uml-icon-picker__preview {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.6rem;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #0f172a;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.uml-icon-picker__preview--empty {
+    color: #94a3b8;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.uml-icon-picker__name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.7rem;
+    color: #64748b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.uml-icon-picker__clear {
+    flex-shrink: 0;
+    padding: 0.25rem 0.55rem;
+    border-radius: 0.55rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    font-size: 0.66rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.uml-icon-picker__clear:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.uml-icon-picker__search {
+    width: 100%;
+    margin-bottom: 0.6rem;
+    padding: 0.45rem 0.65rem !important;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.6rem;
+    background: #fff;
+    font-size: 0.75rem;
+}
+
+.uml-icon-picker__scroll {
+    max-height: 11rem;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.uml-icon-group__label {
+    margin: 0.4rem 0 0.35rem;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.uml-icon-group__label:first-child {
+    margin-top: 0;
+}
+
+.uml-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.1rem, 1fr));
+    gap: 0.35rem;
+}
+
+.uml-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.55rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+}
+
+.uml-icon-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.uml-icon-btn--active {
+    border-color: #f97316;
+    background: #fff7ed;
+    color: #9a3412;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.28);
+}
+
+.uml-icon-picker__empty {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+/* Tuiles palette dédiées (Package / BDD) — hors palette Tailwind compilée */
+.uml-tile {
+    user-select: none;
+    cursor: grab;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    padding: 0.375rem 0.625rem;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.uml-tile--package {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.uml-tile--package:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+.uml-tile--bdd {
+    border-color: #a8a29e;
+    background: linear-gradient(135deg, #f5f5f4 0%, #eef2f6 100%);
+    color: #44403c;
+    font-weight: 700;
+}
+
+.uml-tile--bdd:hover {
+    background: linear-gradient(135deg, #e7e5e4 0%, #e2e8f0 100%);
+    border-color: #78716c;
+}
+
+.uml-db-check {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 0.25rem;
+    accent-color: #0d9488;
+    cursor: pointer;
+}
