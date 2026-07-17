@@ -32,8 +32,10 @@
             >
         </div>
     </div>
+    {% if not hide_empty %}
     <p
         {% if empty_id %}id="{{ empty_id }}"{% endif %}
         class="gen-preview-diagram__empty{% if image_url %} hidden{% endif %}"
     >{{ empty_text|default:"L’aperçu du diagramme s’affichera ici." }}</p>
+    {% endif %}
 </div>

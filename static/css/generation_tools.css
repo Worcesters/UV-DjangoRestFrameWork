@@ -59,9 +59,10 @@
 }
 
 /* --------------------------------------------------- Grille outils -------- */
+/* Pas de `z-index` ici : il créerait un contexte d'empilement qui piégerait
+   les modales d'aperçu (fixed) sous la nav sticky (z-50). */
 .gen-tools-grid {
     position: relative;
-    z-index: 1;
 }
 
 /* Sidebar navigation */
