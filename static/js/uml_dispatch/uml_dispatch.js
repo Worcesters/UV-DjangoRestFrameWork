@@ -2,8 +2,8 @@
  * UML Dispatcher — analyse d'un PlantUML et aperçu éditable de l'arborescence
  * de rangement (regroupement par lien d'héritage / réalisation).
  *
- * Idempotent : le script est ré-exécuté à chaque swap HTMX du panneau outil ;
- * les écouteurs sont attachés une seule fois par nœud (garde `dataset.bound`).
+ * Le téléchargement ZIP passe par fetch + blob pour éviter la navigation vers
+ * une page blanche (réponse binaire sur POST classique).
  */
 (function () {
   "use strict";
@@ -18,6 +18,45 @@
     if (className) el.className = className;
     if (text != null) el.textContent = text;
     return el;
+  }
+
+  function showError(message) {
+    var box = document.getElementById("umlDispatchError");
+    if (!box) return;
+    if (message) {
+      box.textContent = message;
+      box.classList.remove("hidden");
+    } else {
+      box.textContent = "";
+      box.classList.add("hidden");
+    }
+  }
+
+  function setGenerating(isGenerating) {
+    var btn = document.getElementById("umlDispatchGenerateBtn");
+    if (!btn) return;
+    btn.disabled = isGenerating;
+    btn.textContent = isGenerating ? "Génération en cours…" : "Générer & télécharger le ZIP";
+  }
+
+  function parseFilename(contentDisposition) {
+    if (!contentDisposition) return "reorganise.zip";
+    var match = /filename="([^"]+)"/i.exec(contentDisposition);
+    return match && match[1] ? match[1] : "reorganise.zip";
+  }
+
+  function triggerDownload(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 1000);
   }
 
   function renderGroups(container, data) {
@@ -123,6 +162,61 @@
     if (hidden) hidden.value = JSON.stringify(map);
   }
 
+  function generateZip(form, resultBox) {
+    var archive = form.querySelector("#id_archive");
+    if (!archive || !archive.files || archive.files.length === 0) {
+      showError("Sélectionne d'abord une archive ZIP.");
+      return;
+    }
+
+    showError("");
+    setGenerating(true);
+    syncFolderMap(form, resultBox);
+
+    var formData = new FormData(form);
+    fetch(form.action, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCsrfToken(form),
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: formData,
+    })
+      .then(function (res) {
+        var contentType = res.headers.get("Content-Type") || "";
+        if (res.ok && contentType.indexOf("application/zip") !== -1) {
+          return res.blob().then(function (blob) {
+            return {
+              ok: true,
+              blob: blob,
+              filename: parseFilename(res.headers.get("Content-Disposition")),
+            };
+          });
+        }
+        return res
+          .json()
+          .catch(function () {
+            return { error: "Réponse serveur inattendue (code " + res.status + ")." };
+          })
+          .then(function (json) {
+            return { ok: false, error: (json && json.error) || "Erreur lors de la génération." };
+          });
+      })
+      .then(function (result) {
+        if (result.ok && result.blob) {
+          triggerDownload(result.blob, result.filename);
+          return;
+        }
+        showError(result.error || "Erreur lors de la génération.");
+      })
+      .catch(function () {
+        showError("Erreur réseau lors de la génération du ZIP.");
+      })
+      .finally(function () {
+        setGenerating(false);
+      });
+  }
+
   function init() {
     var config = document.getElementById("umlDispatchConfig");
     var form = document.getElementById("umlDispatchForm");
@@ -138,8 +232,9 @@
         analyze(config, form, resultBox, summary);
       });
     }
-    form.addEventListener("submit", function () {
-      syncFolderMap(form, resultBox);
+    form.addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      generateZip(form, resultBox);
     });
 
     var textarea = form.querySelector("#id_dispatch_uml");

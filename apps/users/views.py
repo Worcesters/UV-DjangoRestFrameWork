@@ -190,6 +190,8 @@ class UmlDispatchGenerateView(View):
 
         response = HttpResponse(zip_bytes, content_type="application/zip")
         response["Content-Disposition"] = 'attachment; filename="reorganise.zip"'
+        response["Content-Length"] = str(len(zip_bytes))
+        response["Cache-Control"] = "no-store"
         return response
 
     @staticmethod
@@ -208,6 +210,9 @@ class UmlDispatchGenerateView(View):
 
     @staticmethod
     def _render_error(request, form, message: str):
+        """Erreur JSON pour le téléchargement via fetch (évite une page blanche)."""
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({"error": message}, status=400)
         context = services.build_empty_generation_context("uml_dispatch")
         context["dispatch_form"] = form
         context["dispatch_error"] = message

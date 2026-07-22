@@ -7,11 +7,9 @@
         data-analyze-url="{% url 'users:api_uml_dispatch_analyze' %}"
     ></div>
 
-    {% if dispatch_error %}
-    <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
-        {{ dispatch_error }}
+    <div id="umlDispatchError" class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800 {% if not dispatch_error %}hidden{% endif %}">
+        {% if dispatch_error %}{{ dispatch_error }}{% endif %}
     </div>
-    {% endif %}
 
     <form
         id="umlDispatchForm"
@@ -57,6 +55,12 @@
                         </p>
                     </div>
                 </div>
+            </div>
+
+            <div class="gen-split__connector" aria-hidden="true">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
             </div>
 
             {# Aperçu de l'arborescence proposée (éditable) #}
