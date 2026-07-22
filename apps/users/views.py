@@ -108,6 +108,112 @@ class ApiPlantumlPreviewUrlView(View):
             return JsonResponse({"error": str(e)}, status=500)
 
 
+class ApiUmlDispatchAnalyzeView(View):
+    """POST : analyse un PlantUML et retourne les groupes proposés (JSON).
+
+    Réponse : ``{"groups": [{"target", "folder", "members", "count"}],
+    "unlinked": [...], "total_classes": int}``. Sert à l'aperçu éditable
+    de l'arborescence côté client, sans upload de fichier.
+    """
+
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        from apps.uml_dispatcher.services import DispatchError, build_dispatch_plan
+
+        uml_text = request.POST.get("plantuml_text", "").strip()
+        if not uml_text:
+            return JsonResponse({"error": "plantuml_text requis"}, status=400)
+        try:
+            plan = build_dispatch_plan(uml_text)
+        except DispatchError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
+        except Exception as exc:  # noqa: BLE001 - message d'erreur générique côté UI
+            return JsonResponse({"error": f"Erreur interne: {exc}"}, status=500)
+        return JsonResponse(
+            {
+                "groups": [
+                    {
+                        "target": g.target,
+                        "folder": g.folder,
+                        "members": list(g.members),
+                        "count": len(g.members),
+                    }
+                    for g in plan.groups
+                ],
+                "unlinked": list(plan.unlinked),
+                "total_classes": len(plan.class_names),
+            }
+        )
+
+
+class UmlDispatchGenerateView(View):
+    """POST : construit et renvoie le ZIP réorganisé (téléchargement).
+
+    En cas d'erreur (formulaire, ZIP invalide), ré-affiche le hub avec le
+    message d'erreur au lieu de forcer un téléchargement.
+    """
+
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        from apps.uml_dispatcher.forms import UmlDispatchForm
+
+        form = UmlDispatchForm(request.POST, request.FILES)
+        if not form.is_valid():
+            message = "; ".join(
+                f"{field}: {', '.join(errs)}" for field, errs in form.errors.items()
+            )
+            return self._render_error(request, form, message or "Formulaire invalide.")
+        return self._build_or_error(request, form)
+
+    def _build_or_error(self, request, form):
+        from apps.uml_dispatcher.services import (
+            DispatchError,
+            ZipDispatchError,
+            build_dispatch_plan,
+            build_placement,
+            build_reorganized_zip,
+        )
+
+        try:
+            plan = build_dispatch_plan(form.cleaned_data["plantuml_text"])
+            overrides = self._parse_overrides(form.cleaned_data.get("folder_map", ""))
+            placement = build_placement(plan, overrides)
+            zip_bytes = build_reorganized_zip(
+                form.cleaned_data["archive"].read(), placement
+            )
+        except (DispatchError, ZipDispatchError) as exc:
+            return self._render_error(request, form, str(exc))
+        except Exception as exc:  # noqa: BLE001
+            return self._render_error(request, form, f"Erreur interne: {exc}")
+
+        response = HttpResponse(zip_bytes, content_type="application/zip")
+        response["Content-Disposition"] = 'attachment; filename="reorganise.zip"'
+        return response
+
+    @staticmethod
+    def _parse_overrides(raw: str) -> dict:
+        import json
+
+        if not raw:
+            return {}
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            return {}
+        if not isinstance(data, dict):
+            return {}
+        return {str(k): str(v) for k, v in data.items()}
+
+    @staticmethod
+    def _render_error(request, form, message: str):
+        context = services.build_empty_generation_context("uml_dispatch")
+        context["dispatch_form"] = form
+        context["dispatch_error"] = message
+        return render(request, "generation_tools.html", context)
+
+
 class ApiHelloView(APIView):
     """GET : fragment HTMX ou JSON DRF."""
 

@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     ApiHelloView,
     ApiPlantumlPreviewUrlView,
+    ApiUmlDispatchAnalyzeView,
     DocumentDetailView,
     DocumentsListView,
     GenerationToolsView,
@@ -12,6 +13,7 @@ from .views import (
     ProfileView,
     PublicProfileView,
     SignupView,
+    UmlDispatchGenerateView,
     UserListPartialView,
 )
 
@@ -24,6 +26,8 @@ urlpatterns = [
     path("documents/", DocumentsListView.as_view(), name="documents"),
     path("api/hello/", ApiHelloView.as_view(), name="api_hello"),
     path("api/plantuml-preview-url/", ApiPlantumlPreviewUrlView.as_view(), name="api_plantuml_preview_url"),
+    path("api/uml-dispatch/analyze/", ApiUmlDispatchAnalyzeView.as_view(), name="api_uml_dispatch_analyze"),
+    path("outils-generation/uml-dispatch/", UmlDispatchGenerateView.as_view(), name="uml_dispatch_generate"),
     path("profile/", ProfileView.as_view(), name="profile"),
     path("list-users/", UserListPartialView.as_view(), name="user_list"),
     path("signup/", SignupView.as_view(), name="signup"),

@@ -1,0 +1,87 @@
+{% load static %}
+<section class="gen-tool-workspace">
+    <div
+        id="umlDispatchConfig"
+        class="hidden"
+        aria-hidden="true"
+        data-analyze-url="{% url 'users:api_uml_dispatch_analyze' %}"
+    ></div>
+
+    {% if dispatch_error %}
+    <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+        {{ dispatch_error }}
+    </div>
+    {% endif %}
+
+    <form
+        id="umlDispatchForm"
+        method="post"
+        enctype="multipart/form-data"
+        action="{% url 'users:uml_dispatch_generate' %}"
+        class="space-y-6"
+    >
+        {% csrf_token %}
+        {{ dispatch_form.folder_map }}
+
+        <div class="gen-split">
+            {# Entrées : PlantUML + ZIP #}
+            <div class="gen-pane gen-pane--input">
+                <div class="gen-pane__toolbar">
+                    <div class="gen-pane__toolbar-left">
+                        <span class="gen-pane__indicator" aria-hidden="true"></span>
+                        <span class="gen-pane__title">Source</span>
+                    </div>
+                    <span class="gen-pane__label">PlantUML + archive ZIP</span>
+                </div>
+                <div class="gen-pane__body space-y-4">
+                    <label class="block text-xs font-bold uppercase tracking-wide text-slate-600" for="id_dispatch_uml">
+                        Diagramme PlantUML
+                    </label>
+                    {{ dispatch_form.plantuml_text }}
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button type="button" id="umlDispatchAnalyzeBtn" class="uml-dispatch-btn uml-dispatch-btn--ghost">
+                            Analyser les liens
+                        </button>
+                        <span id="umlDispatchSummary" class="text-xs font-semibold text-slate-500"></span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-600" for="id_archive">
+                            Archive ZIP du dossier source
+                        </label>
+                        {{ dispatch_form.archive }}
+                        <p class="text-[11px] text-slate-500">
+                            Les fichiers dont le nom correspond à une classe sont rangés dans le dossier de leur groupe
+                            (les autres vont dans <code>_autres/</code>, les classes sans lien dans <code>_divers/</code>).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {# Aperçu de l'arborescence proposée (éditable) #}
+            <div class="gen-pane gen-pane--output">
+                <div class="gen-pane__toolbar">
+                    <div class="gen-pane__toolbar-left">
+                        <span class="gen-pane__indicator" aria-hidden="true"></span>
+                        <span class="gen-pane__title">Arborescence proposée</span>
+                    </div>
+                    <span class="gen-pane__label">noms de dossiers éditables</span>
+                </div>
+                <div class="gen-pane__body">
+                    <div id="umlDispatchResult" class="uml-dispatch-result">
+                        <p class="uml-dispatch-empty">Analyse le PlantUML pour visualiser les groupes détectés.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+            <button type="submit" id="umlDispatchGenerateBtn" class="uml-dispatch-btn uml-dispatch-btn--primary">
+                Générer &amp; télécharger le ZIP
+            </button>
+        </div>
+    </form>
+
+    <script src="{% static 'js/uml_dispatch/uml_dispatch.js' %}" defer></script>
+</section>

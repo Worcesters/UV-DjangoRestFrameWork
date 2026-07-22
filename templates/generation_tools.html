@@ -152,6 +152,8 @@
                 {% include "pipeline_generator/index.html" with form=pipeline_form generated_config=pipeline_generated_config error_message=pipeline_error_message containers_initial_json=pipeline_containers_initial_json form_action=form_action %}
                 {% elif active_tool == "bpmn" %}
                 {% include "code_to_bpmn/index.html" with form=bpmn_form bpmn_xml=bpmn_xml parsed_files=bpmn_parsed_files detected_language=bpmn_detected_language error_message=bpmn_error_message preview_url=bpmn_preview_url form_action=form_action %}
+                {% elif active_tool == "uml_dispatch" %}
+                {% include "uml_dispatcher/index.html" with dispatch_form=dispatch_form dispatch_error=dispatch_error %}
                 {% endif %}
             </div>
         </div>

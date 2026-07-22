@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "apps.codegenerator",
     "apps.pipeline_generator",
     "apps.code_to_bpmn",
+    "apps.uml_dispatcher",
     "apps.contact",
 ]
 

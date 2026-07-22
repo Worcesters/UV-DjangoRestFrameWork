@@ -24,6 +24,7 @@ from apps.codegenerator.forms import CodeGeneratorForm
 from apps.codegenerator.services import CodeGenerationError, generate_code_from_plantuml
 from apps.pipeline_generator.forms import PipelineConfigForm
 from apps.pipeline_generator.services import PipelineGenerationError, generate_pipeline_config
+from apps.uml_dispatcher.forms import UmlDispatchForm
 
 # Même structure que l’historique (urls affichées dans les métadonnées outil)
 GENERATION_TOOLS: List[Dict[str, Any]] = [
@@ -76,6 +77,20 @@ GENERATION_TOOLS: List[Dict[str, Any]] = [
         "url": "/code-to-bpmn/",
         "bg_type": "bpmn",
         "bg_snippet": "<process>\n  <task/>",
+    },
+    {
+        "id": "uml_dispatch",
+        "name": "UML Dispatcher",
+        "description": "Range les fichiers en sous-dossiers selon leurs liens.",
+        "intro": (
+            "Colle un PlantUML et dépose l'archive ZIP du dossier source : "
+            "l'outil regroupe les fichiers par lien (héritage / réalisation) "
+            "et te renvoie un ZIP réorganisé."
+        ),
+        "icon": "folders",
+        "url": "/outils-generation/?tool=uml_dispatch",
+        "bg_type": "codegen",
+        "bg_snippet": "ServiceEntityLink/\n  VersionRepository\n  ProfileRepository",
     },
 ]
 
@@ -137,7 +152,14 @@ def _empty_context(active_tool: str) -> Dict[str, Any]:
         "bpmn_detected_language": "",
         "bpmn_error_message": "",
         "bpmn_preview_url": "",
+        "dispatch_form": UmlDispatchForm(),
+        "dispatch_error": "",
     }
+
+
+def build_empty_generation_context(active_tool: str) -> Dict[str, Any]:
+    """Contexte du hub sans traitement POST (utilisé pour ré-afficher une erreur outil)."""
+    return _empty_context(active_tool)
 
 
 def _post_uml(request: HttpRequest, context: Dict[str, Any]) -> None:

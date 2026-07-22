@@ -12,13 +12,14 @@ from .core import (
     try_register_user,
 )
 from .markdown_fs import MarkdownFileDocument
-from .generation_tools import build_generation_tools_context
+from .generation_tools import build_empty_generation_context, build_generation_tools_context
 from .public_profile import get_public_profile_context
 
 __all__ = [
     "MarkdownDocumentService",
     "MarkdownFileDocument",
     "authenticate_user",
+    "build_empty_generation_context",
     "build_generation_tools_context",
     "build_users_display",
     "get_public_profile_context",

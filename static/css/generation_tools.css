@@ -1166,3 +1166,125 @@
     accent-color: #0d9488;
     cursor: pointer;
 }
+
+/* UML Dispatcher — arborescence de rangement (Flat High-End) */
+.uml-dispatch-btn {
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.uml-dispatch-btn--ghost {
+    border-color: #cbd5e1;
+    background: #fff;
+    color: #334155;
+}
+
+.uml-dispatch-btn--ghost:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.uml-dispatch-btn--primary {
+    border-color: #0f766e;
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.uml-dispatch-btn--primary:hover {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+
+.uml-dispatch-result {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 32rem;
+    overflow-y: auto;
+}
+
+.uml-dispatch-empty {
+    padding: 1rem 0.5rem;
+    text-align: center;
+    font-size: 0.78rem;
+    color: #94a3b8;
+}
+
+.uml-dispatch-group {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    background: #fff;
+    padding: 0.75rem;
+}
+
+.uml-dispatch-group--misc {
+    border-style: dashed;
+    background: #f8fafc;
+}
+
+.uml-dispatch-group__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.uml-dispatch-group__target {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0f172a;
+    word-break: break-word;
+}
+
+.uml-dispatch-group__count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.uml-dispatch-folder-input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0f766e;
+    background: #f0fdfa;
+}
+
+.uml-dispatch-folder-input:focus {
+    outline: none;
+    border-color: #0d9488;
+    box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.22);
+}
+
+.uml-dispatch-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+}
+
+.uml-dispatch-chip {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #334155;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.4rem;
+    padding: 0.15rem 0.45rem;
+}
+
+.uml-dispatch-chip--muted {
+    color: #64748b;
+    background: #fff;
+    border-style: dashed;
+}
