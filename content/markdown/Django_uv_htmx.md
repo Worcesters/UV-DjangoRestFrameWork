@@ -1,4 +1,4 @@
-# 🚀 Full-Stack Django 2026
+# 🚀 Full-Stack Django RestFramework 2026
 
 > **Stack :** Python 3.12+ | Django 6.x | HTMX 2.x | DRF | uv
 > **Structure :** projet `config/` + applications dans `apps/` (norme projet « plateforme » 2026).

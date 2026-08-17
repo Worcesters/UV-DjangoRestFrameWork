@@ -1,7 +1,7 @@
-# Django Ninja + uv + HTMX + Astro + Docker — combo 2026
+# Django 2026
 
-> **Stack :** Python 3.12+ | Django 5.x / 6.x | Django Ninja | Pydantic v2 | uv | Astro | HTMX 2.x | PostgreSQL 16 | Redis | Celery | Docker Compose  
-> **Structure :** monorepo `backend/` + `frontend/`  
+> **Stack :** Python 3.12+ | Django 5.x / 6.x | Django Ninja | Pydantic v2 | uv | Astro | HTMX 2.x | PostgreSQL 16 | Redis | Celery | Docker Compose
+> **Structure :** monorepo `backend/` + `frontend/`
 > **Règle d’or :** la logique métier vit dans **Services / Selectors**, jamais dans les routers Ninja, les templates HTMX, ni Astro.
 
 Ce guide est un **tuto plug-and-play** : chaque section est copiable. À la fin, tu as une API Ninja, un back-office HTMX, un site produit Astro, et un `docker compose` qui démarre le tout.
@@ -1306,7 +1306,7 @@ La permission objet se vérifie **dans le service**, pas dans le router. L’end
 
 ### CORS (dev seulement, Astro sur :4321)
 
-Déjà dans `dev.py` : `CORS_ALLOWED_ORIGINS = ["http://localhost:4321"]`.  
+Déjà dans `dev.py` : `CORS_ALLOWED_ORIGINS = ["http://localhost:4321"]`.
 Prod same-origin → CORS inutile pour le navigateur.
 
 ### Secrets
@@ -1346,7 +1346,7 @@ uv add --dev pytest pytest-django
 uv run pytest apps/catalog -q
 ```
 
-Minimum par service : **happy path + 1 edge + 1 failure**.  
+Minimum par service : **happy path + 1 edge + 1 failure**.
 Chaque endpoint : test d’autorisation (refus + succès).
 
 ---
