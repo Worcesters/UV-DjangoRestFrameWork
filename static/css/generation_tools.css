@@ -1146,6 +1146,44 @@
     color: #94a3b8;
 }
 
+/* =============================================================================
+   UML Builder — modale formulaire (add method, extends, …)
+   Corps scrollable + pied fixe ; échappe au overflow:hidden du workspace.
+   ============================================================================= */
+.uml-builder-modal {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.uml-builder-modal__scroll {
+    min-height: 100%;
+    width: 100%;
+}
+
+.uml-builder-modal__dialog {
+    display: flex;
+    flex-direction: column;
+    max-height: min(90dvh, calc(100vh - 2rem));
+    margin: auto 0;
+}
+
+@supports not (height: 1dvh) {
+    .uml-builder-modal__dialog {
+        max-height: calc(100vh - 2rem);
+    }
+}
+
+.uml-builder-modal__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+body.uml-builder-modal-open {
+    overflow: hidden;
+}
+
 /* Tuiles palette dédiées (Package / BDD) — hors palette Tailwind compilée */
 .uml-tile {
     user-select: none;

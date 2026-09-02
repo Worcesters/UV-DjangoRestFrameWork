@@ -521,16 +521,46 @@
         var builderCancel = document.getElementById("umlBuilderModalCancel");
         var builderApply = document.getElementById("umlBuilderModalApply");
         var builderAction = null;
+        var builderModalHome = null;
+
+        function dedupeBuilderModal() {
+            var modals = document.querySelectorAll("#umlBuilderModal");
+            for (var i = 1; i < modals.length; i += 1) {
+                modals[i].remove();
+            }
+        }
+
+        function mountBuilderModal() {
+            if (!builderModal || builderModal.parentElement === document.body) return;
+            builderModalHome = builderModal.parentElement;
+            document.body.appendChild(builderModal);
+        }
+
+        function restoreBuilderModalHome() {
+            if (!builderModal || !builderModalHome || !builderModalHome.isConnected) {
+                builderModalHome = null;
+                return;
+            }
+            if (builderModal.parentElement === document.body) {
+                builderModalHome.appendChild(builderModal);
+            }
+            builderModalHome = null;
+        }
 
         function closeBuilderModal() {
             if (!builderModal) return;
             builderModal.classList.add("hidden");
+            builderModal.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("uml-builder-modal-open");
             builderAction = null;
             if (builderBody) builderBody.innerHTML = "";
+            restoreBuilderModalHome();
         }
 
         function openBuilderModal(action, uml) {
             if (!builderModal || !builderBody || !builderTitle) return;
+            dedupeBuilderModal();
+            mountBuilderModal();
             builderAction = action;
             if (builderApply) builderApply.classList.remove("hidden");
             var classes = extractClasses(uml);
@@ -1502,6 +1532,14 @@
             }
 
             builderModal.classList.remove("hidden");
+            builderModal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("uml-builder-modal-open");
+            var firstField = builderBody.querySelector("input, select, textarea");
+            if (firstField) {
+                window.requestAnimationFrame(function () {
+                    firstField.focus();
+                });
+            }
         }
 
         if (builderCancel) builderCancel.addEventListener("click", closeBuilderModal);
@@ -1988,6 +2026,16 @@
             init();
         }
     }
+
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+        var target = evt.detail && evt.detail.target;
+        if (!target || target.id !== "gen-tool-panel") return;
+        var builderModal = document.body.querySelector("#umlBuilderModal");
+        if (builderModal && builderModal.parentElement === document.body) {
+            builderModal.remove();
+        }
+        document.body.classList.remove("uml-builder-modal-open");
+    });
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", bootUmlPreviewer);
